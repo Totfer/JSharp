@@ -78,10 +78,10 @@ app.get('/text1', function(req, res) {
 	}
     
     tablas = Compilar.Compilar(texto[1],Nodo3d);
-    codigo = texto[1];
-    retorno = tablas.retorno;
-    codigo3d = tablas.codigo; 
-    res.send(tablas.retorno);
+    //codigo = texto[1];
+    //retorno = tablas.retorno;
+    //codigo3d = tablas.codigo; 
+    res.send("toto bien");
 });
 
 app.get('/compilar', function(req, res) {

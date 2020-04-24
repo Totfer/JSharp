@@ -12,7 +12,7 @@ analizador.analizar = function analizar(){
         "lex": {
             "rules": [
     
-                ["abstract",                  "return 'abstract';"],
+                ["Global",                  "return 'abstract';"],
                 ["break",                     "return 'break';"],
                 ["case",                      "return 'case';"],
                 ["catch",                     "return 'catch';"],

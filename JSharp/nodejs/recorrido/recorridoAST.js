@@ -12,6 +12,8 @@ var parser = require("../Analizador/calc.js");
 const Viz = require('../Analizador/node_modules/viz.js');
 const { Module, render } = require('../Analizador/node_modules/viz.js/full.render.js');
 
+var ast = require("../Analizador/ast");
+
 function llenarNuevoArbol(actual,padre){
 
     let tmp 
@@ -77,9 +79,27 @@ function llenarNuevoArbol3d(actual,padre){
 
 function Compilar(codigo){
     codigo = codigo;
+    parser.parser.yy.crearHoja = function crearHoja(identificador,linea, columna){
+        return {identificador,linea,columna}
+    }
+
+    parser.parser.yy.crearNodo = function crearNodo(identificador,linea, columna, hijos){
+        return {identificador,linea, columna, hijos}
+    }
+
+    parser.parser.yy.imprimirToquen = function imprimirToquen(token){
+        console.log(token)
+    }
+
+    parser.parser.yy.ast = new ast.AST();
+
+    parser.parser.yy.listaIds = [];
+
     var arbol = parser.parse(codigo); 
-    Nodo.Nodo = llenarNuevoArbol(arbol, Nodo.Nodo);
-    return Interprete(arbol);
+    console.log("--------------------Todo bien-------------------");
+   // Nodo.Nodo = llenarNuevoArbol(arbol, Nodo.Nodo);
+    //return Interprete(arbol);
+    return null;
 }
 
 var auxe='';
