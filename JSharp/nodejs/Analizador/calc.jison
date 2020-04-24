@@ -132,18 +132,19 @@
 
 %% // Gramatica
 
-inicio : raiz EOF{return $1;}
+inicio : raiz EOF{return $1}
 ;
 
-raiz : listaCuerpo {$$={}; $$.nombre="raiz"; $$.hijos=[$1];}
+raiz : listaCuerpo {$$ = yy.ast.hijos = $1}
 ;
 
-listaCuerpo : listaCuerpo sentenciasCuerpo {$$={}; $1.hijos.push($2); $$=$1;}
-    |sentenciasCuerpo
-    {
-        $$ = {nombre:'cuerpo',linea:'',columna:'',hijos:{}};
-        $$.hijos=[$1];
-    }
+listaCuerpo : listaCuerpo sentenciasCuerpo 
+		{
+            yy.listaIds.push([$2,0,0])
+            $$ = yy.crearNodo('cuerpo',0,0,[yy.listaIds])
+            yy.listaIds = []
+        }
+    |sentenciasCuerpo {yy.listaIds.push([$1,0,0])}
 ;
 
 sentenciasCuerpo : importar		{$$ = $1;}
@@ -152,8 +153,23 @@ sentenciasCuerpo : importar		{$$ = $1;}
     |declaracionFuncion         {$$ = $1;}
 ;
 
-importar : 'import' id '.' id {yy.imprimirToquen($2); $$ = yy.crearNodo('import',0,0,[$2])}
-    |'import' id '.' id ';'{$$ = yy.crearNodo('import',0,0,[$2])}
+importar : 'import' imports {yy.imprimirToquen($2); $$ = yy.crearNodo('import',0,0,[$2])}
+    |'import' imports ';'{$$ = yy.crearNodo('import',0,0,[$2])}
+;
+
+imports : imports ',' nombremports
+		{
+            yy.listaIds.push([$3,0,0])
+            $$ = yy.crearNodo('nombres',0,0,[yy.listaIds])
+            yy.listaIds = []
+        }
+    | nombremports {yy.listaIds.push([$1,0,0])}
+;
+
+nombremports : id '.' id
+    {
+        {yy.imprimirToquen($2); $$ = yy.crearNodo('nombre',0,0,[$1,$3])}   
+    }
 ;
 
 bloque : bloque sentenciasBloque 
@@ -172,23 +188,103 @@ sentenciasBloque : declaracion_variables	{$$ = $1;}
     |sentenciaWhile                         {$$ = $1;}
     |sentenciaDoWhile                       {$$ = $1;}
     |sentenciaFor                           {$$ = $1;}
-    |sentenciaSwitch                           {$$ = $1;}
+    |sentenciaSwitch                        {$$ = $1;}
 ;
 
 sentenciaSwitch : 'switch' '(' EXP ')' '{' bloqueSwitch '}'
+        {
+            $$ = yy.crearNodo('switch',@1.first_line,@1.first_column,[$3,$6])
+        }   
+;
+
+bloqueSwitch : listaBloqueSwitch sentenciaDefault
+        {
+            $$ = yy.crearNodo('bloqueSwitch',@1.first_line,@1.first_column,[$1,$2])
+        }   
+    |listaBloqueSwitch
+        {
+                $$ = yy.crearNodo('bloqueSwitchCases',@1.first_line,@1.first_column,[$1])
+        }
+    |sentenciaDefault
+        {
+                $$ = yy.crearNodo('bloqueSwitchDefault',@1.first_line,@1.first_column,[$1])
+        }
+;
+
+sentenciaDefault : 'default' ':' bloque
+        {
+            $$ = yy.crearNodo('default',@1.first_line,@1.first_column,[$3])
+        }
+    | 'default' ':'
+        {
+            $$ = yy.crearNodo('default',@1.first_line,@1.first_column,[])
+        }
+;
+
+sentenciaCase : 'case' EXP ':'
+        {
+            $$ = yy.crearNodo('case',@1.first_line,@1.first_column,[$2])
+        }
+    | 'case' EXP ':' bloque  
+        {
+            $$ = yy.crearNodo('case',@1.first_line,@1.first_column,[$2,$4])
+        }
+;
+
+listaBloqueSwitch : listaBloqueSwitch sentenciaCase
+		{
+            yy.listaIds.push([$2,0,0])
+            $$ = yy.crearNodo('listaSwitch',0,0,[yy.listaIds])
+            yy.listaIds = []
+        }
+    | sentenciaCase  
+        {
+           {yy.listaIds.push([$1,0,0])}
+        }
 ;
 
 sentenciaFor : 'for' '(' instruccionesFor ')' '{' bloque '}'
+    {
+        $$ = yy.crearNodo('for',@1.first_line,@1.first_column,[$3,$6])
+    }
 ;
 
-instruccionesFor : inicioFor pce
-    |pce
-;
-
-pce : ';' EXP ';' EXP 
-    |';' EXP ';'  
-    |';' ';' EXP 
-    ';' ';'  
+instruccionesFor : inicioFor ';' EXP ';' EXP 
+        {
+            instruccion1 = yy.crearNodo('instruccion1',@1.first_line,@1.first_column,[$1]) 
+            instruccion2 = yy.crearNodo('instruccion2',@1.first_line,@1.first_column,[$2])    
+            instruccion3 = yy.crearNodo('instruccion3',@1.first_line,@1.first_column,[$3])    
+            $$ = yy.crearNodo('instrucciones',@1.first_line,@1.first_column,[instruccion1,instruccion2,instruccion3])
+        }
+    | inicioFor ';' ';' EXP 
+        {
+            instruccion1 = yy.crearNodo('instruccion1',@1.first_line,@1.first_column,[$1])    
+            instruccion3 = yy.crearNodo('instruccion3',@1.first_line,@1.first_column,[$3])    
+            $$ = yy.crearNodo('instrucciones',@1.first_line,@1.first_column,[instruccion1,instruccion3])
+        }
+    | inicioFor ';' EXP ';' 
+        {
+            instruccion1 = yy.crearNodo('instruccion1',@1.first_line,@1.first_column,[$1])    
+            instruccion2 = yy.crearNodo('instruccion2',@1.first_line,@1.first_column,[$2])    
+            $$ = yy.crearNodo('instrucciones',@1.first_line,@1.first_column,[instruccion1,instruccion2])
+        }
+    | ';' EXP ';' EXP 
+        {
+            instruccion2 = yy.crearNodo('instruccion2',@1.first_line,@1.first_column,[$2])    
+            instruccion3 = yy.crearNodo('instruccion3',@1.first_line,@1.first_column,[$3])    
+            $$ = yy.crearNodo('instrucciones',@1.first_line,@1.first_column,[instruccion2,instruccion3])
+        }
+    | ';' EXP ';'  
+        {
+            instruccion2 = yy.crearNodo('instruccion2',@1.first_line,@1.first_column,[$2])    
+            $$ = yy.crearNodo('instrucciones',@1.first_line,@1.first_column,[instruccion2])
+        }
+    | ';' ';' EXP 
+        {
+            instruccion3 = yy.crearNodo('instruccion3',@1.first_line,@1.first_column,[$3])    
+            $$ = yy.crearNodo('instrucciones',@1.first_line,@1.first_column,[instruccion3])
+        }
+    | ';' ';'  {$$ = yy.crearNodo('instrucciones',@1.first_line,@1.first_column,[])}
 ;
 
 inicioFor : declaracionVariablesFor {$$ = $1;}
