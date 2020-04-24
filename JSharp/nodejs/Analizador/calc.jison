@@ -3,18 +3,18 @@
 /* lexical grammar */
 %lex
 %options case-insensitive
+%options ranges
+
+%s                comment
 
 %%
-
-<<EOF>>     return "EOF";
-
-
 // se ignoran comentarios
-"//".*
-[/][*][^*]*[*]+([^/*][^*]*[*]+)*[/]
 
-// se ignoran espacios en blanco
-\s+		
+"//".*                /* skip comments          */
+"/*"                  this.begin('comment');
+<comment>"*/"         this.popState();
+<comment>.            /* skip comment content   */
+\s+                   /* skip whitespace        */
 
 // Agrupacion
 "("                   return '(';
@@ -52,7 +52,7 @@
 
 // Palabras reservadas
 "null"                return 'null';
-"inetger"             return 'inetger';
+"integer"             return 'integer';
 "double"              return 'double';
 "char"                return 'char';
 
@@ -89,25 +89,23 @@
 "throw"               return 'throw';
 
 // Simbolos
-"="                   return ':=';
+":="                  return ':=';
 ":"                   return ':';
 ";"                   return ';';
 ","                   return ',';
 "="                   return '=';
-"="                   return ':=';
 
 "."                   return '.';
 
-[ \r\t]+			{}
-\n					{}
 // Expresiones regulares
-\"[^\""]*\"				{ yytext = yytext.substr(1,yyleng-2); return 'cadena'; }
-\'[^\']?\'				{ yytext = yytext.substr(1,yyleng-2); return 'caracter'; }
 
 [0-9]+"."[0-9]+\b     return 'decimal';
 [0-9]+\b              return 'entero';
 
-[a-zA-Z_][_a-zA-Z0-9]*\b    return 'id';
+\"[^\"]*\"				{ yytext = yytext.substr(1,yyleng-2); return 'cadena'; }
+\'[^\"]?\'				{ yytext = yytext.substr(1,yyleng-2); return 'caracter'; }
+
+[a-zA-ZñÑ_][a-zA-ZñÑ0-9_]*    return 'id';
 
 <<EOF>>               return 'EOF';
 /lex
@@ -134,7 +132,7 @@
 
 %% // Gramatica
 
-inicio : id EOF{return $1;}
+inicio : raiz EOF{return $1;}
 ;
 
 raiz : listaCuerpo {$$={}; $$.nombre="raiz"; $$.hijos=[$1];}
@@ -150,7 +148,8 @@ listaCuerpo : listaCuerpo sentenciasCuerpo {$$={}; $1.hijos.push($2); $$=$1;}
 
 sentenciasCuerpo : importar		{$$ = $1;}
     |declaracion_variables      {$$ = $1;}
-    |declaracionFuncion
+    |asignacion					{$$ = $1;}
+    |declaracionFuncion         {$$ = $1;}
 ;
 
 importar : 'import' id '.' id {yy.imprimirToquen($2); $$ = yy.crearNodo('import',0,0,[$2])}
@@ -168,10 +167,103 @@ bloque : bloque sentenciasBloque
 
 sentenciasBloque : declaracion_variables	{$$ = $1;}
     |asignacion								{$$ = $1;}
-    |print  								{$$ = $1;}
+    |imprmir  								{$$ = $1;}
+    |sentenciasif                           {$$ = $1;}
+    |sentenciaWhile                         {$$ = $1;}
+    |sentenciaDoWhile                       {$$ = $1;}
+    |sentenciaFor                           {$$ = $1;}
+    |sentenciaSwitch                           {$$ = $1;}
 ;
 
-print : 'print' '(' EXP ')' {$$ = yy.crearNodo('print',@1.first_line,@1.first_column,[$3])}
+sentenciaSwitch : 'switch' '(' EXP ')' '{' bloqueSwitch '}'
+;
+
+sentenciaFor : 'for' '(' instruccionesFor ')' '{' bloque '}'
+;
+
+instruccionesFor : inicioFor pce
+    |pce
+;
+
+pce : ';' EXP ';' EXP 
+    |';' EXP ';'  
+    |';' ';' EXP 
+    ';' ';'  
+;
+
+inicioFor : declaracionVariablesFor {$$ = $1;}
+    | asignacionFor  {$$ = $1;}
+;
+
+sentenciasif : 'if' '(' EXP ')' '{' bloque '}'
+        {
+            bloque = yy.crearNodo('if',@1.first_line,@1.first_column,[$3,$6])
+            nodoIf = yy.crearNodo('ifs',@1.first_line,@1.first_column,[bloque])      
+            $$ = yy.crearNodo('ifInstruccion',@1.first_line,@1.first_column,[nodoIf])
+        }
+    | 'if' '(' EXP ')' '{' bloque '}' sentencaElse
+        {
+            nodoElse = yy.crearNodo('else',@1.first_line,@1.first_column,[$8])  
+            bloque = yy.crearNodo('if',@1.first_line,@1.first_column,[$3,$6])    
+            nodoIf = yy.crearNodo('ifs',@1.first_line,@1.first_column,[bloque])      
+            $$ = yy.crearNodo('ifInstruccion',@1.first_line,@1.first_column,[nodoIf,nodoElse])
+        }
+    | 'if' '(' EXP ')' '{' bloque '}' listaElseIf sentencaElse
+        {
+            nodoElse = yy.crearNodo('else',@1.first_line,@1.first_column,[$8])  
+            bloque = yy.crearNodo('if',@1.first_line,@1.first_column,[$3,$6])    
+            nodoIf = yy.crearNodo('ifs',@1.first_line,@1.first_column,[bloque,$8])      
+            $$ = yy.crearNodo('ifInstruccion',@1.first_line,@1.first_column,[nodoIf,nodoElse])
+        }
+    | 'if' '(' EXP ')' '{' bloque '}' listaElseIf 
+        {
+            nodoElse = yy.crearNodo('else',@1.first_line,@1.first_column,[$8])  
+            bloque = yy.crearNodo('if',@1.first_line,@1.first_column,[$3,$6])    
+            nodoIf = yy.crearNodo('ifs',@1.first_line,@1.first_column,[bloque,$8])      
+            $$ = yy.crearNodo('ifInstruccion',@1.first_line,@1.first_column,[nodoIf])
+        }
+; 
+
+sentenciaWhile : 'while' '(' EXP ')' '{' bloque '}'
+    {
+        $$ = yy.crearNodo('while',@1.first_line,@1.first_column,[$3,$6])
+    }
+;
+
+
+sentenciaDoWhile : 'do' '{' bloque '}' 'while' '(' EXP ')' 
+        {
+            $$ = yy.crearNodo('do while',@1.first_line,@1.first_column,[$3,$7])
+        }
+    |'do' '{' bloque '}' 'while' '(' EXP ')' ';'
+        {
+            $$ = yy.crearNodo('do while',@1.first_line,@1.first_column,[$3,$7])
+        }
+;
+
+
+sentencaElse : 'else' '{' bloque '}'
+    {
+        $$ = yy.crearNodo('else',@1.first_line,@1.first_column,[$3])
+    }
+;
+
+listaElseIf : listaElseIf _elseIf
+		{
+            yy.listaIds.push([$2,0,0])
+            $$ = yy.crearNodo('lista else if',0,0,[yy.listaIds])
+            yy.listaIds = []
+        }
+    | _elseIf {yy.listaIds.push([$1,0,0])}
+;
+
+_elseIf : 'else' 'if' '(' EXP ')' '{' bloque '}' 
+    {
+        $$ = yy.crearNodo('else if',@1.first_line,@1.first_column,[$4,$7])
+    }
+;
+
+imprmir : 'print' '(' EXP ')' {$$ = yy.crearNodo('print',@1.first_line,@1.first_column,[$3])}
     |'print' '(' EXP ')' ';' {$$ = yy.crearNodo('print',@1.first_line,@1.first_column,[$3])}
 ;
 
@@ -239,6 +331,25 @@ declaracion_variables : tipoVCG id inicializador_variable
         }
 ;
 
+declaracionVariablesFor : tipoVCG id inicializadorVariableFor 
+        {
+            $$ = yy.crearNodo('inicializando variable si tipo',0,0,[$1,[$2,@1.first_line,@1.first_column],$3]);
+        }
+    | tipoDato listaIds inicializadorVariableFor 
+        {
+            $$ = yy.crearNodo('inicializando variable con tipo',0,0,[$1,$2,$3]);
+        }
+    | id listaIds inicializadorVariableFor 
+        {
+            $$ = yy.crearNodo('inicializando variable con tipo',0,0,[[$2,@2.first_line,@2.first_column],$2,$3]);
+        }
+    | tipoDato id inicializadorVariableFor 
+        {
+            $$ = yy.crearNodo('inicializando variable con tipo',0,0,[$1,[$2,@1.first_line,@1.first_column],$3]);
+        }
+    | id id inicializadorVariableFor 
+;
+
 
 listaIds : id ',' listaIds2
         {
@@ -260,11 +371,15 @@ listaIds2 : listaIds2 ',' id
         }
 ;
 
-inicializador_variable : '=' EXP ';'{$$ = yy.crearNodo('EXP',0,0,[$2]);}
-    | '=' EXP      {$$ = yy.crearNodo('EXP',@1.first_line,@1.first_column,[$2]);}
-    | ':=' EXP ';' {$$ = yy.crearNodo('EXP',@1.first_line,@1.first_column,[$2]);}
-    | ':=' EXP     {$$ = yy.crearNodo('EXP',@1.first_line,@1.first_column,[$2]);}
+inicializador_variable : ':=' EXP ';'{$$ = yy.crearNodo('EXP',0,0,[$2]);}
+    | ':=' EXP      {$$ = yy.crearNodo('EXP',@1.first_line,@1.first_column,[$2]);}
+    | '=' EXP ';' {$$ = yy.crearNodo('EXP',@1.first_line,@1.first_column,[$2]);}
+    | '=' EXP     {$$ = yy.crearNodo('EXP',@1.first_line,@1.first_column,[$2]);}
     | ';'          {$$ = {}}
+;
+
+inicializadorVariableFor : ':=' EXP      {$$ = yy.crearNodo('EXP',@1.first_line,@1.first_column,[$2]);}
+    | '=' EXP     {$$ = yy.crearNodo('EXP',@1.first_line,@1.first_column,[$2]);}
 ;
 
 asignacion : listaIdVecFun '=' EXP ';'
@@ -285,6 +400,16 @@ asignacion : listaIdVecFun '=' EXP ';'
         }
 ;
 
+asignacionFor :  listaIdVecFun '=' EXP 
+        {
+            $$ = yy.crearNodo('asignacion',0,0,[[$1,@1.first_line,@1.first_column],$3]);
+        }
+    | listaIdVecFun ':=' EXP 
+        {
+            $$ = yy.crearNodo('asignacion',0,0,[[$1,@1.first_line,@1.first_column],$3]);
+        }
+;
+
 listaIdVecFun : listaIdVecFun '.' tipoId {$$ = yy.crearNodo('identificador asignacion',@2.first_line,@2.first_column,[$1,$3])}
     | tipoId {$$ = yy.crearNodo('identificador asignacion',0,0,[$1])}
 ;
@@ -296,7 +421,7 @@ tipoId : id
 		}
 ;
 
-tipoDato: 'integer'   {$$ = yy.crearHoja($1,@1.first_line,@1.first_column)}
+tipoDato: "integer"   {$$ = yy.crearHoja($1,@1.first_line,@1.first_column)}
     |'char'           {$$ = yy.crearHoja($1,@1.first_line,@1.first_column)}
     |'boolean'        {$$ = yy.crearHoja($1,@1.first_line,@1.first_column)}
     |'void'           {$$ = yy.crearHoja($1,@1.first_line,@1.first_column)}
