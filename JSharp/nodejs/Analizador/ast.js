@@ -2,6 +2,19 @@ class AST {
     hijos = []
 
     compilar = function compilar(params) {
-        console.log("compilando")     
+        switch(){
+            
+        }
     }
+
+
+
+
+
+
+
+
+
+
+
 }exports.AST = AST;

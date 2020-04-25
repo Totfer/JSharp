@@ -78,7 +78,7 @@ app.get('/text1', function(req, res) {
 	}
     
     tablas = Compilar.Compilar(texto[1],Nodo3d);
-    //codigo = texto[1];
+    codigo = texto[1];
     //retorno = tablas.retorno;
     //codigo3d = tablas.codigo; 
     res.send("toto bien");
