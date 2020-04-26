@@ -80,11 +80,13 @@ function llenarNuevoArbol3d(actual, padre) {
 function Compilar(codigo) {
     codigo = codigo;
     parser.parser.yy.crearHoja = function crearHoja(identificador, linea, columna) {
-        return { identificador, linea, columna }
+        let astRet = new ast.AST(identificador, linea, columna, []);
+        return astRet
     }
 
     parser.parser.yy.crearNodo = function crearNodo(identificador, linea, columna, hijos) {
-        return { identificador, linea, columna, hijos }
+        let astRet = new ast.AST(identificador, linea, columna, hijos);
+        return astRet
     }
 
     parser.parser.yy.imprimirToquen = function imprimirToquen(token) {
@@ -96,6 +98,11 @@ function Compilar(codigo) {
     parser.parser.yy.listaIds = [];
 
     var arbol = parser.parse(codigo);
+
+    ambito = {}
+
+    arbol.compilar(ambito);
+
     console.log("--------------------Todo bien-------------------");
     // Nodo.Nodo = llenarNuevoArbol(arbol, Nodo.Nodo);
     //return Interprete(arbol);
@@ -167,7 +174,7 @@ function graficarArbol(child, actual, anterior) {
         return;
     }
     if (child.identificador != undefined) { 
-        if (child.hijos != undefined) {
+        if (child.hijos.length != 0) {
             dot += "\"" + actual + "\" [color=brown shape=Msquare label =\"" + child.identificador.toString().replace("\"", "").replace("\"", "").replace("\n", "") + "\"];\n";
         }   
         else{
@@ -201,7 +208,7 @@ function graficarArbol(child, actual, anterior) {
                 }
             }
         }
-        if (child.hijos.length == undefined) {
+        if (child.hijos.length == 0) {
             dot += "\"" + anterior + "\" -> \"" + actual + "\"\n";
         }
     }

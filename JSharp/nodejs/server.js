@@ -167,5 +167,5 @@ app.use(express.static('./html'));
 
 
 app.listen(3000, function () {
-    console.log('Abriendo aplicacion correctamente en el puerto 3000...');
+    console.log('Abriendo aplicacion en el puerto 3000');
 });
