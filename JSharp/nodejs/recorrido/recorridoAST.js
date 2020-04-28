@@ -101,7 +101,7 @@ function Compilar(codigo) {
 
     ambito = {}
 
-    arbol.compilar(ambito);
+   // arbol.compilar(ambito);
 
     console.log("--------------------Todo bien-------------------");
     // Nodo.Nodo = llenarNuevoArbol(arbol, Nodo.Nodo);

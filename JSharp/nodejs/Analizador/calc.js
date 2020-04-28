@@ -183,29 +183,29 @@ break;
 case 35:
 
             instruccion1 = yy.crearNodo('instruccion1',_$[$0-4].first_line,_$[$0-4].first_column,[$$[$0-4]]) 
-            instruccion2 = yy.crearNodo('instruccion2',_$[$0-4].first_line,_$[$0-4].first_column,[$$[$0-3]])    
-            instruccion3 = yy.crearNodo('instruccion3',_$[$0-4].first_line,_$[$0-4].first_column,[$$[$0-2]])    
+            instruccion2 = yy.crearNodo('instruccion2',_$[$0-4].first_line,_$[$0-4].first_column,[$$[$0-2]])    
+            instruccion3 = yy.crearNodo('instruccion3',_$[$0-4].first_line,_$[$0-4].first_column,[$$[$0]])    
             this.$ = yy.crearNodo('instrucciones',_$[$0-4].first_line,_$[$0-4].first_column,[instruccion1,instruccion2,instruccion3])
         
 break;
 case 36:
 
             instruccion1 = yy.crearNodo('instruccion1',_$[$0-3].first_line,_$[$0-3].first_column,[$$[$0-3]])    
-            instruccion3 = yy.crearNodo('instruccion3',_$[$0-3].first_line,_$[$0-3].first_column,[$$[$0-1]])    
+            instruccion3 = yy.crearNodo('instruccion3',_$[$0-3].first_line,_$[$0-3].first_column,[$$[$0]])    
             this.$ = yy.crearNodo('instrucciones',_$[$0-3].first_line,_$[$0-3].first_column,[instruccion1,instruccion3])
         
 break;
 case 37:
 
             instruccion1 = yy.crearNodo('instruccion1',_$[$0-3].first_line,_$[$0-3].first_column,[$$[$0-3]])    
-            instruccion2 = yy.crearNodo('instruccion2',_$[$0-3].first_line,_$[$0-3].first_column,[$$[$0-2]])    
+            instruccion2 = yy.crearNodo('instruccion2',_$[$0-3].first_line,_$[$0-3].first_column,[$$[$0-1]])    
             this.$ = yy.crearNodo('instrucciones',_$[$0-3].first_line,_$[$0-3].first_column,[instruccion1,instruccion2])
         
 break;
 case 38:
 
             instruccion2 = yy.crearNodo('instruccion2',_$[$0-3].first_line,_$[$0-3].first_column,[$$[$0-2]])    
-            instruccion3 = yy.crearNodo('instruccion3',_$[$0-3].first_line,_$[$0-3].first_column,[$$[$0-1]])    
+            instruccion3 = yy.crearNodo('instruccion3',_$[$0-3].first_line,_$[$0-3].first_column,[$$[$0]])    
             this.$ = yy.crearNodo('instrucciones',_$[$0-3].first_line,_$[$0-3].first_column,[instruccion2,instruccion3])
         
 break;
@@ -233,23 +233,20 @@ case 44:
 break;
 case 45:
 
-            nodoElse = yy.crearNodo('else',_$[$0-7].first_line,_$[$0-7].first_column,[$$[$0]])  
             bloque = yy.crearNodo('if',_$[$0-7].first_line,_$[$0-7].first_column,[$$[$0-5],$$[$0-2]])    
             nodoIf = yy.crearNodo('ifs',_$[$0-7].first_line,_$[$0-7].first_column,[bloque])      
-            this.$ = yy.crearNodo('ifInstruccion',_$[$0-7].first_line,_$[$0-7].first_column,[nodoIf,nodoElse])
+            this.$ = yy.crearNodo('ifInstruccion',_$[$0-7].first_line,_$[$0-7].first_column,[nodoIf,$$[$0]])
         
 break;
 case 46:
 
-            nodoElse = yy.crearNodo('else',_$[$0-8].first_line,_$[$0-8].first_column,[$$[$0-1]])  
             bloque = yy.crearNodo('if',_$[$0-8].first_line,_$[$0-8].first_column,[$$[$0-6],$$[$0-3]])    
             nodoIf = yy.crearNodo('ifs',_$[$0-8].first_line,_$[$0-8].first_column,[bloque,$$[$0-1]])      
-            this.$ = yy.crearNodo('ifInstruccion',_$[$0-8].first_line,_$[$0-8].first_column,[nodoIf,nodoElse])
+            this.$ = yy.crearNodo('ifInstruccion',_$[$0-8].first_line,_$[$0-8].first_column,[nodoIf,$$[$0]])
         
 break;
 case 47:
 
-            nodoElse = yy.crearNodo('else',_$[$0-7].first_line,_$[$0-7].first_column,[$$[$0]])  
             bloque = yy.crearNodo('if',_$[$0-7].first_line,_$[$0-7].first_column,[$$[$0-5],$$[$0-2]])    
             nodoIf = yy.crearNodo('ifs',_$[$0-7].first_line,_$[$0-7].first_column,[bloque,$$[$0]])      
             this.$ = yy.crearNodo('ifInstruccion',_$[$0-7].first_line,_$[$0-7].first_column,[nodoIf])
@@ -319,7 +316,7 @@ break;
 case 63:
 this.$ = yy.crearNodo('parametro',_$[$0].first_line,_$[$0].first_column,[$$[$0-1],yy.crearHoja($$[$0],_$[$0].first_line,_$[$0].first_column)])
 break;
-case 64:
+case 64: case 74:
 
             this.$ = yy.crearNodo('inicializando variable sin tipo',0,0,[$$[$0-2],yy.crearHoja($$[$0-1],_$[$0-1].first_line,_$[$0-1].first_column),$$[$0]]);
         
@@ -366,12 +363,7 @@ case 72:
 break;
 case 73:
 
-            this.$ = yy.crearNodo('inicializando variable con tipo',0,0,[[$$[$0-1],_$[$0-1].first_line,_$[$0-1].first_column],[$$[$0],_$[$0].first_line,_$[$0].first_column]]);
-        
-break;
-case 74:
-
-            this.$ = yy.crearNodo('inicializando variable si tipo',0,0,[$$[$0-2],[$$[$0-1],_$[$0-1].first_line,_$[$0-1].first_column],$$[$0]]);
+            this.$ = yy.crearNodo('inicializando variable con tipo',0,0,[yy.crearHoja($$[$0-1],_$[$0-1].first_line,_$[$0-1].first_column),yy.crearHoja($$[$0],_$[$0].first_line,_$[$0].first_column)]);
         
 break;
 case 79:

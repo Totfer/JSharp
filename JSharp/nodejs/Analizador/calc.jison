@@ -257,26 +257,26 @@ sentenciaFor : 'for' '(' instruccionesFor ')' '{' bloque '}'
 instruccionesFor : inicioFor ';' EXP ';' EXP 
         {
             instruccion1 = yy.crearNodo('instruccion1',@1.first_line,@1.first_column,[$1]) 
-            instruccion2 = yy.crearNodo('instruccion2',@1.first_line,@1.first_column,[$2])    
-            instruccion3 = yy.crearNodo('instruccion3',@1.first_line,@1.first_column,[$3])    
+            instruccion2 = yy.crearNodo('instruccion2',@1.first_line,@1.first_column,[$3])    
+            instruccion3 = yy.crearNodo('instruccion3',@1.first_line,@1.first_column,[$5])    
             $$ = yy.crearNodo('instrucciones',@1.first_line,@1.first_column,[instruccion1,instruccion2,instruccion3])
         }
     | inicioFor ';' ';' EXP 
         {
             instruccion1 = yy.crearNodo('instruccion1',@1.first_line,@1.first_column,[$1])    
-            instruccion3 = yy.crearNodo('instruccion3',@1.first_line,@1.first_column,[$3])    
+            instruccion3 = yy.crearNodo('instruccion3',@1.first_line,@1.first_column,[$4])    
             $$ = yy.crearNodo('instrucciones',@1.first_line,@1.first_column,[instruccion1,instruccion3])
         }
     | inicioFor ';' EXP ';' 
         {
             instruccion1 = yy.crearNodo('instruccion1',@1.first_line,@1.first_column,[$1])    
-            instruccion2 = yy.crearNodo('instruccion2',@1.first_line,@1.first_column,[$2])    
+            instruccion2 = yy.crearNodo('instruccion2',@1.first_line,@1.first_column,[$3])    
             $$ = yy.crearNodo('instrucciones',@1.first_line,@1.first_column,[instruccion1,instruccion2])
         }
     | ';' EXP ';' EXP 
         {
             instruccion2 = yy.crearNodo('instruccion2',@1.first_line,@1.first_column,[$2])    
-            instruccion3 = yy.crearNodo('instruccion3',@1.first_line,@1.first_column,[$3])    
+            instruccion3 = yy.crearNodo('instruccion3',@1.first_line,@1.first_column,[$4])    
             $$ = yy.crearNodo('instrucciones',@1.first_line,@1.first_column,[instruccion2,instruccion3])
         }
     | ';' EXP ';'  
@@ -304,21 +304,18 @@ sentenciasif : 'if' '(' EXP ')' '{' bloque '}'
         }
     | 'if' '(' EXP ')' '{' bloque '}' sentencaElse
         {
-            nodoElse = yy.crearNodo('else',@1.first_line,@1.first_column,[$8])  
             bloque = yy.crearNodo('if',@1.first_line,@1.first_column,[$3,$6])    
             nodoIf = yy.crearNodo('ifs',@1.first_line,@1.first_column,[bloque])      
-            $$ = yy.crearNodo('ifInstruccion',@1.first_line,@1.first_column,[nodoIf,nodoElse])
+            $$ = yy.crearNodo('ifInstruccion',@1.first_line,@1.first_column,[nodoIf,$8])
         }
     | 'if' '(' EXP ')' '{' bloque '}' listaElseIf sentencaElse
         {
-            nodoElse = yy.crearNodo('else',@1.first_line,@1.first_column,[$8])  
             bloque = yy.crearNodo('if',@1.first_line,@1.first_column,[$3,$6])    
             nodoIf = yy.crearNodo('ifs',@1.first_line,@1.first_column,[bloque,$8])      
-            $$ = yy.crearNodo('ifInstruccion',@1.first_line,@1.first_column,[nodoIf,nodoElse])
+            $$ = yy.crearNodo('ifInstruccion',@1.first_line,@1.first_column,[nodoIf,$9])
         }
     | 'if' '(' EXP ')' '{' bloque '}' listaElseIf 
         {
-            nodoElse = yy.crearNodo('else',@1.first_line,@1.first_column,[$8])  
             bloque = yy.crearNodo('if',@1.first_line,@1.first_column,[$3,$6])    
             nodoIf = yy.crearNodo('ifs',@1.first_line,@1.first_column,[bloque,$8])      
             $$ = yy.crearNodo('ifInstruccion',@1.first_line,@1.first_column,[nodoIf])
@@ -440,13 +437,13 @@ declaracion_variables : tipoVCG id inicializador_variable
         }
     | id id  
         {
-            $$ = yy.crearNodo('inicializando variable con tipo',0,0,[[$1,@1.first_line,@1.first_column],[$2,@2.first_line,@2.first_column]]);
+            $$ = yy.crearNodo('inicializando variable con tipo',0,0,[yy.crearHoja($1,@1.first_line,@1.first_column),yy.crearHoja($2,@2.first_line,@2.first_column)]);
         }
 ;
 
 declaracionVariablesFor : tipoVCG id inicializadorVariableFor 
         {
-            $$ = yy.crearNodo('inicializando variable si tipo',0,0,[$1,[$2,@2.first_line,@2.first_column],$3]);
+            $$ = yy.crearNodo('inicializando variable sin tipo',0,0,[$1,yy.crearHoja($2,@2.first_line,@2.first_column),$3]);
         }
     | tipoDato listaIds inicializadorVariableFor 
         {
