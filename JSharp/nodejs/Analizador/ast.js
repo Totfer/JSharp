@@ -12,6 +12,7 @@ class retornoAST {
         this.t = ''
         this.l = ''
         this.tipo = ''
+        this.break = ''
     }
 }
 
@@ -61,19 +62,50 @@ class AST {
                 case 'declaracionFuncion':
                     retorno = this.hijos[i].declaracionFuncion(ambito)
                     break;
+            }
+        }
+        return retorno;
+    }
+
+
+    compilarSentenciaControl = function compilarSentencia(ambito) {
+        let c3d = '';
+        let retorno;
+        let breakL = '';
+        let valor;
+        for (let i = 0; i < this.hijos.length; i++) {
+            switch (this.hijos[i].identificador) {
                 case 'print':
-                    return this.hijos[i].print(ambito);
+                    valor = this.hijos[i].print(ambito);
+                    retorno.c3d += valor.c3d;
+                    break;
                 case 'ifInstruccion':
-                    return this.hijos[i].sentenciaIf(ambito);
+                    valor = this.hijos[i].sentenciaIf(ambito);
+                    retorno.c3d += valor.c3d;
+                    break;
                 case 'while':
-                    return this.hijos[i].sentenciaWhile(ambito);
+                    valor = this.hijos[i].sentenciaWhile(ambito);
+                    retorno.c3d += valor.c3d;
+                    break;
                 case 'do while':
-                    return this.hijos[i].sentenciaDoWhile(ambito);
+                    valor = this.hijos[i].sentenciaDoWhile(ambito);
+                    retorno.c3d += valor.c3d;
+                    break;
                 case 'switch':
-                    return this.hijos[i].sentenciaSwitch(ambito);
+                    valor =  this.hijos[i].sentenciaSwitch(ambito);
+                    retorno.c3d += valor.c3d;
+                    break;
+                case 'break':
+                    if(breakL == ''){
+                        breakL = 'L'+(contadorL++);
+                    }
+                    retorno.c3d += 'goto '+breakL+':\n'
                 default:
             }
         }
+
+        retorno.break = breakL;
+
         return retorno;
     }
 
@@ -97,7 +129,7 @@ class AST {
         return retorno
     }
 
-    sentenciaDoWhile = function sentenciaWhile(ambito) {
+    sentenciaDoWhile = function sentenciaDoWhile(ambito) {
         let retorno = new retornoAST('', 0, '', '', '');
 
         let retorno1 = this.hijos[1].obtenerExp(ambito);
@@ -226,7 +258,7 @@ class AST {
 
 
 
-    declaracionFuncion = function declaracionFuncion(ambito) {
+    declaracionFuncion = function compilarSentenciaControl(ambito) {
 
         return this.hijos[2].compilarSentencia(ambito)
 
@@ -283,6 +315,7 @@ class AST {
             default:
         }
     }
+
 
     logicoNeg = function logicoNeg(ambito) {
         let resultado1 = this.hijos[0].obtenerExp(ambito);
