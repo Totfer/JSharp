@@ -36,10 +36,10 @@ class AST {
         let cabecera = 'var ';
 
         for (let i = 0; i < contadorT; i++) {
-                cabecera += 't'+i+',';
+            cabecera += 't' + i + ',';
         }
-        
-        cabecera = cabecera.substring(0, cabecera.length-1)+';\n';
+
+        cabecera = cabecera.substring(0, cabecera.length - 1) + ';\n';
         cabecera += 'var Stack[];\n';
         cabecera += 'var Heap[];\n';
         cabecera += 'var P = 0;\n';
@@ -69,12 +69,33 @@ class AST {
                     return this.hijos[i].sentenciaWhile(ambito);
                 case 'do while':
                     return this.hijos[i].sentenciaDoWhile(ambito);
+                case 'switch':
+                    return this.hijos[i].sentenciaSwitch(ambito);
                 default:
             }
         }
         return retorno;
     }
 
+    sentenciaSwitch = function sentenciaSwitch(ambito, l) {
+        let retorno = new retornoAST('', 0, '', '', '');
+
+        let retorno1 = this.hijos[0].obtenerExp(ambito);
+        let retorno2 = this.hijos[1].compilarSentencia(ambito);
+
+
+        retorno.c3d += retorno1.c3d;
+        retorno.c3d += 'if(' + retorno1.t + '==0) goto L' + (contadorL) + ';\n';
+        retorno.c3d += retorno2.c3d;
+
+        retorno.c3d += 'goto ' + l + ';\n';
+
+        retorno.c3d += 'L' + (contadorL) + ':\n';
+
+        retorno.l = 'L' + (contadorL++) + '\n';
+
+        return retorno
+    }
 
     sentenciaDoWhile = function sentenciaWhile(ambito) {
         let retorno = new retornoAST('', 0, '', '', '');
@@ -122,6 +143,8 @@ class AST {
         return retorno
 
     }
+
+    //-------------------------------------------      if
 
     sentenciaIf = function sentenciaIf(ambito) {
         let retorno = new retornoAST('', 0, '', '', '');
@@ -197,6 +220,8 @@ class AST {
 
         return retorno
     }
+
+    //-------------------------------------------      end if
 
 
 
@@ -518,23 +543,32 @@ class AST {
         let resultado1 = this.hijos[0].obtenerExp(ambito);
         let resultado2 = this.hijos[1].obtenerExp(ambito);
         let tipo = this.obtenerTipoIgualDesigual(resultado1.tipo, resultado2.tipo);
-        let retorno
+        let retorno = new retornoAST('', 0, '', '', '');
+        
         if (tipo == 'error') {
-            retorno = {
-                c3d: '',
-                error: 1,
-                t: '',
-                l: '',
-                tipo: ''
-            }
+            retorno .error = 1;
             return retorno;
         }
 
         if (this.identificador == '==') {
-            retorno = this.igualDiferente3d(resultado1, resultado2, '<>');
+            if(resultado1.tipo == 'string'&& resultado2.tipo == 'string'){
+                retorno = this.CompararStrings(resultado1, resultado2)
+            }else{
+                retorno = this.igualDiferente3d(resultado1, resultado2, '<>');
+            }
         }
         else {
-            retorno = this.igualDiferente3d(resultado1, resultado2, '==');
+            if(resultado1.tipo == 'string'&& resultado2.tipo == 'string'){
+                retorno = this.CompararStrings(resultado1, resultado2)
+                retorno.c3d += "if(" + retorno.t + "==0) goto L" + (contadorL++) + ";\n";
+                retorno.c3d += retorno.t + "=0;\n";
+                retorno.c3d += "goto L" + (contadorL++) + ";\n";
+                retorno.c3d += "L" + (contadorL - 2) + ":\n";
+                retorno.c3d += retorno.t + "=1;\n";
+                retorno.c3d += "L" + (contadorL - 1) + ":\n";
+            }else{
+                retorno = this.igualDiferente3d(resultado1, resultado2, '==');
+            }
         }
 
         retorno.tipo = tipo;
@@ -1374,6 +1408,43 @@ class AST {
         retorno.c3d += 'H=H+1;\n';
 
         retorno.t = 't' + (contadorT - 5);
+
+        return retorno;
+    }
+
+    CompararStrings = function CompararStrings(t1, t2){
+        let retorno = new retornoAST('', 0, '', '', '');
+       
+        retorno.c3d += t1.c3d + t2.c3d; 
+
+        retorno.c3d += 't'+(contadorT++) +'='+t1.t+';\n';
+        retorno.c3d += 't'+(contadorT++) +'='+t2.t+';\n';
+        
+        retorno.c3d += 'L'+(contadorL++) +':\n';
+
+        retorno.c3d += 't'+(contadorT++) +'= Heap[t'+(contadorT-3)+'];\n';
+        retorno.c3d += 't'+(contadorT++) +'= Heap[t'+(contadorT-3)+'];\n';
+
+        
+        retorno.c3d += 'if(t'+(contadorT-2)+' <> t'+(contadorT-1)+') goto L'+(contadorL++)+';\n';
+        retorno.c3d += 'if(t'+(contadorT-2)+' == 0) goto L'+(contadorL++)+';\n';
+
+        retorno.c3d += 't'+(contadorT-3) +'=t'+(contadorT-3)+'+1;\n';
+        retorno.c3d += 't'+(contadorT-4) +'=t'+(contadorT-4)+'+1;\n';
+        
+        retorno.c3d += 'goto L'+(contadorL-3)+';\n';        
+
+        retorno.c3d += 'L'+(contadorL-1) +':\n';         
+        retorno.c3d += 't'+(contadorT) +'=1;\n';
+        retorno.c3d += 'goto L'+(contadorL++)+';\n';        
+
+
+        retorno.c3d += 'L'+(contadorL-3) +':\n';        
+        retorno.c3d += 't'+(contadorT) +'=0;\n';
+
+        retorno.c3d += 'L'+(contadorL-1) +':\n';        
+    
+        retorno.t = 't'+(contadorT++);
 
         return retorno;
     }
