@@ -1,6 +1,5 @@
 var fs = require('fs');
 var parser = require("../Analizador/calc.js");
-var c3d = '';
 var error = [];
 var contadorT = 0;
 var contadorL = 0;
@@ -29,30 +28,51 @@ class AST {
     }
 
     compilar = function compilar(ambito) {
+        contadorT = 0;
+        contadorL = 0;
+        error = [];
+        let retorno = this.compilarSentencia(ambito);
+
+        let cabecera = 'var ';
+
+        for (let i = 0; i < contadorT; i++) {
+                cabecera += 't'+i+',';
+        }
+        
+        cabecera = cabecera.substring(0, cabecera.length-1)+';\n';
+        cabecera += 'var Stack[];\n';
+        cabecera += 'var Heap[];\n';
+        cabecera += 'var P = 0;\n';
+        cabecera += 'var H = 0;\n';
+
+        retorno.c3d = cabecera + retorno.c3d;
+
+        console.log(retorno.c3d)
+    }
+
+    compilarSentencia = function compilarSentencia(ambito) {
         let c3d = '';
+        let retorno;
         for (let i = 0; i < this.hijos.length; i++) {
             switch (this.hijos[i].identificador) {
                 case 'import':
                     ambito = this.hijos[i].importar(ambito)
                     break;
                 case 'declaracionFuncion':
-                    return this.hijos[i].declaracionFuncion(ambito)
+                    retorno = this.hijos[i].declaracionFuncion(ambito)
                     break;
                 case 'print':
-                    this.hijos[i].print(ambito);
-                    break;
+                    return this.hijos[i].print(ambito);
                 case 'ifInstruccion':
-                    this.hijos[i].sentenciaIf(ambito);
-                    break;
+                    return this.hijos[i].sentenciaIf(ambito);
                 case 'while':
-                    this.hijos[i].sentenciaWhile(ambito);
-                    break;
+                    return this.hijos[i].sentenciaWhile(ambito);
                 case 'do while':
-                    this.hijos[i].sentenciaDoWhile(ambito);
-                    break;
+                    return this.hijos[i].sentenciaDoWhile(ambito);
                 default:
             }
         }
+        return retorno;
     }
 
 
@@ -60,7 +80,7 @@ class AST {
         let retorno = new retornoAST('', 0, '', '', '');
 
         let retorno1 = this.hijos[1].obtenerExp(ambito);
-        let retorno2 = this.hijos[0].compilar(ambito);
+        let retorno2 = this.hijos[0].compilarSentencia(ambito);
         let tipo = 'error'
 
         retorno.c3d += retorno1.c3d;
@@ -83,7 +103,7 @@ class AST {
         let retorno = new retornoAST('', 0, '', '', '');
 
         let retorno1 = this.hijos[0].obtenerExp(ambito);
-        let retorno2 = this.hijos[1].compilar(ambito);
+        let retorno2 = this.hijos[1].compilarSentencia(ambito);
         let tipo = 'error'
 
         retorno.c3d += retorno1.c3d;
@@ -108,20 +128,37 @@ class AST {
         let c3d = '';
         let valor;
         let l = 'L' + (contadorL++);
-        for (let i = 0; i < 3; i++) {
-            switch (this.hijos[0].identificador) {
-                case 'if':
-                    valor = this.hijos[0].if3d(ambito, l);
-                    c3d += valor.c3d;
-                    break;
-                case 'lista else if':
-                    valor = this.hijos[0].ifElse(ambito, l);
+        for (let i = 0; i < this.hijos.length; i++) {
+            switch (this.hijos[i].identificador) {
+                case 'ifs':
+                    valor = this.hijos[i].sentenciaIfs(ambito, l);
                     c3d += valor.c3d;
                     break;
                 case 'else':
-                    valor = this.hijos[0].compilar(ambito);
+                    valor = this.hijos[i].hijos[0].compilarSentencia(ambito);
                     c3d += valor.c3d;
-                    c3d += l + ':';
+                    break;
+            }
+        }
+
+        c3d += l + ':\n';
+        retorno.c3d += c3d;
+        return retorno;
+    }
+
+    sentenciaIfs = function sentenciaIfs(ambito, l) {
+        let retorno = new retornoAST('', 0, '', '', '');
+        let c3d = '';
+        let valor;
+        for (let i = 0; i < this.hijos.length; i++) {
+            switch (this.hijos[i].identificador) {
+                case 'if':
+                    valor = this.hijos[i].if3d(ambito, l);
+                    c3d += valor.c3d;
+                    break;
+                case 'lista else if':
+                    valor = this.hijos[i].ifElse(ambito, l);
+                    c3d += valor.c3d;
                     break;
             }
         }
@@ -131,35 +168,42 @@ class AST {
     }
 
     ifElse = function ifElse(ambito, l) {
-        for (let i = 0; i < 3; i++) {
-            this.hijos[i].if3d(ambito, l);
+        let retorno = new retornoAST('', 0, '', '', '');
+        let valor = new retornoAST('', 0, '', '', '');
+        for (let i = 0; i < this.hijos.length; i++) {
+            valor = this.hijos[i].if3d(ambito, l);
+            retorno.c3d += valor.c3d;
         }
+
+        return retorno;
     }
 
     if3d = function if3d(ambito, l) {
         let retorno = new retornoAST('', 0, '', '', '');
 
         let retorno1 = this.hijos[0].obtenerExp(ambito);
-        let retorno2 = this.hijos[1].compilar(ambito);
-        let tipo = 'error'
+        let retorno2 = this.hijos[1].compilarSentencia(ambito);
 
 
         retorno.c3d += retorno1.c3d;
-        retorno.c3d += 'if(' + retorno1.t + '==0) goto ' + (contadorL++) + ';';
+        retorno.c3d += 'if(' + retorno1.t + '==0) goto L' + (contadorL) + ';\n';
         retorno.c3d += retorno2.c3d;
 
-        retorno.c3d += 'goto ' + l + ';';
+        retorno.c3d += 'goto ' + l + ';\n';
 
-        retorno.c3d += 'L' + (contadorL) + ':';
+        retorno.c3d += 'L' + (contadorL) + ':\n';
 
-        retorno.l = 'L' + (contadorL++);
+        retorno.l = 'L' + (contadorL++) + '\n';
 
         return retorno
     }
 
+
+
+
     declaracionFuncion = function declaracionFuncion(ambito) {
 
-        this.hijos[2].compilar(ambito)
+        return this.hijos[2].compilarSentencia(ambito)
 
     }
 
@@ -1023,6 +1067,8 @@ class AST {
     }
 
     print = function print(ambito) {
+        let retorno = new retornoAST('', 0, '', '', '');
+
         let ambitoRetorno = this.hijos[0].hijos[0].obtenerExp(ambito);
         let tipo = 'error'
         let c3d = '';
@@ -1053,8 +1099,9 @@ class AST {
                 ',' + ambitoRetorno.t + ');\n';
         }
 
-        console.log(c3d);
-        return c3d;
+        retorno.c3d = c3d;
+
+        return retorno;
     }
 
     printString = function printString(t) {
@@ -1096,7 +1143,6 @@ class AST {
 
     importar = function importar(ambito) {
         for (let j = 0; j < this.hijos[0].hijos.length; j++) {
-            console.log(this.hijos[0].hijos[j].hijos[1].identificador)
             fs.readFile('C:\\Users\\arnol\\Desktop\\entradasCompi2\\' +
                 this.hijos[0].hijos[j].hijos[0].identificador +
                 '.' + this.hijos[0].hijos[j].hijos[1].identificador,
@@ -1291,7 +1337,6 @@ class AST {
         let retorno = new retornoAST('', 0, '', '', '');
 
         retorno.c3d += valor1.c3d + valor2.c3d;
-        console.log(retorno.c3d);
         retorno.c3d += 't' + (contadorT++) + '=H;\n';
 
         retorno.c3d += 't' + (contadorT++) + '=' + valor1.t + ';\n';

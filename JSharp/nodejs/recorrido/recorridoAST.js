@@ -100,8 +100,9 @@ function Compilar(codigo) {
     var arbol = parser.parse(codigo);
 
     ambito = {}
-
-   // arbol.compilar(ambito);
+    arbol.contadorT = 0;
+    arbol.contadorL = 0;
+    arbol.compilar(ambito);
 
     console.log("--------------------Todo bien-------------------");
     // Nodo.Nodo = llenarNuevoArbol(arbol, Nodo.Nodo);
