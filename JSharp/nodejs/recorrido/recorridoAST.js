@@ -78,7 +78,7 @@ function llenarNuevoArbol3d(actual, padre) {
 }
 
 function Compilar(codigo) {
-    codigo = codigo;
+    codigo = codigo.toLowerCase();;
     parser.parser.yy.crearHoja = function crearHoja(identificador, linea, columna) {
         let astRet = new ast.AST(identificador, linea, columna, []);
         return astRet
@@ -102,7 +102,7 @@ function Compilar(codigo) {
     ambito = {}
     arbol.contadorT = 0;
     arbol.contadorL = 0;
-    arbol.compilar(ambito);
+    arbol.compilar();
 
     console.log("--------------------Todo bien-------------------");
     // Nodo.Nodo = llenarNuevoArbol(arbol, Nodo.Nodo);

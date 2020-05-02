@@ -195,6 +195,38 @@ sentenciasBloque : declaracion_variables	{$$ = $1;}
     |sentenciaDoWhile                       {$$ = $1;}
     |sentenciaFor                           {$$ = $1;}
     |sentenciaSwitch                        {$$ = $1;}
+    |sentenciaBreak                         {$$ = $1;}
+    |sentenciaContinue                         {$$ = $1;}
+    |sentenciaReturn                        {$$ = $1;}
+;
+
+sentenciaBreak :'break'
+        {
+            $$ = yy.crearHoja('break',@1.first_line,@1.first_column)   
+        }
+    |'break' ';'
+        {
+            $$ = yy.crearHoja('break',@1.first_line,@1.first_column)   
+        }
+;
+
+sentenciaContinue :'continue'
+        {
+            $$ = yy.crearHoja('continue',@1.first_line,@1.first_column)   
+        }
+    |'continue' ';'
+        {
+            $$ = yy.crearHoja('continue',@1.first_line,@1.first_column)   
+        }
+;
+
+
+sentenciaReturn :'return' sentenciaReturnEXP 
+;
+
+sentenciaReturnEXP: ';'
+    | EXP
+    | EXP ';'
 ;
 
 sentenciaSwitch : 'switch' '(' EXP ')' '{' bloqueSwitch '}'
@@ -401,23 +433,48 @@ patametro : tipoDato id {$$ = yy.crearNodo('parametro',@2.first_line,@2.first_co
 
 declaracion_variables : tipoVCG id inicializador_variable 
         {
-            $$ = yy.crearNodo('inicializando variable sin tipo',0,0,[$1,yy.crearHoja($2,@2.first_line,@2.first_column),$3]);
+            if($3 == ''){
+                $$ = yy.crearNodo('inicializando variable sin tipo',0,0,[$1,yy.crearHoja($2,@2.first_line,@2.first_column)]);
+            }
+            else{
+                $$ = yy.crearNodo('inicializando variable sin tipo',0,0,[$1,yy.crearHoja($2,@2.first_line,@2.first_column),$3]);
+            }
         }
     | tipoDato listaIds inicializador_variable 
         {
-            $$ = yy.crearNodo('inicializando variable con tipo',0,0,[$1,$2,$3]);
+            if($3 == ''){
+                $$ = yy.crearNodo('inicializando variable con tipo',0,0,[$1,$2]);
+            }
+            else{
+                $$ = yy.crearNodo('inicializando variable con tipo',0,0,[$1,$2,$3]);
+            }
         }
     | id listaIds inicializador_variable 
         {
-            $$ = yy.crearNodo('inicializando variable con tipo',0,0,[yy.crearHoja($1,@1.first_line,@1.first_column),$2,$3]);
+            if($3 == ''){
+                $$ = yy.crearNodo('inicializando variable con tipo',0,0,[yy.crearHoja($1,@1.first_line,@1.first_column),$2]);
+            }
+            else{
+                $$ = yy.crearNodo('inicializando variable con tipo',0,0,[yy.crearHoja($1,@1.first_line,@1.first_column),$2,$3]);
+            }
         }
     | tipoDato id inicializador_variable 
         {
-            $$ = yy.crearNodo('inicializando variable con tipo',0,0,[$1,yy.crearHoja($2,@2.first_line,@2.first_column),$3]);
+            if($3 == ''){
+                $$ = yy.crearNodo('inicializando variable con tipo',0,0,[$1,yy.crearHoja($2,@2.first_line,@2.first_column)]);
+            }
+            else{
+                $$ = yy.crearNodo('inicializando variable con tipo',0,0,[$1,yy.crearHoja($2,@2.first_line,@2.first_column),$3]);
+            }
         }
     | id id inicializador_variable 
         {
-            $$ = yy.crearNodo('inicializando variable con tipo',0,0,[yy.crearHoja($1,@1.first_line,@1.first_column),yy.crearHoja($2,@2.first_line,@2.first_column),$3]);
+            if($3 == ''){
+                $$ = yy.crearNodo('inicializando variable con tipo',0,0,[yy.crearHoja($1,@1.first_line,@1.first_column),yy.crearHoja($2,@2.first_line,@2.first_column)]);
+            }
+            else{
+                $$ = yy.crearNodo('inicializando variable con tipo',0,0,[yy.crearHoja($1,@1.first_line,@1.first_column),yy.crearHoja($2,@2.first_line,@2.first_column),$3]);
+            }
         }
     | tipoVCG id  
         {
@@ -486,7 +543,7 @@ inicializador_variable : ':=' EXP ';'{$$ = yy.crearNodo('EXP',0,0,[$2]);}
     | ':=' EXP      {$$ = yy.crearNodo('EXP',@1.first_line,@1.first_column,[$2]);}
     | '=' EXP ';' {$$ = yy.crearNodo('EXP',@1.first_line,@1.first_column,[$2]);}
     | '=' EXP     {$$ = yy.crearNodo('EXP',@1.first_line,@1.first_column,[$2]);}
-    | ';'          {$$ = {}}
+    | ';'          {$$ = ''}
 ;
 
 inicializadorVariableFor : ':=' EXP      {$$ = yy.crearNodo('EXP',@1.first_line,@1.first_column,[$2]);}

@@ -5,6 +5,65 @@ var contadorT = 0;
 var contadorL = 0;
 
 
+
+
+class Variable {
+    constructor(nombre, t, tipo, cons) {
+        this.nombre = nombre
+        this.t = t
+        this.tipo = tipo
+        this.const = cons
+    }
+}
+
+class TablaSimbolos {
+    constructor() {
+        this.variables = []
+    }
+
+    insertarVariable = function insertarVariable(nombre, t, tipo, cons) {
+        this.variables.push(new Variable(nombre, 't' + t, tipo, cons))
+    }
+
+    obtenerValor = function obtenerValor(id) {
+        for (let i = 0; i < this.variables.length; i++) {
+            if (this.variables[i].nombre == id) {
+                return this.variables[i];
+            }
+        }
+        return '';
+    }
+}
+
+class Ambito {
+    constructor(padre) {
+        this.padre = padre
+        this.tablaSimbolos = []
+    }
+
+    insertarVariable = function insertarVariable(nombre, t, tipo, cons) {
+        this.tablaSimbolos[0].insertarVariable(nombre.toLowerCase(), t, tipo, cons);
+    }
+
+    insertarVariableGloabal = function insertarVariableGloabal(nombre, t, tipo, cons) {
+        if(this.padre == null){
+            this.tablaSimbolos[0].insertarVariable(nombre.toLowerCase(), t, tipo, 0);
+        }  
+        else{
+            this.padre.insertarVariableGloabal(nombre.toLowerCase(), t, tipo);
+        }
+    }
+
+    obtenerValor = function obtenerValor(id) {
+        for (let i = 0; i < this.tablaSimbolos.length; i++) {
+            let valor = this.tablaSimbolos[i].obtenerValor(id.toLowerCase());
+            if (valor != '') {
+                return valor;
+            }
+        }
+    }
+}
+
 class retornoAST {
     constructor(c3d, error, t, l, tipo) {
         this.c3d = ''
@@ -28,11 +87,14 @@ class AST {
         this.hijos.push(nodo);
     }
 
-    compilar = function compilar(ambito) {
+    compilar = function compilar() {
         contadorT = 0;
         contadorL = 0;
         error = [];
-        let retorno = this.compilarSentencia(ambito);
+        let nuevoAmbito = new Ambito(null)
+        nuevoAmbito.tablaSimbolos.push(new TablaSimbolos())
+
+        let retorno = this.compilarSentencia(nuevoAmbito);
 
         let cabecera = 'var ';
 
@@ -57,7 +119,7 @@ class AST {
         for (let i = 0; i < this.hijos.length; i++) {
             switch (this.hijos[i].identificador) {
                 case 'import':
-                    ambito = this.hijos[i].importar(ambito)
+                    ambito.tablaSimbolos.push(this.hijos[i].importar(ambito))
                     break;
                 case 'declaracionFuncion':
                     retorno = this.hijos[i].declaracionFuncion(ambito)
@@ -68,10 +130,9 @@ class AST {
     }
 
 
-    compilarSentenciaControl = function compilarSentencia(ambito) {
+    compilarSentenciaControl = function compilarSentencia(ambito, bl, cl) {
         let c3d = '';
-        let retorno;
-        let breakL = '';
+        let retorno = new retornoAST('', 0, '', '', '');
         let valor;
         for (let i = 0; i < this.hijos.length; i++) {
             switch (this.hijos[i].identificador) {
@@ -80,7 +141,7 @@ class AST {
                     retorno.c3d += valor.c3d;
                     break;
                 case 'ifInstruccion':
-                    valor = this.hijos[i].sentenciaIf(ambito);
+                    valor = this.hijos[i].sentenciaIf(ambito, bl, cl);
                     retorno.c3d += valor.c3d;
                     break;
                 case 'while':
@@ -92,61 +153,252 @@ class AST {
                     retorno.c3d += valor.c3d;
                     break;
                 case 'switch':
-                    valor =  this.hijos[i].sentenciaSwitch(ambito);
+                    valor = this.hijos[i].sentenciaSwitch(ambito);
                     retorno.c3d += valor.c3d;
                     break;
                 case 'break':
-                    if(breakL == ''){
-                        breakL = 'L'+(contadorL++);
-                    }
-                    retorno.c3d += 'goto '+breakL+':\n'
+                    retorno.c3d += 'goto ' + bl + ';\n'
+                    retorno.break = 'break'
+                    break;
+                case 'continur':
+                    retorno.c3d += 'goto ' + cl + ';\n'
+                    break;
+                case 'inicializando variable con tipo':
+                    valor = this.hijos[i].inicializandoVariableConTipo(ambito);
+                    retorno.c3d += valor.c3d;
+                    break;
+                case 'inicializando variable sin tipo':
+                    valor = this.hijos[i].inicializandoVariableSinTipo(ambito);
+                    retorno.c3d += valor.c3d;
+                    break;
                 default:
             }
         }
 
-        retorno.break = breakL;
+        return retorno;
+    }
+
+
+    inicializandoVariableSinTipo = function inicializandoVariableSinTipo(ambito) {
+        let t = contadorT++;
+
+        let retorno = new retornoAST('', 0, '', '', '');
+
+        let resultado = this.hijos[2].hijos[0].obtenerExp(ambito);
+        retorno.c3d += resultado.c3d;
+
+        if (this.hijos[0].identificador.toLowerCase() == 'global') {
+            ambito.insertarVariableGloabal(this.hijos[1].identificador.toLowerCase(),
+            t, resultado.tipo);
+        }
+        else {
+            ambito.insertarVariable(this.hijos[1].identificador.toLowerCase(),
+                t, resultado.tipo, 1);
+        }
+
+        retorno.c3d += 't' + t + '=' + resultado.t + ';\n';
 
         return retorno;
     }
 
-    sentenciaSwitch = function sentenciaSwitch(ambito, l) {
+    inicializandoVariableConTipo = function inicializandoVariableConTipo(ambito) {
+        let t = contadorT++;
+
         let retorno = new retornoAST('', 0, '', '', '');
 
+        if (this.hijos.length == 2) {
+            let valor = this.obtenerTipoDefecto(this.hijos[0].identificador.toLowerCase());
+            let valort = 't' + (contadorT);
+            retorno.c3d += 't' + (contadorT++) + '=' + valor + ';\n'
+            if (this.hijos[1].hijos.length == 0) {
+                ambito.insertarVariable(this.hijos[1].identificador.toLowerCase(),
+                    t, this.hijos[0].identificador.toLowerCase(), 0);
+                retorno.c3d += 't' + t + '=' + valort + ';\n';
+            }
+            else {
+                for (let i = 0; i < this.hijos[1].length; i++) {
+                    ambito.insertarVariable(this.hijos[1].hijos[i].identificador.toLowerCase(),
+                        t, this.hijos[0].identificador.toLowerCase(), 0);
+                    retorno.c3d += 't' + t + '=' + valort + ';\n';
+                    t = contadorT++;
+                }
+            }
+        }
+        else {
+            let resultado = this.hijos[2].hijos[0].obtenerExp(ambito);
+            retorno.c3d += resultado.c3d;
+
+            if (this.hijos[1].hijos.length == 0) {
+                ambito.insertarVariable(this.hijos[1].identificador.toLowerCase(),
+                    t, this.hijos[0].identificador.toLowerCase(), 0);
+                retorno.c3d += 't' + t + '=' + resultado.t + ';\n';
+            }
+            else {
+                for (let i = 0; i < this.hijos[1].hijos.length; i++) {
+                    ambito.insertarVariable(this.hijos[1].hijos[i].identificador.toLowerCase(),
+                        t, this.hijos[0].identificador.toLowerCase(), 0);
+                    retorno.c3d += 't' + t + '=' + resultado.t + ';\n';
+                    t = contadorT++;
+                }
+            }
+        }
+
+        return retorno;
+    }
+
+    obtenerTipoDefecto = function obtenerTipoDefecto(tipo) {
+        switch (tipo) {
+            case 'integer':
+            case 'double':
+            case 'char':
+            case 'boolean':
+                return 0;
+        }
+
+        return null;
+    }
+
+
+    /*
+        *
+        *   -------------------------------------------      switch
+        *
+    */
+
+    sentenciaSwitch = function sentenciaSwitch(ambito) {
         let retorno1 = this.hijos[0].obtenerExp(ambito);
-        let retorno2 = this.hijos[1].compilarSentencia(ambito);
 
+        let retorno2 = this.hijos[1].bloqueSwitch(ambito, retorno1);
 
-        retorno.c3d += retorno1.c3d;
-        retorno.c3d += 'if(' + retorno1.t + '==0) goto L' + (contadorL) + ';\n';
-        retorno.c3d += retorno2.c3d;
+        return retorno2
+    }
 
-        retorno.c3d += 'goto ' + l + ';\n';
+    bloqueSwitch = function bloqueSwitch(ambito, valor) {
+        let retorno = new retornoAST('', 0, '', '', '');
+        let l1 = ('L' + contadorL++)
+        let breakL = '';
+        for (let i = 0; i < this.hijos.length; i++) {
+            switch (this.hijos[i].identificador) {
+                case 'listaSwitch':
+                    valor = this.hijos[i].cases(ambito, l1, valor);
+                    retorno.c3d += valor.c3d;
+                    if (valor.break != '') {
+                        breakL = valor.break;
+                    }
+                    break;
+                case 'default':
+                    valor = this.hijos[i].hijos[0].compilarSentenciaControl(ambito, l1, '');
+                    retorno.c3d += valor.c3d;
+                    if (valor.break != '') {
+                        breakL = valor.break;
+                    }
+                    break;
+            }
+        }
 
-        retorno.c3d += 'L' + (contadorL) + ':\n';
+        if (breakL != '') {
+            retorno.c3d += l1 + ':\n';
+        }
 
-        retorno.l = 'L' + (contadorL++) + '\n';
+        return retorno;
+
+    }
+
+    cases = function cases(ambito, bl, valor) {
+        let retorno = new retornoAST('', 0, '', '', '');
+        let breakL = '';
+        let l = '';
+        for (let i = 0; i < this.hijos.length; i++) {
+            let resultado1 = this.hijos[i].sentenciaCase(ambito, bl, valor, l);
+            retorno.c3d += resultado1.c3d;
+            l = resultado1.l;
+            if (resultado1.break != '') {
+                breakL = resultado1.break;
+            }
+        }
+
+        retorno.c3d += l + ':\n'
+
+        retorno.break = breakL;
 
         return retorno
     }
+
+    sentenciaCase = function sentenciaCase(ambito, bl, valor, l) {
+        let retorno = new retornoAST('', 0, '', '', '');
+
+        let resultado1 = this.hijos[0].obtenerExp(ambito);
+
+        let tipo = this.obtenerTipoIgualDesigual(resultado1.tipo, valor.tipo);
+
+        if (tipo == 'error') {
+            retorno.error = 1;
+            return retorno;
+        }
+
+
+        if (resultado1.tipo == 'string' && valor.tipo == 'string') {
+            retorno = this.CompararStrings(resultado1, valor)
+        }
+        else {
+            retorno = this.igualDiferente3d(resultado1, valor, '<>');
+        }
+
+        retorno.tipo = tipo;
+
+        let l1 = 'L' + (contadorL++);
+        let l2 = 'L' + (contadorL++);
+
+        retorno.c3d += 'if(1<> ' + retorno.t + ') goto ' + l1 + ';\n';
+        if (l != '') {
+            retorno.c3d += l + ':\n'
+        }
+        if (this.hijos[1] != undefined) {
+            let retorno2 = this.hijos[1].compilarSentenciaControl(ambito, bl, '');
+            retorno.c3d += retorno2.c3d;
+            if (retorno2.break != '') {
+                retorno.break = retorno2.break;
+            }
+        }
+        retorno.c3d += 'goto ' + l2 + ';\n'
+        retorno.c3d += l1 + ':\n'
+
+        retorno.l = l2;
+
+        return retorno;
+    }
+
+    /*
+        *
+        *   -------------------------------------------      end switch
+        *
+    */
 
     sentenciaDoWhile = function sentenciaDoWhile(ambito) {
         let retorno = new retornoAST('', 0, '', '', '');
 
         let retorno1 = this.hijos[1].obtenerExp(ambito);
-        let retorno2 = this.hijos[0].compilarSentencia(ambito);
+
+        let l1 = ('L' + contadorL++)
+        let l2 = ('L' + contadorL++)
+
+        let retorno2 = this.hijos[0].compilarSentenciaControl(ambito, l1, l2);
         let tipo = 'error'
 
         retorno.c3d += retorno1.c3d;
 
-        retorno.c3d += 'L' + (contadorL++) + ':';
+        retorno.c3d += l2 + ':\n';
 
         retorno.c3d += retorno2.c3d;
 
-        retorno.c3d += 'if(' + retorno1.t + '==0) goto ' + (contadorL++) + ';';
-        retorno.c3d += 'goto ' + (contadorL - 2) + ';';
-        retorno.c3d += 'L' + (contadorL - 1) + ':';
+        retorno.c3d += 'if(' + retorno1.t + '==0) goto ' + l1 + ';\n';
+        retorno.c3d += 'goto ' + l2 + ';\n';
+        retorno.c3d += '' + l1 + ':\n';
 
-        retorno.l = 'L' + (contadorL++);
+        if (retorno2.break != '') {
+            retorno.c3d += retorno2.break + ':\n';
+            retorno.break = '';
+        }
 
         return retorno
 
@@ -156,29 +408,39 @@ class AST {
         let retorno = new retornoAST('', 0, '', '', '');
 
         let retorno1 = this.hijos[0].obtenerExp(ambito);
-        let retorno2 = this.hijos[1].compilarSentencia(ambito);
+
+        let l1 = ('L' + contadorL++)
+        let l2 = ('L' + contadorL++)
+
+        let retorno2 = this.hijos[1].compilarSentenciaControl(ambito, l1, l2);
         let tipo = 'error'
 
         retorno.c3d += retorno1.c3d;
 
-
-        retorno.c3d += 'L' + (contadorL++) + ':';
-        retorno.c3d += 'if(' + retorno1.t + '==0) goto ' + (contadorL++) + ';';
+        retorno.c3d += l2 + ':\n';
+        retorno.c3d += 'if(' + retorno1.t + '==0) goto ' + l1 + ';\n';
 
         retorno.c3d += retorno2.c3d;
 
-        retorno.c3d += 'goto ' + (contadorL - 2) + ';';
-        retorno.c3d += 'L' + (contadorL - 1) + ':';
+        retorno.c3d += 'goto ' + l2 + ';\n';
+        retorno.c3d += l1 + ':\n';
 
-        retorno.l = 'L' + (contadorL++);
+        if (retorno2.break != '') {
+            retorno.c3d += retorno2.break + ':\n';
+            retorno.break = '';
+        }
 
         return retorno
 
     }
 
-    //-------------------------------------------      if
+    /*
+        *
+        *   -------------------------------------------      if
+        *
+    */
 
-    sentenciaIf = function sentenciaIf(ambito) {
+    sentenciaIf = function sentenciaIf(ambito, bl, cl) {
         let retorno = new retornoAST('', 0, '', '', '');
         let c3d = '';
         let valor;
@@ -186,11 +448,11 @@ class AST {
         for (let i = 0; i < this.hijos.length; i++) {
             switch (this.hijos[i].identificador) {
                 case 'ifs':
-                    valor = this.hijos[i].sentenciaIfs(ambito, l);
+                    valor = this.hijos[i].sentenciaIfs(ambito, l, bl, cl);
                     c3d += valor.c3d;
                     break;
                 case 'else':
-                    valor = this.hijos[i].hijos[0].compilarSentencia(ambito);
+                    valor = this.hijos[i].hijos[0].compilarSentenciaControl(ambito, bl, cl);
                     c3d += valor.c3d;
                     break;
             }
@@ -201,18 +463,18 @@ class AST {
         return retorno;
     }
 
-    sentenciaIfs = function sentenciaIfs(ambito, l) {
+    sentenciaIfs = function sentenciaIfs(ambito, l, bl, cl) {
         let retorno = new retornoAST('', 0, '', '', '');
         let c3d = '';
         let valor;
         for (let i = 0; i < this.hijos.length; i++) {
             switch (this.hijos[i].identificador) {
                 case 'if':
-                    valor = this.hijos[i].if3d(ambito, l);
+                    valor = this.hijos[i].if3d(ambito, l, bl, cl);
                     c3d += valor.c3d;
                     break;
                 case 'lista else if':
-                    valor = this.hijos[i].ifElse(ambito, l);
+                    valor = this.hijos[i].ifElse(ambito, l), bl, cl;
                     c3d += valor.c3d;
                     break;
             }
@@ -226,18 +488,18 @@ class AST {
         let retorno = new retornoAST('', 0, '', '', '');
         let valor = new retornoAST('', 0, '', '', '');
         for (let i = 0; i < this.hijos.length; i++) {
-            valor = this.hijos[i].if3d(ambito, l);
+            valor = this.hijos[i].if3d(ambito, l, bl, cl);
             retorno.c3d += valor.c3d;
         }
 
         return retorno;
     }
 
-    if3d = function if3d(ambito, l) {
+    if3d = function if3d(ambito, l, bl, cl) {
         let retorno = new retornoAST('', 0, '', '', '');
 
         let retorno1 = this.hijos[0].obtenerExp(ambito);
-        let retorno2 = this.hijos[1].compilarSentencia(ambito);
+        let retorno2 = this.hijos[1].compilarSentenciaControl(ambito, bl, cl);
 
 
         retorno.c3d += retorno1.c3d;
@@ -253,14 +515,17 @@ class AST {
         return retorno
     }
 
-    //-------------------------------------------      end if
+    /*
+        *
+        *   -------------------------------------------      end if
+        *
+    */
 
 
 
+    declaracionFuncion = function declaracionFuncion(ambito) {
 
-    declaracionFuncion = function compilarSentenciaControl(ambito) {
-
-        return this.hijos[2].compilarSentencia(ambito)
+        return this.hijos[2].compilarSentenciaControl(ambito)
 
     }
 
@@ -315,7 +580,6 @@ class AST {
             default:
         }
     }
-
 
     logicoNeg = function logicoNeg(ambito) {
         let resultado1 = this.hijos[0].obtenerExp(ambito);
@@ -577,21 +841,21 @@ class AST {
         let resultado2 = this.hijos[1].obtenerExp(ambito);
         let tipo = this.obtenerTipoIgualDesigual(resultado1.tipo, resultado2.tipo);
         let retorno = new retornoAST('', 0, '', '', '');
-        
+
         if (tipo == 'error') {
-            retorno .error = 1;
+            retorno.error = 1;
             return retorno;
         }
 
         if (this.identificador == '==') {
-            if(resultado1.tipo == 'string'&& resultado2.tipo == 'string'){
+            if (resultado1.tipo == 'string' && resultado2.tipo == 'string') {
                 retorno = this.CompararStrings(resultado1, resultado2)
-            }else{
+            } else {
                 retorno = this.igualDiferente3d(resultado1, resultado2, '<>');
             }
         }
         else {
-            if(resultado1.tipo == 'string'&& resultado2.tipo == 'string'){
+            if (resultado1.tipo == 'string' && resultado2.tipo == 'string') {
                 retorno = this.CompararStrings(resultado1, resultado2)
                 retorno.c3d += "if(" + retorno.t + "==0) goto L" + (contadorL++) + ";\n";
                 retorno.c3d += retorno.t + "=0;\n";
@@ -599,7 +863,7 @@ class AST {
                 retorno.c3d += "L" + (contadorL - 2) + ":\n";
                 retorno.c3d += retorno.t + "=1;\n";
                 retorno.c3d += "L" + (contadorL - 1) + ":\n";
-            }else{
+            } else {
                 retorno = this.igualDiferente3d(resultado1, resultado2, '==');
             }
         }
@@ -792,7 +1056,22 @@ class AST {
                 return this.hijos[0].obtenerBoleano(ambito);
             case 'cadena':
                 return this.hijos[0].obtenerString(ambito);
+            case 'identificacdor':
+                return this.hijos[0].obtenerValorIdentificador(ambito);
             default:
+        }
+    }
+
+    obtenerValorIdentificador = function obtenerValorIdentificador(ambito) {
+        let valor = ambito.obtenerValor(this.hijos[0].identificador);
+
+        if (valor != undefined) {
+            let retorno = new retornoAST('', 0, '', '', '');
+
+            retorno.t = valor.t
+            retorno.tipo = valor.tipo
+
+            return retorno
         }
     }
 
@@ -1243,7 +1522,7 @@ class AST {
     }
 
     realizarCasteoAString = function realizarCasteoAString(tipo, t) {
-        if (tipo == 'caracter') {
+        if (tipo == 'char') {
             return this.covertirCharAStr(t)
         }
         else if (tipo == 'boolean') {
@@ -1263,8 +1542,8 @@ class AST {
         let retorno = new retornoAST('', 0, '', '', '');
         retorno.t = 't' + (contadorT);
 
-        retorno.c3d += 't' + (contadorT++) + '=k;\n';
-        retorno.c3d += 'Heap[H]=' + t + ';\n';
+        retorno.c3d += 't' + (contadorT++) + '=H;\n';
+        retorno.c3d += 'Heap[H]=' + t.t + ';\n';
         retorno.c3d += 'H=H+1;\n';
         retorno.c3d += 'Heap[H]=0;\n';
         retorno.c3d += 'H=H+1;\n';
@@ -1278,7 +1557,7 @@ class AST {
 
         retorno.c3d += 't' + (contadorT++) + '=H;\n';
 
-        retorno.c3d += 'if(1==' + t + ') goto L' + (contadorL++) + ';'
+        retorno.c3d += 'if(1<>' + t.t + ') goto L' + (contadorL++) + ';\n'
 
         retorno.c3d += 'Heap[H]=' + 116 + ';\n';
         retorno.c3d += 'H=H+1;\n';
@@ -1288,8 +1567,10 @@ class AST {
         retorno.c3d += 'H=H+1;\n';
         retorno.c3d += 'Heap[H]=' + 101 + ';\n';
         retorno.c3d += 'H=H+1;\n';
+        retorno.c3d += 'Heap[H]=' + 0 + ';\n';
+        retorno.c3d += 'H=H+1;\n';
 
-        retorno.c3d += 'goto L' + (contadorL++) + ':\n';
+        retorno.c3d += 'goto L' + (contadorL++) + ';\n';
         retorno.c3d += 'L' + (contadorL - 2) + ':\n';
 
         retorno.c3d += 'Heap[H]=' + 102 + ';\n';
@@ -1301,6 +1582,8 @@ class AST {
         retorno.c3d += 'Heap[H]=' + 115 + ';\n';
         retorno.c3d += 'H=H+1;\n';
         retorno.c3d += 'Heap[H]=' + 101 + ';\n';
+        retorno.c3d += 'H=H+1;\n';
+        retorno.c3d += 'Heap[H]=' + 0 + ';\n';
         retorno.c3d += 'H=H+1;\n';
 
         retorno.c3d += 'L' + (contadorL - 1) + ':\n';
@@ -1445,39 +1728,39 @@ class AST {
         return retorno;
     }
 
-    CompararStrings = function CompararStrings(t1, t2){
+    CompararStrings = function CompararStrings(t1, t2) {
         let retorno = new retornoAST('', 0, '', '', '');
-       
-        retorno.c3d += t1.c3d + t2.c3d; 
 
-        retorno.c3d += 't'+(contadorT++) +'='+t1.t+';\n';
-        retorno.c3d += 't'+(contadorT++) +'='+t2.t+';\n';
-        
-        retorno.c3d += 'L'+(contadorL++) +':\n';
+        retorno.c3d += t1.c3d + t2.c3d;
 
-        retorno.c3d += 't'+(contadorT++) +'= Heap[t'+(contadorT-3)+'];\n';
-        retorno.c3d += 't'+(contadorT++) +'= Heap[t'+(contadorT-3)+'];\n';
+        retorno.c3d += 't' + (contadorT++) + '=' + t1.t + ';\n';
+        retorno.c3d += 't' + (contadorT++) + '=' + t2.t + ';\n';
 
-        
-        retorno.c3d += 'if(t'+(contadorT-2)+' <> t'+(contadorT-1)+') goto L'+(contadorL++)+';\n';
-        retorno.c3d += 'if(t'+(contadorT-2)+' == 0) goto L'+(contadorL++)+';\n';
+        retorno.c3d += 'L' + (contadorL++) + ':\n';
 
-        retorno.c3d += 't'+(contadorT-3) +'=t'+(contadorT-3)+'+1;\n';
-        retorno.c3d += 't'+(contadorT-4) +'=t'+(contadorT-4)+'+1;\n';
-        
-        retorno.c3d += 'goto L'+(contadorL-3)+';\n';        
-
-        retorno.c3d += 'L'+(contadorL-1) +':\n';         
-        retorno.c3d += 't'+(contadorT) +'=1;\n';
-        retorno.c3d += 'goto L'+(contadorL++)+';\n';        
+        retorno.c3d += 't' + (contadorT++) + '= Heap[t' + (contadorT - 3) + '];\n';
+        retorno.c3d += 't' + (contadorT++) + '= Heap[t' + (contadorT - 3) + '];\n';
 
 
-        retorno.c3d += 'L'+(contadorL-3) +':\n';        
-        retorno.c3d += 't'+(contadorT) +'=0;\n';
+        retorno.c3d += 'if(t' + (contadorT - 2) + ' <> t' + (contadorT - 1) + ') goto L' + (contadorL++) + ';\n';
+        retorno.c3d += 'if(t' + (contadorT - 2) + ' == 0) goto L' + (contadorL++) + ';\n';
 
-        retorno.c3d += 'L'+(contadorL-1) +':\n';        
-    
-        retorno.t = 't'+(contadorT++);
+        retorno.c3d += 't' + (contadorT - 3) + '=t' + (contadorT - 3) + '+1;\n';
+        retorno.c3d += 't' + (contadorT - 4) + '=t' + (contadorT - 4) + '+1;\n';
+
+        retorno.c3d += 'goto L' + (contadorL - 3) + ';\n';
+
+        retorno.c3d += 'L' + (contadorL - 1) + ':\n';
+        retorno.c3d += 't' + (contadorT) + '=1;\n';
+        retorno.c3d += 'goto L' + (contadorL++) + ';\n';
+
+
+        retorno.c3d += 'L' + (contadorL - 3) + ':\n';
+        retorno.c3d += 't' + (contadorT) + '=0;\n';
+
+        retorno.c3d += 'L' + (contadorL - 1) + ':\n';
+
+        retorno.t = 't' + (contadorT++);
 
         return retorno;
     }
