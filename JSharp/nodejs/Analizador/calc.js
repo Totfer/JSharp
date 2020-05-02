@@ -454,25 +454,28 @@ case 92:
         
 break;
 case 93:
-this.$ = yy.crearNodo('EXP',0,0,[$$[$0-1]]);
+this.$ = yy.crearNodo('EXP',0,0,[$$[$0-1],yy.crearHoja($$[$0-2],_$[$0-2].first_line,_$[$0-2].first_column)]);
 break;
-case 94: case 96: case 98: case 99:
-this.$ = yy.crearNodo('EXP',_$[$0-1].first_line,_$[$0-1].first_column,[$$[$0]]);
+case 94: case 96:
+this.$ = yy.crearNodo('EXP',_$[$0-1].first_line,_$[$0-1].first_column,[$$[$0],yy.crearHoja($$[$0-1],_$[$0-1].first_line,_$[$0-1].first_column)]);
 break;
 case 95:
-this.$ = yy.crearNodo('EXP',_$[$0-2].first_line,_$[$0-2].first_column,[$$[$0-1]]);
+this.$ = yy.crearNodo('EXP',_$[$0-2].first_line,_$[$0-2].first_column,[$$[$0-1],yy.crearHoja($$[$0-2],_$[$0-2].first_line,_$[$0-2].first_column)]);
 break;
 case 97:
 this.$ = ''
 break;
+case 98: case 99:
+this.$ = yy.crearNodo('EXP',_$[$0-1].first_line,_$[$0-1].first_column,[$$[$0]]);
+break;
 case 100: case 102:
 
-            this.$ = yy.crearNodo('asignacion',0,0,[$$[$0-3],$$[$0-1]]);
+            this.$ = yy.crearNodo('asignacion',0,0,[$$[$0-3],$$[$0-1],yy.crearHoja($$[$0-2],_$[$0-2].first_line,_$[$0-2].first_column)]);
         
 break;
 case 101: case 103:
 
-            this.$ = yy.crearNodo('asignacion',0,0,[$$[$0-2],$$[$0]]);
+            this.$ = yy.crearNodo('asignacion',0,0,[$$[$0-2],$$[$0],yy.crearHoja($$[$0-1],_$[$0-1].first_line,_$[$0-1].first_column)]);
         
 break;
 case 104: case 105:

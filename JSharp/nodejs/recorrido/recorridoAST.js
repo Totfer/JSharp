@@ -102,8 +102,8 @@ function Compilar(codigo) {
     ambito = {}
     arbol.contadorT = 0;
     arbol.contadorL = 0;
+    arbol.llenarTablaSimbolos();
     arbol.compilar();
-
     console.log("--------------------Todo bien-------------------");
     // Nodo.Nodo = llenarNuevoArbol(arbol, Nodo.Nodo);
     //return Interprete(arbol);

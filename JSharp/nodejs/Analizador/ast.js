@@ -1,10 +1,11 @@
 var fs = require('fs');
 var parser = require("../Analizador/calc.js");
+var tabla = require("./tablaSimbolos.js");
 var error = [];
 var contadorT = 0;
 var contadorL = 0;
 
-
+var contadorA = 0;
 
 
 class Variable {
@@ -46,10 +47,10 @@ class Ambito {
     }
 
     insertarVariableGloabal = function insertarVariableGloabal(nombre, t, tipo, cons) {
-        if(this.padre == null){
+        if (this.padre == null) {
             this.tablaSimbolos[0].insertarVariable(nombre.toLowerCase(), t, tipo, 0);
-        }  
-        else{
+        }
+        else {
             this.padre.insertarVariableGloabal(nombre.toLowerCase(), t, tipo);
         }
     }
@@ -65,6 +66,9 @@ class Ambito {
 }
 
 class retornoAST {
+
+    
+
     constructor(c3d, error, t, l, tipo) {
         this.c3d = ''
         this.error = 0
@@ -76,6 +80,9 @@ class retornoAST {
 }
 
 class AST {
+
+    tablaS = new tabla.tablaSimbolos();
+
     constructor(ident, lin, col, hi) {
         this.identificador = ident
         this.linea = lin
@@ -171,6 +178,10 @@ class AST {
                     valor = this.hijos[i].inicializandoVariableSinTipo(ambito);
                     retorno.c3d += valor.c3d;
                     break;
+                case 'asignacion':
+                    valor = this.hijos[i].inicializandoVariableSinTipo(ambito);
+                    retorno.c3d += valor.c3d;
+                    break;
                 default:
             }
         }
@@ -178,6 +189,10 @@ class AST {
         return retorno;
     }
 
+    asignacion = function asignacion(ambito) {
+        let resultado = this.hijos[1].obtenerExp(ambito);
+
+    }
 
     inicializandoVariableSinTipo = function inicializandoVariableSinTipo(ambito) {
         let t = contadorT++;
@@ -189,7 +204,7 @@ class AST {
 
         if (this.hijos[0].identificador.toLowerCase() == 'global') {
             ambito.insertarVariableGloabal(this.hijos[1].identificador.toLowerCase(),
-            t, resultado.tipo);
+                t, resultado.tipo);
         }
         else {
             ambito.insertarVariable(this.hijos[1].identificador.toLowerCase(),
@@ -1761,6 +1776,87 @@ class AST {
         retorno.c3d += 'L' + (contadorL - 1) + ':\n';
 
         retorno.t = 't' + (contadorT++);
+
+        return retorno;
+    }
+
+
+    llenarTablaSimbolos = function llenarTablaSimbolos(padre) {
+        this.globalTS();
+    }
+
+
+    globalTS = function globalTS() {
+        idAmbito = contadorA++
+        for (let i = 0; i < this.hijos.length; i++) {
+            switch (this.hijos[i].identificador) {
+                case 'import':
+                    break;
+                case 'declaracionFuncion':
+                    this.hijos[i].declaracionFuncionTS('global')
+                    break;
+                case 'inicializando variable con tipo':
+                    valor = this.hijos[i].inicializandoVariableConTipoTS(ambito);
+                    retorno.c3d += valor.c3d;
+                    break;
+                case 'inicializando variable sin tipo':
+                    valor = this.hijos[i].inicializandoVariableSinTipoTS(ambito);
+                    retorno.c3d += valor.c3d;
+                    break;
+            }
+        }
+        return retorno;
+    }
+
+    declaracionFuncionTS = function declaracionFuncionTS(padre,idAmbito) {
+        idAmbito = contadorA++
+        tamano = this.hijos[2].compilarSentenciaControlTS(this.hijos[1].identificador);
+        
+        let simbolo = new  tabla.simbol(this.hijos[1].identificador,
+            this.hijos[0].identificador,
+            'global',
+            idAmbito,
+            -1,
+            tamano,
+            '',
+            'funcion');
+
+        this.tablaS.push(simbolo)
+    }
+
+    compilarSentenciaControlTS = function compilarSentenciaTS(padre, idAmbito) {
+        contadorVarables = 0;
+        for (let i = 0; i < this.hijos.length; i++) {
+            switch (this.hijos[i].identificador) {
+                case 'ifInstruccion':
+                    contadorVarables += this.hijos[i].sentenciaIf(ambito, bl, cl);
+                    retorno.c3d += valor.c3d;
+                    break;
+                case 'while':
+                    contadorVarables += this.hijos[i].sentenciaWhile(ambito);
+                    retorno.c3d += valor.c3d;
+                    break;
+                case 'do while':
+                    contadorVarables += this.hijos[i].sentenciaDoWhile(ambito);
+                    retorno.c3d += valor.c3d;
+                    break;
+                case 'switch':
+                    contadorVarables += this.hijos[i].sentenciaSwitch(ambito);
+                    retorno.c3d += valor.c3d;
+                    break;
+                case 'inicializando variable con tipo':
+                    contadorVarables += this.hijos[i].inicializandoVariableConTipo(ambito);
+                    break;
+                case 'inicializando variable sin tipo':
+                    contadorVarables += this.hijos[i].inicializandoVariableSinTipo(ambito);
+                    
+                    break;
+                case 'asignacion':
+                    contadorVarables += this.hijos[i].inicializandoVariableSinTipo(ambito);
+                    break;
+                default:
+            }
+        }
 
         return retorno;
     }
