@@ -12,10 +12,20 @@ class tablaSimbolos {
         return ''
     }
 
+    insertarAsignacion = function insertarAsignacion(simbolo) {
+        for (let i = 0; i < this.simbolos.length; i++) {
+            if (this.simbolos[i].nombre == simbolo.nombre &&
+                this.simbolos[i].idAmbito == simbolo.idAmbito) {
+                return 0
+            }
+        }
+        this.simbolos.push(simbolo);
+        return 1
+    }
+
     //-----------------------------------------------------------
 
     obtenerPosicionHeap = function obtenerPosicionHeap(nombre, idAmbito) {
-
         for (let i = 0; i < this.simbolos.length; i++) {
             if (this.simbolos[i].nombre == nombre &&
                 this.simbolos[i].idAmbito == idAmbito) {
@@ -25,17 +35,48 @@ class tablaSimbolos {
         let padres = []
         for (let i = 0; i < this.simbolos.length; i++) {
             if (this.simbolos[i].idAmbito == idAmbito) {
-                padres = this.simbolos[i].padre
+                for (let j = 0; j < this.simbolos[i].padre.length; j++) {
+                    padres.push(this.simbolos[i].padre[j])
+                }
             }
         }
 
-        while(padres.length != 0){
+        while (padres.length != 0) {
             idAmbito = padres.pop();
             for (let i = 0; i < this.simbolos.length; i++) {
                 if (this.simbolos[i].nombre == nombre &&
                     this.simbolos[i].idAmbito == idAmbito) {
-                    
+
                     return this.simbolos[i].posicionH
+                }
+            }
+        }
+
+        return 'error'
+    }
+
+    obtenerPosicionStack = function obtenerPosicionStack(nombre, idAmbito) {
+        for (let i = 0; i < this.simbolos.length; i++) {
+            if (this.simbolos[i].nombre == nombre &&
+                this.simbolos[i].idAmbito == idAmbito) {
+                return this.simbolos[i].posicionS
+            }
+        }
+        let padres = []
+        for (let i = 0; i < this.simbolos.length; i++) {
+            if (this.simbolos[i].idAmbito == idAmbito) {
+                for (let j = 0; j < this.simbolos[i].padre.length; j++) {
+                    padres.push(this.simbolos[i].padre[j])
+                }
+            }
+        }
+
+        while (padres.length != 0) {
+            idAmbito = padres.pop();
+            for (let i = 0; i < this.simbolos.length; i++) {
+                if (this.simbolos[i].nombre == nombre &&
+                    this.simbolos[i].idAmbito == idAmbito) {
+                    return this.simbolos[i].posicionS
                 }
             }
         }
@@ -53,25 +94,60 @@ class tablaSimbolos {
         let padres = []
         for (let i = 0; i < this.simbolos.length; i++) {
             if (this.simbolos[i].idAmbito == idAmbito) {
-                
                 for (let j = 0; j < this.simbolos[i].padre.length; j++) {
-                padres.push(this.simbolos[i].padre[j])
+                    padres.push(this.simbolos[i].padre[j])
                 }
             }
         }
 
-        while(padres.length != 0){
+        while (padres.length != 0) {
             idAmbito = padres.pop();
             for (let i = 0; i < this.simbolos.length; i++) {
                 if (this.simbolos[i].nombre == nombre &&
                     this.simbolos[i].idAmbito == idAmbito) {
-                    
+
                     return this.simbolos[i]
                 }
             }
         }
         return 'error'
     }
+
+
+    obtenerFuncion = function obtenerFuncion(nombre) {
+        for (let i = 0; i < this.simbolos.length; i++) {
+            if (this.simbolos[i].nombre == nombre &&
+                this.simbolos[i].funcionaldad == 'funcion') {
+                return this.simbolos[i]
+            }
+        }
+        return 'error'
+    }
+
+    obtenerTamanoFuncion = function obtenerTamanoFuncion(nombre, idAmbito) {
+        let padres = []
+        for (let i = 0; i < this.simbolos.length; i++) {
+            if (this.simbolos[i].idAmbito == idAmbito &&
+                this.simbolos[i].nombre == nombre) {
+                for (let j = 0; j < this.simbolos[i].padre.length; j++) {
+                    padres.push(this.simbolos[i].padre[j])
+                }
+            }
+        }
+
+        while (padres.length != 0) {
+            idAmbito = padres.pop();
+            for (let i = 0; i < this.simbolos.length; i++) {
+                if (this.simbolos[i].funcionaldad == 'funcion' &&
+                    this.simbolos[i].idAmbito == idAmbito) {
+                    return this.simbolos[i].tamano
+                }
+            }
+        }
+
+        return 'error'
+    }
+
 
 } exports.tablaSimbolos = tablaSimbolos
 

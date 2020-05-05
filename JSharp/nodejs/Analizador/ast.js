@@ -62,8 +62,9 @@ class AST {
         cabecera = cabecera.substring(0, cabecera.length - 1) + ';\n';
         cabecera += 'var Stack[];\n';
         cabecera += 'var Heap[];\n';
-        cabecera += 'var P = 0;\n';
+        cabecera += 'var P = 1;\n';
         cabecera += 'var H = 0;\n';
+        cabecera += 'H = H+' + contadorH + ';\n';
 
         retorno.c3d = cabecera + retorno.c3d;
 
@@ -133,15 +134,19 @@ class AST {
                     retorno.c3d += 'goto ' + cl + ';\n'
                     break;
                 case 'inicializando variable con tipo':
-                    valor = this.hijos[i].inicializandoVariable(idAmbito);
+                    valor = this.hijos[i].inicializandoVariable2(idAmbito);
                     retorno.c3d += valor.c3d;
                     break;
                 case 'inicializando variable sin tipo':
-                    valor = this.hijos[i].inicializandoVariable(idAmbito);
+                    valor = this.hijos[i].inicializandoVariable2(idAmbito);
                     retorno.c3d += valor.c3d;
                     break;
                 case 'asignacion':
-                    valor = this.hijos[i].inicializandoVariableSinTipo(idAmbito);
+                    valor = this.hijos[i].compilarAsignacion(idAmbito);
+                    retorno.c3d += valor.c3d;
+                    break;
+                case 'llamadaFuncion':
+                    valor = this.hijos[i].compilarLlamadaAFuncion(idAmbito);
                     retorno.c3d += valor.c3d;
                     break;
                 default:
@@ -151,9 +156,32 @@ class AST {
         return retorno;
     }
 
-    asignacion = function asignacion(padre) {
-        let resultado = this.hijos[1].obtenerExp(padre, idAmbito);
+    compilarLlamadaAFuncion = function compilarLlamadaAFuncion(idAmbito){
+        let retorno = new retornoAST('', 0, '', '', '');
+        if(this.hijos.length == 1){
+            retorno.c3d += 'call ' + this.hijos[0].identificador + ';\n'
+        }
 
+        return retorno;
+    }
+
+    compilarAsignacion = function compilarAsignacion(idAmbito) {
+        let retorno = new retornoAST('', 0, '', '', '');
+        let resultado = this.hijos[1].obtenerExp(idAmbito);
+
+        if (this.hijos[0].hijos.length == 1) {
+            let posicion = tablaS.obtenerPosicionStack(this.hijos[0].hijos[0].hijos[0].identificador, idAmbito);
+
+            if (posicion != 'error') {
+                retorno.c3d += 't' + contadorT + '=P-' + posicion + ';\n';
+                retorno.c3d += 'Stack[t' + (contadorT++) + '] = ' + resultado.t + ';\n';
+            }
+        }
+        else {
+
+        }
+
+        return retorno;
     }
 
     sentenciaFor = function sentenciaFor(idAmbito) {
@@ -281,6 +309,62 @@ class AST {
                     let posicion = tablaS.obtenerPosicionHeap(this.hijos[1].hijos[i].identificador, idAmbito);
                     if (posicion != 'error') {
                         retorno.c3d += 'Heap[' + posicion + '] = ' + resultado.t + ';\n';
+                    }
+                }
+            }
+        }
+
+        return retorno;
+    }
+
+    inicializandoVariable2 = function inicializandoVariable2(idAmbito) {
+        let t = contadorT++;
+
+        let valor
+
+        let retorno = new retornoAST('', 0, '', '', '');
+
+        if (this.hijos.length == 2) {
+            let valor = this.obtenerTipoDefecto(this.hijos[0].identificador.toLowerCase());
+            let valort = 't' + (contadorT);
+            retorno.c3d += 't' + (contadorT++) + '=' + valor + ';\n'
+            if (this.hijos[1].hijos.length == 0) {
+                let posicion = tablaS.obtenerPosicionStack(this.hijos[1].identificador, idAmbito);
+                if (posicion != 'error') {
+                    let tamano = tablaS.obtenerTamanoFuncion(this.hijos[1].identificador, idAmbito);
+                    retorno.c3d += 't' + contadorT + '=P-' + posicion + ';\n';
+                    retorno.c3d += 'Stack[t' + (contadorT++) + '] = 0;\n';
+                }
+            }
+            else {
+                for (let i = 0; i < this.hijos[1].length; i++) {
+                    let posicion = tablaS.obtenerPosicionStack(this.hijos[1].hijos[i].identificador, idAmbito);
+                    if (posicion != 'error') {
+                        let tamano = tablaS.obtenerTamanoFuncion(this.hijos[1].hijos[i].identificador, idAmbito);
+                        retorno.c3d += 't' + contadorT + '=P-' + posicion + ';\n';
+                        retorno.c3d += 'Stack[t' + (contadorT++) + '] = 0;\n';
+                    }
+                }
+            }
+        }
+        else {
+            let resultado = this.hijos[2].hijos[0].obtenerExp(idAmbito);
+            retorno.c3d += resultado.c3d;
+            if (this.hijos[1].hijos.length == 0) {
+                let posicion = tablaS.obtenerPosicionStack(this.hijos[1].identificador, idAmbito);
+                if (posicion != 'error') {
+                    let tamano = tablaS.obtenerTamanoFuncion(this.hijos[1].identificador, idAmbito);
+                    retorno.c3d += 't' + contadorT + '=P-' + posicion + ';\n';
+                    retorno.c3d += 'Stack[t' + (contadorT++) + '] = ' + resultado.t + ';\n';
+                }
+            }
+            else {
+                for (let i = 0; i < this.hijos[1].hijos.length; i++) {
+                    let posicion = tablaS.obtenerPosicionStack(this.hijos[1].hijos[i].identificador, idAmbito);
+                    if (posicion != 'error') {
+                        let tamano = tablaS.obtenerTamanoFuncion(this.hijos[1].hijos[i].identificador, idAmbito);
+                        retorno.c3d += 't' + contadorT + '=P-' + posicion + ';\n';
+                        retorno.c3d += 'Stack[t' + (contadorT++) + '] = ' + resultado.t + ';\n';
                     }
                 }
             }
@@ -566,21 +650,57 @@ class AST {
 
 
 
+    llenarStack = function llenarStack(tamano) {
+        let cadena = ''
+
+        cadena += 't' + (contadorT) + '=P;\n'
+        cadena += 'L' + (contadorL++) + ':\n'
+        cadena += 'if(t' + (contadorT) + '>=' + tamano + ') goto L' + (contadorL++) + ';\n'
+        cadena += 'Stack[t' + (contadorT) + ']=0;\n'
+        cadena += 't' + (contadorT) + '=' + 't' + (contadorT++) + '+1;\n'
+        cadena += 'goto L' + (contadorL - 2) + ';\n'
+        cadena += 'L' + (contadorL - 1) + ':\n'
+
+        return cadena;
+    }
+
+
     declaracionFuncion = function declaracionFuncion() {
         let idAmbito = contadorA++
-
         let retorno = new retornoAST('', 0, '', '', '');
+        let valor
 
         if (this.hijos.length == 3) {
+            valor = tablaS.obtenerFuncion(this.hijos[1].identificador, idAmbito);
+
+            let cadena = this.llenarStack(valor.tamano);
+            if (valor == 'error') {
+                return retorno;
+            }
+
             retorno = this.hijos[2].compilarSentenciaControl(idAmbito, '', '')
-            retorno.c3d = 'proc ' + this.hijos[1].identificador + ' begin\n' + retorno.c3d;
+
+            retorno.c3d = 'proc ' + this.hijos[1].identificador + ' begin\n' +
+                cadena + 'P = P+' + valor.tamano + ';\n' + retorno.c3d;
+
+            retorno.c3d += 'P = P-' + valor.tamano + ';\n';
         }
         else {
-            retorno = this.hijos[3].compilarSentenciaControl(idAmbito, '', '')
             let parametros = this.hijos[2].compilarParametros(idAmbito)
-            retorno.c3d = 'proc ' + this.hijos[1].identificador + parametros + ' begin\n' + retorno.c3d;
-        }
+            valor = tablaS.obtenerFuncion(this.hijos[1].identificador + parametros, idAmbito);
 
+            if (valor == 'error') {
+                return retorno;
+            }
+
+            let cadena = this.llenarStack(valor.tamano);
+            retorno = this.hijos[3].compilarSentenciaControl(idAmbito, '', '')
+
+            retorno.c3d = 'proc ' + this.hijos[1].identificador + parametros + ' begin\n' +
+                cadena + 'P = P+' + valor.tamano + ';\n' + retorno.c3d;
+
+            retorno.c3d += 'P = P-' + valor.tamano + ';\n';
+        }
         retorno.c3d += 'end\n';
 
         return retorno
@@ -1109,6 +1229,12 @@ class AST {
         return 'integer';
     }
 
+    /*
+        *
+        * -------------------------------- valores de la hojas
+        * 
+    */
+
     obtenerLiteral = function obtenerLiteral(idAmbito) {
         switch (this.hijos[0].identificador) {
             case 'entero':
@@ -1133,13 +1259,16 @@ class AST {
         if (valor != 'error') {
             let retorno = new retornoAST('', 0, '', '', '');
 
-            retorno.t = 't' + (contadorT);
 
             if (valor.tipoSH == 'heap') {
+                retorno.t = 't' + (contadorT);
                 retorno.c3d += 't' + (contadorT++) + '=Heap[' + valor.posicionH + '];\n';
             }
             else {
-                retorno.c3d += 't' + (contadorT++) + '=Stack[' + valor.posicionS + '];\n';
+                let tamano = tablaS.obtenerTamanoFuncion(this.hijos[0].identificador, idAmbito);
+                retorno.c3d += 't' + (contadorT++) + '=P-' + valor.posicionS + ';\n';
+                retorno.c3d += 't' + (contadorT++) + '=Stack[t' + (contadorT - 2) + '];\n';
+                retorno.t = 't' + (contadorT - 1);
             }
 
             retorno.tipo = valor.tipo
@@ -1152,8 +1281,6 @@ class AST {
 
             error.push(err)
         }
-
-
     }
 
     obtenerEntero = function obtenerEntero() {
@@ -1211,6 +1338,13 @@ class AST {
 
         return retorno;
     }
+
+
+    /*
+        *
+        * -------------------------------- end
+        * 
+    */
 
     suma = function suma(idAmbito) {
         let resultado1 = this.hijos[0].obtenerExp(idAmbito);
@@ -2208,7 +2342,7 @@ class AST {
                         this.hijos[0].identificador,
                         padre,
                         idAmbito,
-                        (contadorH++),
+                        0,
                         (contadorS++),
                         1,
                         'stack',
@@ -2221,8 +2355,8 @@ class AST {
                         this.hijos[0].identificador,
                         padre,
                         idAmbito,
-                        (contadorH++),
                         0,
+                        (contadorS++),
                         1,
                         'stack',
                         'variable',
@@ -2242,7 +2376,7 @@ class AST {
                             this.hijos[0].identificador,
                             padre,
                             idAmbito,
-                            (contadorH++),
+                            0,
                             (contadorS++),
                             1,
                             'stack',
@@ -2254,8 +2388,8 @@ class AST {
                             this.hijos[0].identificador,
                             padre,
                             idAmbito,
-                            (contadorH++),
                             0,
+                            (contadorS++),
                             1,
                             'stack',
                             'variable',
@@ -2279,7 +2413,7 @@ class AST {
                         this.hijos[0].identificador,
                         padre,
                         idAmbito,
-                        (contadorH++),
+                        0,
                         (contadorS++),
                         1,
                         'stack',
@@ -2292,8 +2426,8 @@ class AST {
                         this.hijos[0].identificador,
                         padre,
                         idAmbito,
-                        (contadorH++),
                         0,
+                        (contadorS++),
                         1,
                         'stack',
                         'variable',
@@ -2313,7 +2447,7 @@ class AST {
                             this.hijos[0].identificador,
                             padre,
                             idAmbito,
-                            (contadorH++),
+                            0,
                             (contadorH++),
                             1,
                             'stack',
@@ -2326,8 +2460,8 @@ class AST {
                             this.hijos[0].identificador,
                             padre,
                             idAmbito,
-                            (contadorH++),
                             0,
+                            (contadorS++),
                             1,
                             'stack',
                             'variable',
@@ -2361,7 +2495,7 @@ class AST {
                         this.hijos[0].identificador,
                         padre,
                         idAmbito,
-                        (contadorH++),
+                        0,
                         (contadorS++),
                         1,
                         'stack',
@@ -2374,8 +2508,8 @@ class AST {
                         this.hijos[0].identificador,
                         padre,
                         idAmbito,
-                        (contadorH++),
                         0,
+                        (contadorS++),
                         1,
                         'stack',
                         'variable',
@@ -2397,7 +2531,7 @@ class AST {
                             this.hijos[0].identificador,
                             padre,
                             idAmbito,
-                            (contadorH++),
+                            0,
                             (contadorS++),
                             1,
                             'stack',
@@ -2409,8 +2543,8 @@ class AST {
                             this.hijos[0].identificador,
                             padre,
                             idAmbito,
-                            (contadorH++),
                             0,
+                            (contadorS++),
                             1,
                             'stack',
                             'variable',
@@ -2439,7 +2573,7 @@ class AST {
                         resultado.tipo,
                         padre,
                         idAmbito,
-                        (contadorH++),
+                        0,
                         (contadorS++),
                         1,
                         'stack',
@@ -2452,8 +2586,8 @@ class AST {
                         resultado.tipo,
                         padre,
                         idAmbito,
-                        (contadorH++),
                         0,
+                        (contadorS++),
                         1,
                         'stack',
                         'variable',
@@ -2474,8 +2608,8 @@ class AST {
                             resultado.tipo,
                             padre,
                             idAmbito,
-                            (contadorH++),
-                            (contadorH++),
+                            0,
+                            (contadorS++),
                             1,
                             'stack',
                             'variable',
@@ -2487,8 +2621,8 @@ class AST {
                             resultado.tipo,
                             padre,
                             idAmbito,
-                            (contadorH++),
                             0,
+                            (contadorS++),
                             1,
                             'stack',
                             'variable',
@@ -2505,10 +2639,9 @@ class AST {
 
     }
 
-
     declaracionFuncionTS = function declaracionFuncionTS(padre) {
         let idAmbito = contadorA++
-
+        contadorS = 0;
         padre = [0]
 
         let nuevoPadre = []
@@ -2557,7 +2690,6 @@ class AST {
         tablaS.simbolos.push(simbolo)
     }
 
-
     compilarParametrosTS = function compilarParametrosTS(padre, idAmbito) {
         let simbolo;
         for (let i = 0; i < this.hijos.length; i++) {
@@ -2566,7 +2698,7 @@ class AST {
                     this.hijos[i].hijos[0].identificador,
                     padre,
                     idAmbito,
-                    (contadorH++),
+                    0,
                     (contadorS++),
                     1,
                     'stack',
@@ -2578,8 +2710,8 @@ class AST {
                     this.hijos[i].hijos[0].identificador,
                     padre,
                     idAmbito,
-                    (contadorH++),
                     0,
+                    (contadorS++),
                     1,
                     'stack',
                     'parametro',
@@ -2592,7 +2724,6 @@ class AST {
         }
         return this.hijos.length;
     }
-
 
     sentenciaDoWhileTS = function sentenciaDoWhileTS(padre) {
 
@@ -2744,7 +2875,6 @@ class AST {
         return contador;
     }
 
-
     compilarSentenciaControlTS = function compilarSentenciaControlTS(padre, idAmbito) {
         let contadorVarables = 0;
         for (let i = 0; i < this.hijos.length; i++) {
@@ -2762,21 +2892,55 @@ class AST {
                     contadorVarables += this.hijos[i].sentenciaSwitchTS(padre);
                     break;
                 case 'inicializando variable con tipo':
-                    this.hijos[i].inicializandoVariableConTipoTS(padre, idAmbito);
+                    this.hijos[i].inicializandoVariableConTipoTS2(padre, idAmbito);
                     contadorVarables += 1
                     break;
                 case 'inicializando variable sin tipo':
-                    this.hijos[i].inicializandoVariableConTipoTS(padre, idAmbito);
+                    this.hijos[i].inicializandoVariableSinTipoTS2(padre, idAmbito);
                     contadorVarables += 1
                     break;
                 case 'asignacion':
-                    contadorVarables += this.hijos[i].inicializandoVariableSinTipo(padre, idAmbito);
+                    contadorVarables += this.hijos[i].asignacionTS(padre, idAmbito);
                     break;
                 default:
             }
         }
 
         return contadorVarables;
+    }
+
+    asignacionTS = function asignacionTS(padre, idAmbito) {
+        let simbolo;
+
+        let resultado = this.hijos[1].obtenerExp(padre, idAmbito);
+        if (this.hijos[0].hijos.length == 1) {
+            if (resultado.tipo == 'string') {
+                simbolo = new tabla.simbolo(this.hijos[0].hijos[0].hijos[0].identificador,
+                    resultado.tipo,
+                    padre,
+                    idAmbito,
+                    0,
+                    (contadorS++),
+                    1,
+                    'stack',
+                    'variable',
+                    0);
+            }
+            else {
+                simbolo = new tabla.simbolo(this.hijos[0].hijos[0].hijos[0].identificador,
+                    resultado.tipo,
+                    padre,
+                    idAmbito,
+                    0,
+                    (contadorS++),
+                    1,
+                    'stack',
+                    'variable',
+                    0);
+
+            }
+            return tablaS.insertarAsignacion(simbolo)
+        }
     }
 
 } exports.AST = AST;

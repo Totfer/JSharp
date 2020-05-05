@@ -196,8 +196,67 @@ sentenciasBloque : declaracion_variables	{$$ = $1;}
     |sentenciaFor                           {$$ = $1;}
     |sentenciaSwitch                        {$$ = $1;}
     |sentenciaBreak                         {$$ = $1;}
-    |sentenciaContinue                         {$$ = $1;}
+    |sentenciaContinue                      {$$ = $1;}
     |sentenciaReturn                        {$$ = $1;}
+    |llamadaFuncion                         {$$ = $1;}
+;
+
+llamadaFuncion : id '(' ')' ';'
+        {
+                $$ = yy.crearNodo('llamadaFuncion',@1.first_line,@1.first_column,[yy.crearHoja($1,@1.first_line,@1.first_column)])
+        }
+    |  id '(' ')'
+        {
+                $$ = yy.crearNodo('llamadaFuncion',@1.first_line,@1.first_column,[yy.crearHoja($1,@1.first_line,@1.first_column)])
+        }
+    |  id '(' listaExp ')' ';'
+        {
+                $$ = yy.crearNodo('llamadaFuncion',@1.first_line,@1.first_column,[yy.crearHoja($1,@1.first_line,@1.first_column),$3])
+        }
+    |  id '(' listaExp ')'
+        {
+                $$ = yy.crearNodo('llamadaFuncion',@1.first_line,@1.first_column,[yy.crearHoja($1,@1.first_line,@1.first_column),$3])
+        } 
+    |  id '(' listaAsignacion ')' ';'
+        {
+                $$ = yy.crearNodo('llamadaFuncion',@1.first_line,@1.first_column,[yy.crearHoja($1,@1.first_line,@1.first_column),$3])
+        }
+    |  id '(' listaAsignacion ')' 
+        {
+                $$ = yy.crearNodo('llamadaFuncion',@1.first_line,@1.first_column,[yy.crearHoja($1,@1.first_line,@1.first_column),$3])
+        }
+; 
+
+listaExp : listaExp ',' EXP 
+        {
+            $1.setHijo($3)
+            $$ = $1
+        }
+    | EXP
+        {
+            $$ = yy.crearNodo('listaExpresiones',0,0,[$1])
+        }
+;
+
+listaAsignacion : listaAsignacion ',' asignacionLlamada 
+        {
+            $1.setHijo($3)
+            $$ = $1
+        }
+    | asignacionLlamada
+        {
+            $$ = yy.crearNodo('listaAsignaciones',0,0,[$1])
+        }
+;
+
+asignacionLlamada : id '=' EXP 
+        {
+            $$ = yy.crearNodo('asignacion',0,0,[yy.crearHoja($1,@1.first_line,@1.first_column),$3,yy.crearHoja($2,@2.first_line,@2.first_column)]);
+        }
+    | id ':=' EXP 
+        {
+            $$ = yy.crearNodo('asignacion',0,0,[yy.crearHoja($1,@1.first_line,@1.first_column),$3,yy.crearHoja($2,@2.first_line,@2.first_column)]);
+        }
 ;
 
 sentenciaBreak :'break'
