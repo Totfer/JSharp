@@ -20,63 +20,6 @@ class Error {
     }
 }
 
-class Variable {
-    constructor(nombre, t, tipo, cons) {
-        this.nombre = nombre
-        this.t = t
-        this.tipo = tipo
-        this.const = cons
-    }
-}
-
-class TablaSimbolos {
-    constructor() {
-        this.variables = []
-    }
-
-    insertarVariable = function insertarVariable(nombre, t, tipo, cons) {
-        this.variables.push(new Variable(nombre, 't' + t, tipo, cons))
-    }
-
-    obtenerValor = function obtenerValor(id) {
-        for (let i = 0; i < this.variables.length; i++) {
-            if (this.variables[i].nombre == id) {
-                return this.variables[i];
-            }
-        }
-        return '';
-    }
-}
-
-class Ambito {
-    constructor(padre) {
-        this.padre = padre
-        this.tablaSimbolos = []
-    }
-
-    insertarVariable = function insertarVariable(nombre, t, tipo, cons) {
-        this.tablaSimbolos[0].insertarVariable(nombre.toLowerCase(), t, tipo, cons);
-    }
-
-    insertarVariableGloabal = function insertarVariableGloabal(nombre, t, tipo, cons) {
-        if (this.padre == null) {
-            this.tablaSimbolos[0].insertarVariable(nombre.toLowerCase(), t, tipo, 0);
-        }
-        else {
-            this.padre.insertarVariableGloabal(nombre.toLowerCase(), t, tipo);
-        }
-    }
-
-    obtenerValor = function obtenerValor(id) {
-        for (let i = 0; i < this.tablaSimbolos.length; i++) {
-            let valor = this.tablaSimbolos[i].obtenerValor(id.toLowerCase());
-            if (valor != '') {
-                return valor;
-            }
-        }
-    }
-}
-
 class retornoAST {
     constructor(c3d, error, t, l, tipo) {
         this.c3d = ''
@@ -106,11 +49,9 @@ class AST {
     compilar = function compilar() {
         contadorT = 0;
         contadorL = 0;
+        contadorA = 0;
         error = [];
-        let nuevoAmbito = new Ambito(null)
-        nuevoAmbito.tablaSimbolos.push(new TablaSimbolos())
-
-        let retorno = this.compilarSentencia('global');
+        let retorno = this.compilarSentencia();
 
         let cabecera = 'var ';
 
@@ -126,19 +67,32 @@ class AST {
 
         retorno.c3d = cabecera + retorno.c3d;
 
+        retorno.c3d += 'call principal;'
+
         console.log(retorno.c3d)
     }
 
-    compilarSentencia = function compilarSentencia(ambito) {
+    compilarSentencia = function compilarSentencia() {
         let c3d = '';
-        let retorno;
+        let retorno = new retornoAST('', 0, '', '', '');
+        let valor
+        contadorA++
         for (let i = 0; i < this.hijos.length; i++) {
             switch (this.hijos[i].identificador) {
                 case 'import':
-                    ambito.tablaSimbolos.push(this.hijos[i].importar(ambito))
+                    ambito.tablaSimbolos.push(this.hijos[i].importar(padre))
                     break;
                 case 'declaracionFuncion':
-                    retorno = this.hijos[i].declaracionFuncion(ambito)
+                    valor = this.hijos[i].declaracionFuncion(0)
+                    retorno.c3d += valor.c3d;
+                    break;
+                case 'inicializando variable con tipo':
+                    valor = this.hijos[i].inicializandoVariable(0);
+                    retorno.c3d += valor.c3d;
+                    break;
+                case 'inicializando variable sin tipo':
+                    valor = this.hijos[i].inicializandoVariable(0);
+                    retorno.c3d += valor.c3d;
                     break;
             }
         }
@@ -146,30 +100,29 @@ class AST {
     }
 
 
-    compilarSentenciaControl = function compilarSentencia(ambito, bl, cl) {
-        let c3d = '';
+    compilarSentenciaControl = function compilarSentenciaControl(idAmbito, bl, cl) {
         let retorno = new retornoAST('', 0, '', '', '');
         let valor;
         for (let i = 0; i < this.hijos.length; i++) {
             switch (this.hijos[i].identificador) {
                 case 'print':
-                    valor = this.hijos[i].print(ambito);
+                    valor = this.hijos[i].print(idAmbito);
                     retorno.c3d += valor.c3d;
                     break;
                 case 'ifInstruccion':
-                    valor = this.hijos[i].sentenciaIf(ambito, bl, cl);
+                    valor = this.hijos[i].sentenciaIf(bl, cl, idAmbito);
                     retorno.c3d += valor.c3d;
                     break;
                 case 'while':
-                    valor = this.hijos[i].sentenciaWhile(ambito);
+                    valor = this.hijos[i].sentenciaWhile(idAmbito);
                     retorno.c3d += valor.c3d;
                     break;
                 case 'do while':
-                    valor = this.hijos[i].sentenciaDoWhile(ambito);
+                    valor = this.hijos[i].sentenciaDoWhile(idAmbito);
                     retorno.c3d += valor.c3d;
                     break;
                 case 'switch':
-                    valor = this.hijos[i].sentenciaSwitch(ambito);
+                    valor = this.hijos[i].sentenciaSwitch(idAmbito);
                     retorno.c3d += valor.c3d;
                     break;
                 case 'break':
@@ -180,15 +133,15 @@ class AST {
                     retorno.c3d += 'goto ' + cl + ';\n'
                     break;
                 case 'inicializando variable con tipo':
-                    valor = this.hijos[i].inicializandoVariableConTipo(ambito);
+                    valor = this.hijos[i].inicializandoVariable(idAmbito);
                     retorno.c3d += valor.c3d;
                     break;
                 case 'inicializando variable sin tipo':
-                    valor = this.hijos[i].inicializandoVariableSinTipo(ambito);
+                    valor = this.hijos[i].inicializandoVariable(idAmbito);
                     retorno.c3d += valor.c3d;
                     break;
                 case 'asignacion':
-                    valor = this.hijos[i].inicializandoVariableSinTipo(ambito);
+                    valor = this.hijos[i].inicializandoVariableSinTipo(idAmbito);
                     retorno.c3d += valor.c3d;
                     break;
                 default:
@@ -198,17 +151,80 @@ class AST {
         return retorno;
     }
 
-    asignacion = function asignacion(ambito) {
-        let resultado = this.hijos[1].obtenerExp(ambito);
+    asignacion = function asignacion(padre) {
+        let resultado = this.hijos[1].obtenerExp(padre, idAmbito);
 
     }
 
-    inicializandoVariableSinTipo = function inicializandoVariableSinTipo(ambito) {
+    sentenciaFor = function sentenciaFor(idAmbito) {
+        let retorno = new retornoAST('', 0, '', '', '');
+
+        let resultado1 = compilarInstrucciones('instruccion1', idAmbito)
+        let resultado2 = compilarInstrucciones('instruccion2', idAmbito)
+        let resultado3 = compilarInstrucciones('instruccion3', idAmbito)
+
+        retorno.c3d += resultado1.c3d
+
+        let l1 = ('L' + contadorL++)
+        let l2 = ('L' + contadorL++)
+
+        let resultado4 = this.hijos[1].compilarSentenciaControl(idAmbito, l1, l2);
+        let tipo = 'error'
+
+        retorno.c3d += resultado2.c3d;
+
+        retorno.c3d += l2 + ':\n';
+        retorno.c3d += 'if(' + resultado2.t + '==0) goto ' + l1 + ';\n';
+
+        retorno.c3d += resultado4.c3d;
+        retorno.c3d += resultado3.c3d;
+
+        retorno.c3d += 'goto ' + l2 + ';\n';
+        retorno.c3d += l1 + ':\n';
+
+        if (resultado4.break != '') {
+            retorno.c3d += resultado4.break + ':\n';
+            retorno.break = '';
+        }
+
+        if (resultado4.continue != '') {
+            retorno.c3d += resultado4.continue + ':\n';
+            retorno.continue = '';
+        }
+
+        return retorno
+    }
+
+    compilarInstrucciones = function compilarInstrucciones(instruccion, idAmbito) {
+        let retorno = new retornoAST('', 0, '', '', '')
+        if (this.hijos.length != 0) {
+            for (let i = 0; i < this.hijos.length; i++) {
+                if (instruccion == this.hijos[i].identificador) {
+                    if (this.hijos[i].hijos[0].identificador != 'asignacion') {
+
+                    }
+                    else if (this.hijos[i].hijos[0].identificador != 'inicializando variable con tipo') {
+                        valor = this.hijos[i].hijos[0].inicializandoVariable(idAmbito);
+                    }
+                    else if (this.hijos[i].hijos[0].identificador != 'inicializando variable sin tipo') {
+                        valor = this.hijos[i].hijos[0].inicializandoVariable(idAmbito);
+                    }
+                    else {
+                        retorno = this.hijos[i].hijos[0].obtenerExp(idAmbito);
+                    }
+                }
+            }
+        }
+
+        return retorno
+    }
+
+    inicializandoVariableSinTipo = function inicializandoVariableSinTipo(padre) {
         let t = contadorT++;
 
         let retorno = new retornoAST('', 0, '', '', '');
 
-        let resultado = this.hijos[2].hijos[0].obtenerExp(ambito);
+        let resultado = this.hijos[2].hijos[0].obtenerExp(padre, idAmbito);
         retorno.c3d += resultado.c3d;
 
         if (this.hijos[0].identificador.toLowerCase() == 'global') {
@@ -225,8 +241,10 @@ class AST {
         return retorno;
     }
 
-    inicializandoVariableConTipo = function inicializandoVariableConTipo(ambito) {
+    inicializandoVariable = function inicializandoVariable(idAmbito) {
         let t = contadorT++;
+
+        let valor
 
         let retorno = new retornoAST('', 0, '', '', '');
 
@@ -235,36 +253,35 @@ class AST {
             let valort = 't' + (contadorT);
             retorno.c3d += 't' + (contadorT++) + '=' + valor + ';\n'
             if (this.hijos[1].hijos.length == 0) {
-                ambito.insertarVariable(this.hijos[1].identificador.toLowerCase(),
-                    t, this.hijos[0].identificador.toLowerCase(), 0);
-                retorno.c3d += 't' + t + '=' + valort + ';\n';
+                let posicion = tablaS.obtenerPosicionHeap(this.hijos[1].identificador, idAmbito);
+                if (posicion != 'error') {
+                    retorno.c3d += 'Heap[' + posicion + '] = 0;\n';
+                }
             }
             else {
                 for (let i = 0; i < this.hijos[1].length; i++) {
-                    ambito.insertarVariable(this.hijos[1].hijos[i].identificador.toLowerCase(),
-                        t, this.hijos[0].identificador.toLowerCase(), 0);
-                    retorno.c3d += 't' + t + '=' + valort + ';\n';
-                    t = contadorT++;
+                    let posicion = tablaS.obtenerPosicionHeap(this.hijos[1].hijos[i].identificador, idAmbito);
+                    if (posicion != 'error') {
+                        retorno.c3d += 'Heap[' + posicion + '] = 0;\n';
+                    }
                 }
             }
         }
         else {
-            let resultado = this.hijos[2].hijos[0].obtenerExp(ambito);
+            let resultado = this.hijos[2].hijos[0].obtenerExp(idAmbito);
             retorno.c3d += resultado.c3d;
-
-            retorno.c3d += 't'+(contadorT)+'Heap['++'];';
-
             if (this.hijos[1].hijos.length == 0) {
-                ambito.insertarVariable(this.hijos[1].identificador.toLowerCase(),
-                    t, this.hijos[0].identificador.toLowerCase(), 0);
-                retorno.c3d += 't' + t + '=' + resultado.t + ';\n';
+                let posicion = tablaS.obtenerPosicionHeap(this.hijos[1].identificador, idAmbito);
+                if (posicion != 'error') {
+                    retorno.c3d += 'Heap[' + posicion + '] = ' + resultado.t + ';\n';
+                }
             }
             else {
                 for (let i = 0; i < this.hijos[1].hijos.length; i++) {
-                    ambito.insertarVariable(this.hijos[1].hijos[i].identificador.toLowerCase(),
-                        t, this.hijos[0].identificador.toLowerCase(), 0);
-                    retorno.c3d += 't' + t + '=' + resultado.t + ';\n';
-                    t = contadorT++;
+                    let posicion = tablaS.obtenerPosicionHeap(this.hijos[1].hijos[i].identificador, idAmbito);
+                    if (posicion != 'error') {
+                        retorno.c3d += 'Heap[' + posicion + '] = ' + resultado.t + ';\n';
+                    }
                 }
             }
         }
@@ -291,29 +308,29 @@ class AST {
         *
     */
 
-    sentenciaSwitch = function sentenciaSwitch(ambito) {
-        let retorno1 = this.hijos[0].obtenerExp(ambito);
+    sentenciaSwitch = function sentenciaSwitch(padre, idAmbito) {
+        let retorno1 = this.hijos[0].obtenerExp(idAmbito);
 
-        let retorno2 = this.hijos[1].bloqueSwitch(ambito, retorno1);
+        let retorno2 = this.hijos[1].bloqueSwitch(retorno1, idAmbito);
 
         return retorno2
     }
 
-    bloqueSwitch = function bloqueSwitch(ambito, valor) {
+    bloqueSwitch = function bloqueSwitch(valor, idAmbito) {
         let retorno = new retornoAST('', 0, '', '', '');
         let l1 = ('L' + contadorL++)
         let breakL = '';
         for (let i = 0; i < this.hijos.length; i++) {
             switch (this.hijos[i].identificador) {
                 case 'listaSwitch':
-                    valor = this.hijos[i].cases(ambito, l1, valor);
+                    valor = this.hijos[i].cases(idAmbito, l1, valor);
                     retorno.c3d += valor.c3d;
                     if (valor.break != '') {
                         breakL = valor.break;
                     }
                     break;
                 case 'default':
-                    valor = this.hijos[i].hijos[0].compilarSentenciaControl(ambito, l1, '');
+                    valor = this.hijos[i].hijos[0].compilarSentenciaControl(idAmbito, l1, '');
                     retorno.c3d += valor.c3d;
                     if (valor.break != '') {
                         breakL = valor.break;
@@ -330,12 +347,12 @@ class AST {
 
     }
 
-    cases = function cases(ambito, bl, valor) {
+    cases = function cases(idAmbito, bl, valor) {
         let retorno = new retornoAST('', 0, '', '', '');
         let breakL = '';
         let l = '';
         for (let i = 0; i < this.hijos.length; i++) {
-            let resultado1 = this.hijos[i].sentenciaCase(ambito, bl, valor, l);
+            let resultado1 = this.hijos[i].sentenciaCase(idAmbito, bl, valor, l);
             retorno.c3d += resultado1.c3d;
             l = resultado1.l;
             if (resultado1.break != '') {
@@ -350,10 +367,10 @@ class AST {
         return retorno
     }
 
-    sentenciaCase = function sentenciaCase(ambito, bl, valor, l) {
+    sentenciaCase = function sentenciaCase(idAmbito, bl, valor, l) {
         let retorno = new retornoAST('', 0, '', '', '');
 
-        let resultado1 = this.hijos[0].obtenerExp(ambito);
+        let resultado1 = this.hijos[0].obtenerExp(idAmbito);
 
         let tipo = this.obtenerTipoIgualDesigual(resultado1.tipo, valor.tipo);
 
@@ -380,7 +397,7 @@ class AST {
             retorno.c3d += l + ':\n'
         }
         if (this.hijos[1] != undefined) {
-            let retorno2 = this.hijos[1].compilarSentenciaControl(ambito, bl, '');
+            let retorno2 = this.hijos[1].compilarSentenciaControl(idAmbito, bl, '');
             retorno.c3d += retorno2.c3d;
             if (retorno2.break != '') {
                 retorno.break = retorno2.break;
@@ -400,15 +417,15 @@ class AST {
         *
     */
 
-    sentenciaDoWhile = function sentenciaDoWhile(ambito) {
+    sentenciaDoWhile = function sentenciaDoWhile(idAmbito) {
         let retorno = new retornoAST('', 0, '', '', '');
 
-        let retorno1 = this.hijos[1].obtenerExp(ambito);
+        let retorno1 = this.hijos[1].obtenerExp(idAmbito);
 
         let l1 = ('L' + contadorL++)
         let l2 = ('L' + contadorL++)
 
-        let retorno2 = this.hijos[0].compilarSentenciaControl(ambito, l1, l2);
+        let retorno2 = this.hijos[0].compilarSentenciaControl(idAmbito, l1, l2);
         let tipo = 'error'
 
         retorno.c3d += retorno1.c3d;
@@ -430,15 +447,15 @@ class AST {
 
     }
 
-    sentenciaWhile = function sentenciaWhile(ambito) {
+    sentenciaWhile = function sentenciaWhile(idAmbito) {
         let retorno = new retornoAST('', 0, '', '', '');
 
-        let retorno1 = this.hijos[0].obtenerExp(ambito);
+        let retorno1 = this.hijos[0].obtenerExp(idAmbito);
 
         let l1 = ('L' + contadorL++)
         let l2 = ('L' + contadorL++)
 
-        let retorno2 = this.hijos[1].compilarSentenciaControl(ambito, l1, l2);
+        let retorno2 = this.hijos[1].compilarSentenciaControl(idAmbito, l1, l2);
         let tipo = 'error'
 
         retorno.c3d += retorno1.c3d;
@@ -466,7 +483,7 @@ class AST {
         *
     */
 
-    sentenciaIf = function sentenciaIf(ambito, bl, cl) {
+    sentenciaIf = function sentenciaIf(bl, cl, idAmbito) {
         let retorno = new retornoAST('', 0, '', '', '');
         let c3d = '';
         let valor;
@@ -474,11 +491,11 @@ class AST {
         for (let i = 0; i < this.hijos.length; i++) {
             switch (this.hijos[i].identificador) {
                 case 'ifs':
-                    valor = this.hijos[i].sentenciaIfs(ambito, l, bl, cl);
+                    valor = this.hijos[i].sentenciaIfs(l, bl, cl, idAmbito);
                     c3d += valor.c3d;
                     break;
                 case 'else':
-                    valor = this.hijos[i].hijos[0].compilarSentenciaControl(ambito, bl, cl);
+                    valor = this.hijos[i].hijos[0].compilarSentenciaControl(bl, cl, idAmbito);
                     c3d += valor.c3d;
                     break;
             }
@@ -489,18 +506,18 @@ class AST {
         return retorno;
     }
 
-    sentenciaIfs = function sentenciaIfs(ambito, l, bl, cl) {
+    sentenciaIfs = function sentenciaIfs(l, bl, cl, idAmbito) {
         let retorno = new retornoAST('', 0, '', '', '');
         let c3d = '';
         let valor;
         for (let i = 0; i < this.hijos.length; i++) {
             switch (this.hijos[i].identificador) {
                 case 'if':
-                    valor = this.hijos[i].if3d(ambito, l, bl, cl);
+                    valor = this.hijos[i].if3d(l, bl, cl, idAmbito);
                     c3d += valor.c3d;
                     break;
                 case 'lista else if':
-                    valor = this.hijos[i].ifElse(ambito, l, bl, cl);
+                    valor = this.hijos[i].ifElse(l, bl, cl, idAmbito);
                     c3d += valor.c3d;
                     break;
             }
@@ -510,22 +527,22 @@ class AST {
         return retorno;
     }
 
-    ifElse = function ifElse(ambito, l) {
+    ifElse = function ifElse(l, bl, cl, idAmbito) {
         let retorno = new retornoAST('', 0, '', '', '');
         let valor = new retornoAST('', 0, '', '', '');
         for (let i = 0; i < this.hijos.length; i++) {
-            valor = this.hijos[i].if3d(ambito, l, bl, cl);
+            valor = this.hijos[i].if3d(l, bl, cl, idAmbito);
             retorno.c3d += valor.c3d;
         }
 
         return retorno;
     }
 
-    if3d = function if3d(ambito, l, bl, cl) {
+    if3d = function if3d(l, bl, cl, idAmbito) {
         let retorno = new retornoAST('', 0, '', '', '');
 
-        let retorno1 = this.hijos[0].obtenerExp(ambito);
-        let retorno2 = this.hijos[1].compilarSentenciaControl(ambito, bl, cl);
+        let retorno1 = this.hijos[0].obtenerExp(idAmbito);
+        let retorno2 = this.hijos[1].compilarSentenciaControl(idAmbito, bl, cl);
 
 
         retorno.c3d += retorno1.c3d;
@@ -549,66 +566,88 @@ class AST {
 
 
 
-    declaracionFuncion = function declaracionFuncion(ambito) {
+    declaracionFuncion = function declaracionFuncion() {
+        let idAmbito = contadorA++
 
-        return this.hijos[2].compilarSentenciaControl(ambito)
+        let retorno = new retornoAST('', 0, '', '', '');
 
+        if (this.hijos.length == 3) {
+            retorno = this.hijos[2].compilarSentenciaControl(idAmbito, '', '')
+            retorno.c3d = 'proc ' + this.hijos[1].identificador + ' begin\n' + retorno.c3d;
+        }
+        else {
+            retorno = this.hijos[3].compilarSentenciaControl(idAmbito, '', '')
+            let parametros = this.hijos[2].compilarParametros(idAmbito)
+            retorno.c3d = 'proc ' + this.hijos[1].identificador + parametros + ' begin\n' + retorno.c3d;
+        }
+
+        retorno.c3d += 'end\n';
+
+        return retorno
+    }
+
+    compilarParametros = function compilarParametros(idAmbito) {
+        let parametros = '';
+        for (let i = 0; i < this.hijos.length; i++) {
+            parametros += '_' + this.hijos[i].hijos[0].identificador
+        }
+
+        return parametros;
     }
 
 
-
-    obtenerExp = function obtenerExp(ambito) {
+    obtenerExp = function obtenerExp(idAmbito) {
         switch (this.identificador) {
             case '+':
-                return this.suma(ambito);
+                return this.suma(idAmbito);
             case '-':
-                return this.resta(ambito);
+                return this.resta(idAmbito);
             case '*':
-                return this.multiplicacion(ambito);
+                return this.multiplicacion(idAmbito);
             case '/':
-                return this.divicion(ambito);
+                return this.divicion(idAmbito);
             case '%':
-                return this.modulo(ambito);
+                return this.modulo(idAmbito);
             case '^^':
-                return this.potencia(ambito);
+                return this.potencia(idAmbito);
 
             case '==':
-                return this.igualDiferente(ambito);
+                return this.igualDiferente(idAmbito);
             case '<>':
-                return this.igualDiferente(ambito);
+                return this.igualDiferente(idAmbito);
             case '===':
-                return this.igualReferencia(ambito);
+                return this.igualReferencia(idAmbito);
             case '<=':
-                return this.relacional(ambito);
+                return this.relacional(idAmbito);
             case '>=':
-                return this.relacional(ambito);
+                return this.relacional(idAmbito);
             case '<':
-                return this.relacional(ambito);
+                return this.relacional(idAmbito);
             case '>':
-                return this.relacional(ambito);
+                return this.relacional(idAmbito);
 
             case '&&':
-                return this.logico(ambito);
+                return this.logico(idAmbito);
             case '||':
-                return this.logico(ambito);
+                return this.logico(idAmbito);
             case '^':
-                return this.logico(ambito);
+                return this.logico(idAmbito);
             case '!':
-                return this.logicoNeg(ambito);
+                return this.logicoNeg(idAmbito);
 
             case '++':
-                return this.logico(ambito);
+                return this.logico(idAmbito);
             case '--':
-                return this.logicoNeg(ambito);
+                return this.logicoNeg(idAmbito);
 
             case 'literal':
-                return this.obtenerLiteral(ambito);
+                return this.obtenerLiteral(idAmbito);
             default:
         }
     }
 
-    logicoNeg = function logicoNeg(ambito) {
-        let resultado1 = this.hijos[0].obtenerExp(ambito);
+    logicoNeg = function logicoNeg(idAmbito) {
+        let resultado1 = this.hijos[0].obtenerExp(idAmbito);
         let tipo = this.obtenerTipoLogico(resultado1.tipo, 'boolean');
         let retorno;
         if (tipo == 'error') {
@@ -628,9 +667,9 @@ class AST {
         return retorno;
     }
 
-    logico = function logico(ambito) {
-        let resultado1 = this.hijos[0].obtenerExp(ambito);
-        let resultado2 = this.hijos[1].obtenerExp(ambito);
+    logico = function logico(idAmbito) {
+        let resultado1 = this.hijos[0].obtenerExp(idAmbito);
+        let resultado2 = this.hijos[1].obtenerExp(idAmbito);
         let tipo = this.obtenerTipoLogico(resultado1.tipo, resultado2.tipo);
         let retorno;
         if (tipo == 'error') {
@@ -778,9 +817,9 @@ class AST {
         return 'boolean';
     }
 
-    relacional = function relacional(ambito) {
-        let resultado1 = this.hijos[0].obtenerExp(ambito);
-        let resultado2 = this.hijos[1].obtenerExp(ambito);
+    relacional = function relacional(idAmbito) {
+        let resultado1 = this.hijos[0].obtenerExp(idAmbito);
+        let resultado2 = this.hijos[1].obtenerExp(idAmbito);
         let tipo = this.obtenerTipoRelacional(resultado1.tipo, resultado2.tipo);
         let retorno;
         if (tipo == 'error') {
@@ -839,9 +878,9 @@ class AST {
         return tipoRetorno;
     }
 
-    potencia = function potencia(ambito) {
-        let resultado1 = this.hijos[0].obtenerExp(ambito);
-        let resultado2 = this.hijos[1].obtenerExp(ambito);
+    potencia = function potencia(idAmbito) {
+        let resultado1 = this.hijos[0].obtenerExp(idAmbito);
+        let resultado2 = this.hijos[1].obtenerExp(idAmbito);
         let tipo = this.obtenerTipoModuloPotencia(resultado1.tipo, resultado2.tipo);
 
         if (tipo == 'error') {
@@ -862,9 +901,9 @@ class AST {
         return retorno;
     }
 
-    igualDiferente = function igualDiferente(ambito) {
-        let resultado1 = this.hijos[0].obtenerExp(ambito);
-        let resultado2 = this.hijos[1].obtenerExp(ambito);
+    igualDiferente = function igualDiferente(idAmbito) {
+        let resultado1 = this.hijos[0].obtenerExp(idAmbito);
+        let resultado2 = this.hijos[1].obtenerExp(idAmbito);
         let tipo = this.obtenerTipoIgualDesigual(resultado1.tipo, resultado2.tipo);
         let retorno = new retornoAST('', 0, '', '', '');
 
@@ -899,9 +938,9 @@ class AST {
         return retorno;
     }
 
-    igualReferencia = function igualReferencia(ambito) {
-        let resultado1 = this.hijos[0].obtenerExp(ambito);
-        let resultado2 = this.hijos[1].obtenerExp(ambito);
+    igualReferencia = function igualReferencia(idAmbito) {
+        let resultado1 = this.hijos[0].obtenerExp(idAmbito);
+        let resultado2 = this.hijos[1].obtenerExp(idAmbito);
         let tipo = this.obtenerTipoIgual(resultado1.tipo, resultado2.tipo);
         let retorno
         if (tipo == 'error') {
@@ -1026,9 +1065,9 @@ class AST {
         return retorno;
     }
 
-    modulo = function modulo(ambito) {
-        let resultado1 = this.hijos[0].obtenerExp(ambito);
-        let resultado2 = this.hijos[1].obtenerExp(ambito);
+    modulo = function modulo(idAmbito) {
+        let resultado1 = this.hijos[0].obtenerExp(idAmbito);
+        let resultado2 = this.hijos[1].obtenerExp(idAmbito);
         let tipo = this.obtenerTipoModuloPotencia(resultado1.tipo, resultado2.tipo);
 
         if (tipo == 'error') {
@@ -1070,38 +1109,54 @@ class AST {
         return 'integer';
     }
 
-    obtenerLiteral = function obtenerLiteral(ambito) {
+    obtenerLiteral = function obtenerLiteral(idAmbito) {
         switch (this.hijos[0].identificador) {
             case 'entero':
-                return this.hijos[0].obtenerEntero(ambito);
+                return this.hijos[0].obtenerEntero();
             case 'decimal':
-                return this.hijos[0].obtenerDecimal(ambito);
+                return this.hijos[0].obtenerDecimal();
             case 'caracter':
-                return this.hijos[0].obtenerChar(ambito);
+                return this.hijos[0].obtenerChar();
             case 'boleano':
-                return this.hijos[0].obtenerBoleano(ambito);
+                return this.hijos[0].obtenerBoleano();
             case 'cadena':
-                return this.hijos[0].obtenerString(ambito);
+                return this.hijos[0].obtenerString();
             case 'identificacdor':
-                return this.hijos[0].obtenerValorIdentificador(ambito);
+                return this.hijos[0].obtenerValorIdentificador(idAmbito);
             default:
         }
     }
 
-    obtenerValorIdentificador = function obtenerValorIdentificador(ambito) {
-        let valor = ambito.obtenerValor(this.hijos[0].identificador);
+    obtenerValorIdentificador = function obtenerValorIdentificador(idAmbito) {
+        let valor = tablaS.obtenerSimbolo(this.hijos[0].identificador, idAmbito);
 
-        if (valor != undefined) {
+        if (valor != 'error') {
             let retorno = new retornoAST('', 0, '', '', '');
 
-            retorno.t = valor.t
+            retorno.t = 't' + (contadorT);
+
+            if (valor.tipoSH == 'heap') {
+                retorno.c3d += 't' + (contadorT++) + '=Heap[' + valor.posicionH + '];\n';
+            }
+            else {
+                retorno.c3d += 't' + (contadorT++) + '=Stack[' + valor.posicionS + '];\n';
+            }
+
             retorno.tipo = valor.tipo
 
             return retorno
         }
+        else {
+            let err = new Error('La variable ' + this.hijos[0].identificador +
+                ' no existe', this.hijos[0].linea, this.hijos[0].columna);
+
+            error.push(err)
+        }
+
+
     }
 
-    obtenerEntero = function obtenerEntero(ambito) {
+    obtenerEntero = function obtenerEntero() {
         let retorno = {
             c3d: '',
             error: 0,
@@ -1113,7 +1168,7 @@ class AST {
         return retorno;
     }
 
-    obtenerBoleano = function obtenerBoleano(ambito) {
+    obtenerBoleano = function obtenerBoleano() {
         let retorno = {
             c3d: '',
             error: 0,
@@ -1125,7 +1180,7 @@ class AST {
         return retorno;
     }
 
-    obtenerDecimal = function obtenerDecimal(ambito) {
+    obtenerDecimal = function obtenerDecimal() {
         let retorno = {
             c3d: '',
             error: 0,
@@ -1137,7 +1192,7 @@ class AST {
         return retorno;
     }
 
-    obtenerChar = function obtenerChar(ambito) {
+    obtenerChar = function obtenerChar() {
         let retorno = {
             c3d: '',
             error: 0,
@@ -1149,7 +1204,7 @@ class AST {
         return retorno;
     }
 
-    obtenerString = function obtenerString(ambito) {
+    obtenerString = function obtenerString() {
         let retorno = this.generarString3d(this.hijos[0].identificador);
 
         retorno.tipo = 'string'
@@ -1157,9 +1212,9 @@ class AST {
         return retorno;
     }
 
-    suma = function suma(ambito) {
-        let resultado1 = this.hijos[0].obtenerExp(ambito);
-        let resultado2 = this.hijos[1].obtenerExp(ambito);
+    suma = function suma(idAmbito) {
+        let resultado1 = this.hijos[0].obtenerExp(idAmbito);
+        let resultado2 = this.hijos[1].obtenerExp(idAmbito);
         let tipo = this.obtenerTipoSuma(resultado1.tipo, resultado2.tipo);
 
         if (tipo == 'error') {
@@ -1187,9 +1242,9 @@ class AST {
         return retorno;
     }
 
-    divicion = function divicion(ambito) {
-        let resultado1 = this.hijos[0].obtenerExp(ambito);
-        let resultado2 = this.hijos[1].obtenerExp(ambito);
+    divicion = function divicion(idAmbito) {
+        let resultado1 = this.hijos[0].obtenerExp(idAmbito);
+        let resultado2 = this.hijos[1].obtenerExp(idAmbito);
         let tipo = this.obtenerTipoDivicion(resultado1.tipo, resultado2.tipo);
 
         if (tipo == 'error') {
@@ -1209,9 +1264,9 @@ class AST {
         return retorno;
     }
 
-    multiplicacion = function multiplicacion(ambito) {
-        let resultado1 = this.hijos[0].obtenerExp(ambito);
-        let resultado2 = this.hijos[1].obtenerExp(ambito);
+    multiplicacion = function multiplicacion(idAmbito) {
+        let resultado1 = this.hijos[0].obtenerExp(idAmbito);
+        let resultado2 = this.hijos[1].obtenerExp(idAmbito);
         let tipo = this.obtenerTipoRestaMultiplicacion(resultado1.tipo, resultado2.tipo);
 
         if (tipo == 'error') {
@@ -1231,8 +1286,8 @@ class AST {
         return retorno;
     }
 
-    resta = function resta(ambito) {
-        let resultado1 = this.hijos[0].obtenerExp(ambito);
+    resta = function resta(idAmbito) {
+        let resultado1 = this.hijos[0].obtenerExp(idAmbito);
 
         let tipo;
         let retorno;
@@ -1264,7 +1319,7 @@ class AST {
             retorno.tipo = tipo;
         }
         else {
-            let resultado2 = this.hijos[1].obtenerExp(ambito);
+            let resultado2 = this.hijos[1].obtenerExp(padre, idAmbito);
             tipo = this.obtenerTipoRestaMultiplicacion(resultado1.tipo, resultado2.tipo);
             if (tipo == 'error') {
                 let retorno = {
@@ -1438,10 +1493,10 @@ class AST {
         return tipoRetorno;
     }
 
-    print = function print(ambito) {
+    print = function print(idAmbito) {
         let retorno = new retornoAST('', 0, '', '', '');
 
-        let ambitoRetorno = this.hijos[0].hijos[0].obtenerExp(ambito);
+        let ambitoRetorno = this.hijos[0].hijos[0].obtenerExp(idAmbito);
         let tipo = 'error'
         let c3d = '';
         switch (ambitoRetorno.tipo) {
@@ -1513,7 +1568,7 @@ class AST {
         return c3d;
     }
 
-    importar = function importar(ambito) {
+    importar = function importar(padre) {
         for (let j = 0; j < this.hijos[0].hijos.length; j++) {
             fs.readFile('C:\\Users\\arnol\\Desktop\\entradasCompi2\\' +
                 this.hijos[0].hijos[j].hijos[0].identificador +
@@ -1792,16 +1847,25 @@ class AST {
     }
 
 
+
+
+
+
+
+
+
+
+
     //------------------- Tabla De Simbolos 
 
     llenarTablaSimbolos = function llenarTablaSimbolos(padre) {
         tablaS = new tabla.tablaSimbolos();
         contadorH = 0;
         contadorS = 0;
+        contadorA = 0;
         this.globalTS();
 
     }
-
 
     globalTS = function globalTS() {
         let idAmbito = contadorA++
@@ -1810,19 +1874,21 @@ class AST {
                 case 'import':
                     break;
                 case 'declaracionFuncion':
-                    this.hijos[i].declaracionFuncionTS('global', idAmbito)
+                    this.hijos[i].declaracionFuncionTS([0])
                     break;
                 case 'inicializando variable con tipo':
-                    this.hijos[i].inicializandoVariableConTipoTS('global', idAmbito);
+                    this.hijos[i].inicializandoVariableConTipoTS([0], 0);
                     break;
                 case 'inicializando variable sin tipo':
-                    this.hijos[i].inicializandoVariableSinTipoTS('global', idAmbito);
+                    this.hijos[i].inicializandoVariableSinTipoTS([0], 0);
                     break;
             }
         }
-        console.log(tablaS);
-    }
 
+        console.log(tablaS.simbolos)
+        console.log('')
+
+    }
 
     inicializandoVariableConTipoTS = function inicializandoVariableConTipoTS(padre, idAmbito) {
         let simbolo;
@@ -1856,7 +1922,7 @@ class AST {
 
                 }
                 let err = tablaS.insertar(simbolo)
-                if (err = 'error') {
+                if (err == 'error') {
                     error.push(new Error('La variable \"' + simbolo.nombre + '\" ya existe.', this.hijos[1].linea, this.hijos[1].columna))
                 }
             }
@@ -1890,14 +1956,14 @@ class AST {
                     }
 
                     let err = tablaS.insertar(simbolo)
-                    if (err = 'error') {
+                    if (err == 'error') {
                         error.push(new Error('La variable \"' + simbolo.nombre + '\" ya existe.', this.hijos[1].hijos[i].linea, this.hijos[1].hijos[i].columna))
                     }
                 }
             }
         }
         else {
-            let resultado = this.hijos[2].hijos[0].obtenerExp(ambito);
+            let resultado = this.hijos[2].hijos[0].obtenerExp(padre, idAmbito);
             if (this.hijos[1].hijos.length == 0) {
 
                 if (this.hijos[0].identificador == 'string') {
@@ -1927,7 +1993,7 @@ class AST {
 
                 }
                 let err = tablaS.insertar(simbolo)
-                if (err = 'error') {
+                if (err == 'error') {
                     error.push(new Error('La variable \"' + simbolo.nombre + '\" ya existe.', this.hijos[1].linea, this.hijos[1].columna))
                 }
             }
@@ -1960,7 +2026,7 @@ class AST {
                             0);
                     }
                     let err = tablaS.insertar(simbolo)
-                    if (err = 'error') {
+                    if (err == 'error') {
                         error.push(new Error('La variable \"' + simbolo.nombre + '\" ya existe.', this.hijos[1].hijos[i].linea, this.hijos[1].hijos[i].columna))
                     }
                 }
@@ -1971,8 +2037,16 @@ class AST {
 
     inicializandoVariableSinTipoTS = function inicializandoVariableSinTipoTS(padre, idAmbito) {
         let simbolo;
-
+        let cons = 0;
+        if (this.hijos[0].identificador == 'global') {
+            idAmbito = 0;
+            padre = [];
+        }
+        else if (this.hijos[0].identificador == 'const') {
+            cons = 1
+        }
         if (this.hijos.length == 2) {
+
             if (this.hijos[1].hijos.length == 0) {
                 if (this.hijos[0].identificador == 'string') {
                     simbolo = new tabla.simbolo(this.hijos[1].identificador.toLowerCase(),
@@ -1984,7 +2058,7 @@ class AST {
                         1,
                         'heap',
                         'variable',
-                        0);
+                        cons);
 
                 }
                 else {
@@ -1997,7 +2071,7 @@ class AST {
                         1,
                         'heap',
                         'variable',
-                        0);
+                        cons);
 
                 }
 
@@ -2020,7 +2094,7 @@ class AST {
                             1,
                             'heap',
                             'variable',
-                            0);
+                            cons);
                     }
                     else {
                         simbolo = new tabla.simbolo(this.hijos[1].identificador,
@@ -2045,8 +2119,7 @@ class AST {
         }
         else {
 
-            let resultado = this.hijos[2].hijos[0].obtenerExp(ambito);
-            let cons = 0;
+            let resultado = this.hijos[2].hijos[0].obtenerExp(padre, idAmbito);
             if (this.hijos[0].identificador == 'const') {
                 cons = 1;
             }
@@ -2094,7 +2167,7 @@ class AST {
                             padre,
                             idAmbito,
                             (contadorH++),
-                            (contadorH++),
+                            (contadorS++),
                             1,
                             'heap',
                             'variable',
@@ -2124,31 +2197,435 @@ class AST {
 
     }
 
-    declaracionFuncionTS = function declaracionFuncionTS(padre, idAmbito) {
-        //let idAmbito = contadorA++
-        let tamano = this.hijos[2].compilarSentenciaControlTS('global_' + this.hijos[1].identificador);
 
-        let simbolo = new tabla.simbolo(this.hijos[1].identificador,
-            this.hijos[0].identificador,
-            'global',
-            0,
-            -1,
-            -1,
-            tamano,
-            '',
-            'funcion',
-            0);
+    inicializandoVariableConTipoTS2 = function inicializandoVariableConTipoTS(padre, idAmbito) {
+        let simbolo;
+
+        if (this.hijos.length == 2) {
+            if (this.hijos[1].hijos.length == 0) {
+                if (this.hijos[0].identificador == 'string') {
+                    simbolo = new tabla.simbolo(this.hijos[1].identificador.toLowerCase(),
+                        this.hijos[0].identificador,
+                        padre,
+                        idAmbito,
+                        (contadorH++),
+                        (contadorS++),
+                        1,
+                        'stack',
+                        'variable',
+                        0);
+
+                }
+                else {
+                    simbolo = new tabla.simbolo(this.hijos[1].identificador.toLowerCase(),
+                        this.hijos[0].identificador,
+                        padre,
+                        idAmbito,
+                        (contadorH++),
+                        0,
+                        1,
+                        'stack',
+                        'variable',
+                        0);
+
+                }
+                let err = tablaS.insertar(simbolo)
+                if (err == 'error') {
+                    error.push(new Error('La variable \"' + simbolo.nombre + '\" ya existe.', this.hijos[1].linea, this.hijos[1].columna))
+                }
+            }
+            else {
+                for (let i = 0; i < this.hijos[1].hijos.length; i++) {
+
+                    if (this.hijos[0].identificador == 'string') {
+                        simbolo = new tabla.simbolo(this.hijos[1].hijos[i].identificador,
+                            this.hijos[0].identificador,
+                            padre,
+                            idAmbito,
+                            (contadorH++),
+                            (contadorS++),
+                            1,
+                            'stack',
+                            'variable',
+                            0);
+                    }
+                    else {
+                        simbolo = new tabla.simbolo(this.hijos[1].hijos[i].identificador,
+                            this.hijos[0].identificador,
+                            padre,
+                            idAmbito,
+                            (contadorH++),
+                            0,
+                            1,
+                            'stack',
+                            'variable',
+                            0);
+
+                    }
+
+                    let err = tablaS.insertar(simbolo)
+                    if (err == 'error') {
+                        error.push(new Error('La variable \"' + simbolo.nombre + '\" ya existe.', this.hijos[1].hijos[i].linea, this.hijos[1].hijos[i].columna))
+                    }
+                }
+            }
+        }
+        else {
+            let resultado = this.hijos[2].hijos[0].obtenerExp(padre, idAmbito);
+            if (this.hijos[1].hijos.length == 0) {
+
+                if (this.hijos[0].identificador == 'string') {
+                    simbolo = new tabla.simbolo(this.hijos[1].identificador,
+                        this.hijos[0].identificador,
+                        padre,
+                        idAmbito,
+                        (contadorH++),
+                        (contadorS++),
+                        1,
+                        'stack',
+                        'variable',
+                        0);
+
+                }
+                else {
+                    simbolo = new tabla.simbolo(this.hijos[1].identificador,
+                        this.hijos[0].identificador,
+                        padre,
+                        idAmbito,
+                        (contadorH++),
+                        0,
+                        1,
+                        'stack',
+                        'variable',
+                        0);
+
+                }
+                let err = tablaS.insertar(simbolo)
+                if (err == 'error') {
+                    error.push(new Error('La variable \"' + simbolo.nombre + '\" ya existe.', this.hijos[1].linea, this.hijos[1].columna))
+                }
+            }
+            else {
+                for (let i = 0; i < this.hijos[1].hijos.length; i++) {
+
+                    if (this.hijos[0].identificador == 'string') {
+                        simbolo = new tabla.simbolo(this.hijos[1].hijos[i].identificador,
+                            this.hijos[0].identificador,
+                            padre,
+                            idAmbito,
+                            (contadorH++),
+                            (contadorH++),
+                            1,
+                            'stack',
+                            'variable',
+                            0);
+
+                    }
+                    else {
+                        simbolo = new tabla.simbolo(this.hijos[1].hijos[i].identificador,
+                            this.hijos[0].identificador,
+                            padre,
+                            idAmbito,
+                            (contadorH++),
+                            0,
+                            1,
+                            'stack',
+                            'variable',
+                            0);
+                    }
+                    let err = tablaS.insertar(simbolo)
+                    if (err == 'error') {
+                        error.push(new Error('La variable \"' + simbolo.nombre + '\" ya existe.', this.hijos[1].hijos[i].linea, this.hijos[1].hijos[i].columna))
+                    }
+                }
+            }
+        }
+
+    }
+
+    inicializandoVariableSinTipoTS2 = function inicializandoVariableSinTipoTS(padre, idAmbito) {
+        let simbolo;
+        let cons = 0;
+        if (this.hijos[0].identificador == 'global') {
+            idAmbito = 0;
+            padre = [];
+        }
+        else if (this.hijos[0].identificador == 'const') {
+            cons = 1
+        }
+        if (this.hijos.length == 2) {
+
+            if (this.hijos[1].hijos.length == 0) {
+                if (this.hijos[0].identificador == 'string') {
+                    simbolo = new tabla.simbolo(this.hijos[1].identificador.toLowerCase(),
+                        this.hijos[0].identificador,
+                        padre,
+                        idAmbito,
+                        (contadorH++),
+                        (contadorS++),
+                        1,
+                        'stack',
+                        'variable',
+                        cons);
+
+                }
+                else {
+                    simbolo = new tabla.simbolo(this.hijos[1].identificador.toLowerCase(),
+                        this.hijos[0].identificador,
+                        padre,
+                        idAmbito,
+                        (contadorH++),
+                        0,
+                        1,
+                        'stack',
+                        'variable',
+                        cons);
+
+                }
+
+
+                let err = tablaS.insertar(simbolo)
+                if (err = 'error') {
+                    error.push(new Error('La variable \"' + simbolo.nombre + '\" ya existe.', this.hijos[1].linea, this.hijos[1].columna))
+                }
+            }
+            else {
+                for (let i = 0; i < this.hijos[1].length; i++) {
+
+                    if (this.hijos[0].identificador == 'string') {
+                        simbolo = new tabla.simbolo(this.hijos[1].identificador,
+                            this.hijos[0].identificador,
+                            padre,
+                            idAmbito,
+                            (contadorH++),
+                            (contadorS++),
+                            1,
+                            'stack',
+                            'variable',
+                            cons);
+                    }
+                    else {
+                        simbolo = new tabla.simbolo(this.hijos[1].identificador,
+                            this.hijos[0].identificador,
+                            padre,
+                            idAmbito,
+                            (contadorH++),
+                            0,
+                            1,
+                            'stack',
+                            'variable',
+                            0);
+
+                    }
+
+                    let err = tablaS.insertar(simbolo)
+                    if (err = 'error') {
+                        error.push(new Error('La variable \"' + simbolo.nombre + '\" ya existe.', this.hijos[1].hijos[i].linea, this.hijos[1].hijos[i].columna))
+                    }
+                }
+            }
+        }
+        else {
+
+            let resultado = this.hijos[2].hijos[0].obtenerExp(padre, idAmbito);
+            if (this.hijos[0].identificador == 'const') {
+                cons = 1;
+            }
+
+            if (this.hijos[1].hijos.length == 0) {
+
+                if (this.hijos[0].identificador == 'string') {
+                    simbolo = new tabla.simbolo(this.hijos[1].identificador,
+                        resultado.tipo,
+                        padre,
+                        idAmbito,
+                        (contadorH++),
+                        (contadorS++),
+                        1,
+                        'stack',
+                        'variable',
+                        cons);
+
+                }
+                else {
+                    simbolo = new tabla.simbolo(this.hijos[1].identificador,
+                        resultado.tipo,
+                        padre,
+                        idAmbito,
+                        (contadorH++),
+                        0,
+                        1,
+                        'stack',
+                        'variable',
+                        cons);
+
+                }
+
+                let err = tablaS.insertar(simbolo)
+                if (err = 'error') {
+                    error.push(new Error('La variable \"' + simbolo.nombre + '\" ya existe.', this.hijos[1].linea, this.hijos[1].columna))
+                }
+            }
+            else {
+                for (let i = 0; i < this.hijos[1].hijos.length; i++) {
+
+                    if (this.hijos[0].identificador == 'string') {
+                        simbolo = new tabla.simbolo(this.hijos[1].hijos[i].identificador,
+                            resultado.tipo,
+                            padre,
+                            idAmbito,
+                            (contadorH++),
+                            (contadorH++),
+                            1,
+                            'stack',
+                            'variable',
+                            cons);
+
+                    }
+                    else {
+                        simbolo = new tabla.simbolo(this.hijos[1].hijos[i].identificador,
+                            resultado.tipo,
+                            padre,
+                            idAmbito,
+                            (contadorH++),
+                            0,
+                            1,
+                            'stack',
+                            'variable',
+                            cons);
+                    }
+
+                    let err = tablaS.insertar(simbolo)
+                    if (err = 'error') {
+                        error.push(new Error('La variable \"' + simbolo.nombre + '\" ya existe.', this.hijos[1].hijos[i].linea, this.hijos[1].hijos[i].columna))
+                    }
+                }
+            }
+        }
+
+    }
+
+
+    declaracionFuncionTS = function declaracionFuncionTS(padre) {
+        let idAmbito = contadorA++
+
+        padre = [0]
+
+        let nuevoPadre = []
+
+        for (let i = 0; i < padre.length; i++) {
+            nuevoPadre.push(padre[i])
+        }
+
+        nuevoPadre.push(idAmbito)
+
+        let tamano = 0
+        let simbolo
+
+        if (this.hijos.length == 3) {
+            tamano = this.hijos[2].compilarSentenciaControlTS(nuevoPadre, idAmbito);
+
+            simbolo = new tabla.simbolo(this.hijos[1].identificador,
+                this.hijos[0].identificador,
+                padre,
+                idAmbito,
+                -1,
+                -1,
+                tamano,
+                '',
+                'funcion',
+                0);
+        }
+        else {
+            let parametros = this.hijos[2].compilarParametros(idAmbito)
+            tamano += this.hijos[2].compilarParametrosTS(padre, idAmbito)
+            tamano += this.hijos[3].compilarSentenciaControlTS(nuevoPadre, idAmbito);
+
+            simbolo = new tabla.simbolo(this.hijos[1].identificador + parametros,
+                this.hijos[0].identificador,
+                padre,
+                idAmbito,
+                -1,
+                -1,
+                tamano,
+                '',
+                'funcion',
+                0);
+        }
+
 
         tablaS.simbolos.push(simbolo)
     }
 
-    sentenciaDoWhileTS = function sentenciaDoWhileTS(ambito) {
-        return retorno = this.hijos[0].compilarSentenciaControlTS(padre + '_dowhile');
 
+    compilarParametrosTS = function compilarParametrosTS(padre, idAmbito) {
+        let simbolo;
+        for (let i = 0; i < this.hijos.length; i++) {
+            if (this.hijos[i].hijos[0].identificador == 'string') {
+                simbolo = new tabla.simbolo(this.hijos[i].hijos[1].identificador.toLowerCase(),
+                    this.hijos[i].hijos[0].identificador,
+                    padre,
+                    idAmbito,
+                    (contadorH++),
+                    (contadorS++),
+                    1,
+                    'stack',
+                    'parametro',
+                    0);
+            }
+            else {
+                simbolo = new tabla.simbolo(this.hijos[i].hijos[1].identificador.toLowerCase(),
+                    this.hijos[i].hijos[0].identificador,
+                    padre,
+                    idAmbito,
+                    (contadorH++),
+                    0,
+                    1,
+                    'stack',
+                    'parametro',
+                    0);
+            }
+            let err = tablaS.insertar(simbolo)
+            if (err == 'error') {
+                error.push(new Error('La variable \"' + simbolo.nombre + '\" ya existe.', this.hijos[i].hijos[1].linea, this.hijos[i].hijos[1].columna))
+            }
+        }
+        return this.hijos.length;
+    }
+
+
+    sentenciaDoWhileTS = function sentenciaDoWhileTS(padre) {
+
+        let idAmbito = contadorA++;
+
+        let nuevoPadre = []
+
+        for (let i = 0; i < padre.length; i++) {
+            nuevoPadre.push(padre[i])
+        }
+
+        nuevoPadre.push(idAmbito)
+
+        let retorno = this.hijos[0].compilarSentenciaControlTS(nuevoPadre, idAmbito);
+
+        return retorno;
     }
 
     sentenciaWhileTS = function sentenciaWhileTS(padre) {
-        return retorno = this.hijos[1].compilarSentenciaControlTS(padre + '_while');
+
+        let idAmbito = contadorA++;
+
+        let nuevoPadre = []
+
+        for (let i = 0; i < padre.length; i++) {
+            nuevoPadre.push(padre[i])
+        }
+
+        nuevoPadre.push(idAmbito)
+
+        let retorno = this.hijos[1].compilarSentenciaControlTS(nuevoPadre, idAmbito);
+
+        return retorno;
     }
 
     sentenciaIfTS = function sentenciaIfTS(padre) {
@@ -2156,10 +2633,21 @@ class AST {
         for (let i = 0; i < this.hijos.length; i++) {
             switch (this.hijos[i].identificador) {
                 case 'ifs':
-                    contadorVarables += this.hijos[i].sentenciaIfsTS(padre + '_if');
+                    contadorVarables += this.hijos[i].sentenciaIfsTS(padre);
                     break;
                 case 'else':
-                    contadorVarables += this.hijos[i].hijos[0].compilarSentenciaControlTS(padre + '_if');
+                    let idAmbito = contadorA++;
+
+                    let nuevoPadre = []
+
+                    for (let i = 0; i < padre.length; i++) {
+                        nuevoPadre.push(padre[i])
+                    }
+
+                    nuevoPadre.push(idAmbito)
+
+                    contadorVarables += this.hijos[i].hijos[0].compilarSentenciaControlTS(nuevoPadre, idAmbito);
+
                     break;
             }
         }
@@ -2184,7 +2672,7 @@ class AST {
     }
 
     ifElseTS = function ifElseTS(padre) {
-        contadorVarables = 0;
+        let contadorVarables = 0;
         for (let i = 0; i < this.hijos.length; i++) {
             contadorVarables += this.hijos[i].if3dTS(padre);
         }
@@ -2193,24 +2681,44 @@ class AST {
     }
 
     if3dTS = function if3dTS(padre) {
-        return this.hijos[1].compilarSentenciaControlTS(padre);
+        let idAmbito = contadorA++;
+
+        let nuevoPadre = []
+
+        for (let i = 0; i < padre.length; i++) {
+            nuevoPadre.push(padre[i])
+        }
+        nuevoPadre.push(idAmbito)
+
+        let retorno = this.hijos[1].compilarSentenciaControlTS(nuevoPadre, idAmbito);
+
+        return retorno
     }
 
 
 
-    sentenciaSwitchTS = function sentenciaSwitchTS(ambito) {
-        return this.hijos[1].bloqueSwitchTS(padre + 'switch');
+    sentenciaSwitchTS = function sentenciaSwitchTS(padre) {
+        let idAmbito = contadorA++;
+
+        let nuevoPadre = []
+
+        for (let i = 0; i < padre.length; i++) {
+            nuevoPadre.push(padre[i])
+        }
+        nuevoPadre.push(idAmbito)
+        return this.hijos[1].bloqueSwitchTS(nuevoPadre, idAmbito);
+
     }
 
-    bloqueSwitchTS = function bloqueSwitchTS(ambito, valor) {
+    bloqueSwitchTS = function bloqueSwitchTS(padre, idAmbito) {
         let contador = 0;
         for (let i = 0; i < this.hijos.length; i++) {
             switch (this.hijos[i].identificador) {
                 case 'listaSwitch':
-                    contador += this.hijos[i].casesTS(padre);
+                    contador += this.hijos[i].casesTS(padre, idAmbito);
                     break;
                 case 'default':
-                    contador += this.hijos[i].hijos[0].compilarSentenciaControlTS(padre);
+                    contador += this.hijos[i].hijos[0].compilarSentenciaControlTS(padre, idAmbito);
                     break;
             }
         }
@@ -2218,27 +2726,26 @@ class AST {
         return contador;
     }
 
-    casesTS = function casesTS(padrer) {
+    casesTS = function casesTS(padre, idAmbito) {
         let contador = 0;
         for (let i = 0; i < this.hijos.length; i++) {
-            contador += this.hijos[i].sentenciaCaseTS(padre);
+            contador += this.hijos[i].sentenciaCaseTS(padre, idAmbito);
         }
 
         return contador
     }
 
-    sentenciaCaseTS = function sentenciaCaseTS(padre) {
+    sentenciaCaseTS = function sentenciaCaseTS(padre, idAmbito) {
         let contador = 0;
 
         if (this.hijos[1] != undefined) {
-            contador += this.hijos[1].compilarSentenciaControl(padre);
+            contador += this.hijos[1].compilarSentenciaControl(padre, idAmbito);
         }
         return contador;
     }
 
 
-    compilarSentenciaControlTS = function compilarSentenciaTS(padre) {
-        let idAmbito = contadorA++;
+    compilarSentenciaControlTS = function compilarSentenciaControlTS(padre, idAmbito) {
         let contadorVarables = 0;
         for (let i = 0; i < this.hijos.length; i++) {
             switch (this.hijos[i].identificador) {
@@ -2252,13 +2759,15 @@ class AST {
                     contadorVarables += this.hijos[i].sentenciaDoWhileTS(padre);
                     break;
                 case 'switch':
-                    contadorVarables += this.hijos[i].sentenciaSwitchTS(ambito);
+                    contadorVarables += this.hijos[i].sentenciaSwitchTS(padre);
                     break;
                 case 'inicializando variable con tipo':
-                    contadorVarables += this.hijos[i].inicializandoVariableConTipoTS(padre, idAmbito);
+                    this.hijos[i].inicializandoVariableConTipoTS(padre, idAmbito);
+                    contadorVarables += 1
                     break;
                 case 'inicializando variable sin tipo':
-                    contadorVarables += this.hijos[i].inicializandoVariableConTipoTS(padre, idAmbito);
+                    this.hijos[i].inicializandoVariableConTipoTS(padre, idAmbito);
+                    contadorVarables += 1
                     break;
                 case 'asignacion':
                     contadorVarables += this.hijos[i].inicializandoVariableSinTipo(padre, idAmbito);
