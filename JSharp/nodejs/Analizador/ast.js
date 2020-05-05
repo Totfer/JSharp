@@ -149,6 +149,14 @@ class AST {
                     valor = this.hijos[i].compilarLlamadaAFuncion(idAmbito);
                     retorno.c3d += valor.c3d;
                     break;
+                case 'incremento':
+                    valor = this.hijos[i].compilarIncremento(idAmbito);
+                    retorno.c3d += valor.c3d;
+                    break;
+                case 'decremento':
+                    valor = this.hijos[i].compilarDecremento(idAmbito);
+                    retorno.c3d += valor.c3d;
+                    break;
                 default:
             }
         }
@@ -156,13 +164,171 @@ class AST {
         return retorno;
     }
 
-    compilarLlamadaAFuncion = function compilarLlamadaAFuncion(idAmbito){
+    compilarIncremento = function compilarIncremento(idAmbito) {
+        let valor = tablaS.obtenerSimbolo(this.hijos[0].identificador, idAmbito);
         let retorno = new retornoAST('', 0, '', '', '');
-        if(this.hijos.length == 1){
+
+        if (valor != 'error') {
+            let retorno = new retornoAST('', 0, '', '', '');
+
+
+            if (valor.tipoSH == 'heap') {
+                retorno.t = 't' + (contadorT);
+                retorno.c3d += 't' + (contadorT++) + '=Heap[' + valor.posicionH + '];\n';
+                retorno.c3d += 't' + (contadorT++) + '=t' + (contadorT - 2) + '+1;\n';
+                retorno.c3d += 'Heap[' + valor.posicionH + ']=t' + (contadorT - 1) + ';\n';
+            }
+            else {
+                retorno.c3d += 't' + (contadorT++) + '=P-' + valor.posicionS + ';\n';
+                retorno.c3d += 't' + (contadorT++) + '=Stack[t' + (contadorT - 2) + '];\n';
+                retorno.t = 't' + (contadorT - 1);
+
+                retorno.c3d += 't' + (contadorT++) + '=t' + (contadorT - 2) + '+1;\n';
+                retorno.c3d += 'Stack[' + valor.posicionH + ']=t' + (contadorT - 1) + ';\n';
+            }
+
+            retorno.tipo = valor.tipo
+            return retorno
+
+        }
+        else {
+            let err = new Error('La variable ' + this.hijos[0].identificador +
+                ' no existe', this.hijos[0].linea, this.hijos[0].columna);
+
+            error.push(err)
+        }
+
+        return retorno
+    }
+
+
+    compilarDecremento = function compilarDecremento(idAmbito) {
+        let valor = tablaS.obtenerSimbolo(this.hijos[0].identificador, idAmbito);
+        let retorno = new retornoAST('', 0, '', '', '');
+
+        if (valor != 'error') {
+            let retorno = new retornoAST('', 0, '', '', '');
+
+
+            if (valor.tipoSH == 'heap') {
+                retorno.t = 't' + (contadorT);
+                retorno.c3d += 't' + (contadorT++) + '=Heap[' + valor.posicionH + '];\n';
+                retorno.c3d += 't' + (contadorT++) + '=t' + (contadorT - 2) + '-1;\n';
+                retorno.c3d += 'Heap[' + valor.posicionH + ']=t' + (contadorT - 1) + ';\n';
+            }
+            else {
+                retorno.c3d += 't' + (contadorT++) + '=P-' + valor.posicionS + ';\n';
+                retorno.c3d += 't' + (contadorT++) + '=Stack[t' + (contadorT - 2) + '];\n';
+                retorno.t = 't' + (contadorT - 1);
+
+                retorno.c3d += 't' + (contadorT++) + '=t' + (contadorT - 2) + '-1;\n';
+                retorno.c3d += 'Stack[' + valor.posicionH + ']=t' + (contadorT - 1) + ';\n';
+            }
+
+            retorno.tipo = valor.tipo
+            return retorno
+
+        }
+        else {
+            let err = new Error('La variable ' + this.hijos[0].identificador +
+                ' no existe', this.hijos[0].linea, this.hijos[0].columna);
+
+            error.push(err)
+        }
+
+        return retorno
+    }
+
+
+    compilarLlamadaAFuncion = function compilarLlamadaAFuncion(idAmbito) {
+        let retorno = new retornoAST('', 0, '', '', '');
+        if (this.hijos.length == 1) {
             retorno.c3d += 'call ' + this.hijos[0].identificador + ';\n'
+        }
+        else {
+            let nombre = '';
+            if (this.hijos[1].identificador == 'listaExpresiones') {
+                nombre = this.hijos[1].obtenerNombreLlamadaFuncion(this.hijos[0].identificador, idAmbito)
+
+
+                let resultado = tablaS.obtenerFuncion(nombre);
+
+                if (resultado == 'error') {
+                    return retorno;
+                }
+
+                let valor = tablaS.obtenerFuncion(nombre, 0);
+
+                resultado = this.hijos[1].compilarLisataExpresiones(idAmbito, valor.tamano)
+
+                if (resultado.error != 0) {
+                    return retorno;
+                }
+
+                let cadena = this.llenarStack(valor.tamano);
+                retorno.c3d += cadena
+                retorno.c3d += resultado.c3d
+                retorno.c3d += 'P = P+' + valor.tamano + ';\n'
+
+                retorno.c3d += 'call ' + nombre + ';\n'
+
+            }
+            else {
+
+            }
         }
 
         return retorno;
+    }
+
+    obtenerNombreLlamadaFuncion = function obtenerNombreLlamadaFuncion(nombre, idAmbito) {
+
+    }
+
+    compilarLisataExpresiones = function compilarLisataExpresiones(idAmbito, tamano) {
+        let retorno = new retornoAST('', 0, '', '', '');
+        for (let i = 0; i < this.hijos.length; i++) {
+            let resultado = this.hijos[i].obtenerExp(idAmbito);
+            if (resultado.error != 0) {
+                return retorno;
+            }
+            retorno.c3d += resultado.c3d;
+            retorno.c3d += 'P = P+' + tamano + ';\n'
+
+            retorno.c3d += 't' + contadorT + '=P-' + i + ';\n';
+            retorno.c3d += 'Stack[t' + (contadorT++) + ']=' + resultado.t + ';\n';
+            retorno.c3d += 'P = P-' + tamano + ';\n'
+        }
+
+        return retorno;
+    }
+
+    compilarLisataAsignacion = function compilarLisataAsignacion(idAmbito, tamano, ) {
+        let retorno = new retornoAST('', 0, '', '', '');
+        for (let i = 0; i < this.hijos.length; i++) {
+            let resultado = this.hijos[i].obtenerExp(idAmbito);
+            if (resultado.error != 0) {
+                return retorno;
+            }
+            retorno.c3d += resultado.c3d;
+            retorno.c3d += 'P = P+' + tamano + ';\n'
+
+            retorno.c3d += 't' + contadorT + '=P-' + i + ';\n';
+            retorno.c3d += 'Stack[t' + (contadorT++) + ']=' + resultado.t + ';\n';
+            retorno.c3d += 'P = P-' + tamano + ';\n'
+        }
+
+        return retorno;
+    }
+
+    obtenerTipoLisataExpresiones = function obtenerTipoLisataExpresiones(idAmbito) {
+        let cadena = '';
+        for (let i = 0; i < this.hijos.length; i++) {
+            let resultado = this.hijos[i].obtenerExp(idAmbito);
+            cadena += '_' + resultado.tipo;
+        }
+
+        return cadena;
     }
 
     compilarAsignacion = function compilarAsignacion(idAmbito) {
@@ -579,7 +745,8 @@ class AST {
                     c3d += valor.c3d;
                     break;
                 case 'else':
-                    valor = this.hijos[i].hijos[0].compilarSentenciaControl(bl, cl, idAmbito);
+                    idAmbito = contadorA++
+                    valor = this.hijos[i].hijos[0].compilarSentenciaControl(idAmbito, bl, cl);
                     c3d += valor.c3d;
                     break;
             }
@@ -626,6 +793,8 @@ class AST {
         let retorno = new retornoAST('', 0, '', '', '');
 
         let retorno1 = this.hijos[0].obtenerExp(idAmbito);
+
+        idAmbito = contadorA++
         let retorno2 = this.hijos[1].compilarSentenciaControl(idAmbito, bl, cl);
 
 
@@ -681,7 +850,7 @@ class AST {
             retorno = this.hijos[2].compilarSentenciaControl(idAmbito, '', '')
 
             retorno.c3d = 'proc ' + this.hijos[1].identificador + ' begin\n' +
-                cadena + 'P = P+' + valor.tamano + ';\n' + retorno.c3d;
+                retorno.c3d;
 
             retorno.c3d += 'P = P-' + valor.tamano + ';\n';
         }
@@ -697,7 +866,7 @@ class AST {
             retorno = this.hijos[3].compilarSentenciaControl(idAmbito, '', '')
 
             retorno.c3d = 'proc ' + this.hijos[1].identificador + parametros + ' begin\n' +
-                cadena + 'P = P+' + valor.tamano + ';\n' + retorno.c3d;
+                retorno.c3d;
 
             retorno.c3d += 'P = P-' + valor.tamano + ';\n';
         }
@@ -1249,6 +1418,10 @@ class AST {
                 return this.hijos[0].obtenerString();
             case 'identificacdor':
                 return this.hijos[0].obtenerValorIdentificador(idAmbito);
+            case 'incremento':
+                return this.hijos[0].compilarIncremento(idAmbito);
+            case 'decremento':
+                return this.hijos[0].compilarDecremento(idAmbito);
             default:
         }
     }
@@ -1453,7 +1626,7 @@ class AST {
             retorno.tipo = tipo;
         }
         else {
-            let resultado2 = this.hijos[1].obtenerExp(padre, idAmbito);
+            let resultado2 = this.hijos[1].obtenerExp(idAmbito);
             tipo = this.obtenerTipoRestaMultiplicacion(resultado1.tipo, resultado2.tipo);
             if (tipo == 'error') {
                 let retorno = {
@@ -2779,6 +2952,18 @@ class AST {
 
                     contadorVarables += this.hijos[i].hijos[0].compilarSentenciaControlTS(nuevoPadre, idAmbito);
 
+                    let simbolo = new tabla.simbolo('',
+                        '',
+                        padre,
+                        idAmbito,
+                        0,
+                        0,
+                        0,
+                        '',
+                        '',
+                        0);
+
+                    tablaS.simbolos.push(simbolo)
                     break;
             }
         }
@@ -2823,6 +3008,18 @@ class AST {
 
         let retorno = this.hijos[1].compilarSentenciaControlTS(nuevoPadre, idAmbito);
 
+        let simbolo = new tabla.simbolo('',
+            '',
+            padre,
+            idAmbito,
+            0,
+            0,
+            0,
+            '',
+            '',
+            0);
+
+        tablaS.simbolos.push(simbolo)
         return retorno
     }
 

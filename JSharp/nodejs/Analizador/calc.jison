@@ -199,6 +199,26 @@ sentenciasBloque : declaracion_variables	{$$ = $1;}
     |sentenciaContinue                      {$$ = $1;}
     |sentenciaReturn                        {$$ = $1;}
     |llamadaFuncion                         {$$ = $1;}
+    |aumentoDecremento                      {$$ = $1;}
+;
+
+
+aumentoDecremento : id '++'
+        {
+            $$ = yy.crearNodo('incremento',0,0,[yy.crearHoja($1,@1.first_line,@1.first_column)])   
+        }
+    | id '--'
+        {
+            $$ = yy.crearNodo('decremento',0,0,[yy.crearHoja($1,@1.first_line,@1.first_column)])   
+        }
+    | id '++' ';'
+        {
+            $$ = yy.crearNodo('incremento',0,0,[yy.crearHoja($1,@1.first_line,@1.first_column)])   
+        }
+    | id '--' ';'
+        {
+            $$ = yy.crearNodo('decremento',0,0,[yy.crearHoja($1,@1.first_line,@1.first_column)])   
+        }
 ;
 
 llamadaFuncion : id '(' ')' ';'
@@ -728,4 +748,12 @@ literal : entero
 			hoja = yy.crearHoja($1,@1.first_line,@1.first_column)
 			$$ = yy.crearNodo('nulo',@1.first_line,@1.first_column,[hoja])
 		}
+    | id '++'
+        {
+            $$ = yy.crearNodo('incremento',0,0,[yy.crearHoja($1,@1.first_line,@1.first_column)])   
+        }
+    | id '--'
+        {
+            $$ = yy.crearNodo('decremento',0,0,[yy.crearHoja($1,@1.first_line,@1.first_column)])   
+        }
 ;

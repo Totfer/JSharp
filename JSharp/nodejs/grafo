@@ -1,145 +1,160 @@
 digraph G {
-"0.1296034306325078" [color=brown shape=Msquare label ="cuerpo"];
-"0.7732899537262381" [color=brown shape=Msquare label ="inicializando variable sin tipo"];
-"0.1296034306325078" -> "0.7732899537262381"
-"1.4810895303403002" [color=green shape=Mcircle label ="var"];
-"0.7732899537262381" -> "1.4810895303403002"
-"1.6855525091435135" [color=green shape=Mcircle label ="b"];
-"0.7732899537262381" -> "1.6855525091435135"
-"1.0542034386230505" [color=brown shape=Msquare label ="EXP"];
-"0.7732899537262381" -> "1.0542034386230505"
-"1.6530706422794228" [color=brown shape=Msquare label ="literal"];
-"1.0542034386230505" -> "1.6530706422794228"
-"2.228565325607736" [color=brown shape=Msquare label ="entero"];
-"1.6530706422794228" -> "2.228565325607736"
-"2.6802357905443843" [color=green shape=Mcircle label ="10"];
-"2.228565325607736" -> "2.6802357905443843"
-"1.9269775923915002" [color=green shape=Mcircle label ="="];
-"1.0542034386230505" -> "1.9269775923915002"
-"1.0850344562714407" [color=brown shape=Msquare label ="declaracionFuncion"];
-"0.1296034306325078" -> "1.0850344562714407"
-"1.5088269709972837" [color=green shape=Mcircle label ="void"];
-"1.0850344562714407" -> "1.5088269709972837"
-"1.9232323201630117" [color=green shape=Mcircle label ="principal"];
-"1.0850344562714407" -> "1.9232323201630117"
-"1.8782987791757024" [color=brown shape=Msquare label ="bloque"];
-"1.0850344562714407" -> "1.8782987791757024"
-"2.6441959160969932" [color=brown shape=Msquare label ="asignacion"];
-"1.8782987791757024" -> "2.6441959160969932"
-"3.0865464816682255" [color=brown shape=Msquare label ="identificadorAsignacion"];
-"2.6441959160969932" -> "3.0865464816682255"
-"3.3907749033427073" [color=brown shape=Msquare label ="identificador"];
-"3.0865464816682255" -> "3.3907749033427073"
-"3.505126072363452" [color=green shape=Mcircle label ="a"];
-"3.3907749033427073" -> "3.505126072363452"
-"2.6684942667142177" [color=brown shape=Msquare label ="literal"];
-"2.6441959160969932" -> "2.6684942667142177"
-"2.865975322429838" [color=brown shape=Msquare label ="entero"];
-"2.6684942667142177" -> "2.865975322429838"
-"3.399065286525588" [color=green shape=Mcircle label ="20"];
-"2.865975322429838" -> "3.399065286525588"
-"3.504185368677647" [color=green shape=Mcircle label ="="];
-"2.6441959160969932" -> "3.504185368677647"
-"1.944517187297367" [color=brown shape=Msquare label ="print"];
-"1.8782987791757024" -> "1.944517187297367"
-"2.684075817702273" [color=brown shape=Msquare label ="EXP"];
-"1.944517187297367" -> "2.684075817702273"
-"3.536808293514693" [color=brown shape=Msquare label ="+"];
-"2.684075817702273" -> "3.536808293514693"
-"4.1021660939211415" [color=brown shape=Msquare label ="literal"];
-"3.536808293514693" -> "4.1021660939211415"
-"4.103854251408412" [color=brown shape=Msquare label ="identificacdor"];
-"4.1021660939211415" -> "4.103854251408412"
-"4.54013271357523" [color=green shape=Mcircle label ="a"];
-"4.103854251408412" -> "4.54013271357523"
-"3.761655054400605" [color=brown shape=Msquare label ="literal"];
-"3.536808293514693" -> "3.761655054400605"
-"4.229612447631125" [color=brown shape=Msquare label ="identificacdor"];
-"3.761655054400605" -> "4.229612447631125"
-"4.442512784817673" [color=green shape=Mcircle label ="b"];
-"4.229612447631125" -> "4.442512784817673"
-"2.6403532832357564" [color=brown shape=Msquare label ="ifInstruccion"];
-"1.8782987791757024" -> "2.6403532832357564"
-"3.3206102887137092" [color=brown shape=Msquare label ="ifs"];
-"2.6403532832357564" -> "3.3206102887137092"
-"3.9844673635208814" [color=brown shape=Msquare label ="if"];
-"3.3206102887137092" -> "3.9844673635208814"
-"4.573274537255901" [color=brown shape=Msquare label ="literal"];
-"3.9844673635208814" -> "4.573274537255901"
-"4.714878615750532" [color=brown shape=Msquare label ="boleano"];
-"4.573274537255901" -> "4.714878615750532"
-"4.949575666590199" [color=green shape=Mcircle label ="true"];
-"4.714878615750532" -> "4.949575666590199"
-"4.816029977917516" [color=brown shape=Msquare label ="bloque"];
-"3.9844673635208814" -> "4.816029977917516"
-"5.386547575159762" [color=brown shape=Msquare label ="inicializando variable sin tipo"];
-"4.816029977917516" -> "5.386547575159762"
-"6.138841701348884" [color=green shape=Mcircle label ="global"];
-"5.386547575159762" -> "6.138841701348884"
-"5.95777557299404" [color=green shape=Mcircle label ="c"];
-"5.386547575159762" -> "5.95777557299404"
-"6.079082247206085" [color=brown shape=Msquare label ="EXP"];
-"5.386547575159762" -> "6.079082247206085"
-"6.152283688323516" [color=brown shape=Msquare label ="literal"];
-"6.079082247206085" -> "6.152283688323516"
-"6.515347500123332" [color=brown shape=Msquare label ="entero"];
-"6.152283688323516" -> "6.515347500123332"
-"6.970144318269034" [color=green shape=Mcircle label ="100"];
-"6.515347500123332" -> "6.970144318269034"
-"6.409788543791255" [color=green shape=Mcircle label ="="];
-"6.079082247206085" -> "6.409788543791255"
-"2.2719829596524734" [color=brown shape=Msquare label ="ifInstruccion"];
-"1.8782987791757024" -> "2.2719829596524734"
-"2.5295713990699964" [color=brown shape=Msquare label ="ifs"];
-"2.2719829596524734" -> "2.5295713990699964"
-"3.3086988638413253" [color=brown shape=Msquare label ="if"];
-"2.5295713990699964" -> "3.3086988638413253"
-"3.99599253187068" [color=brown shape=Msquare label ="literal"];
-"3.3086988638413253" -> "3.99599253187068"
-"4.4799791570277945" [color=brown shape=Msquare label ="boleano"];
-"3.99599253187068" -> "4.4799791570277945"
-"5.331968790459498" [color=green shape=Mcircle label ="true"];
-"4.4799791570277945" -> "5.331968790459498"
-"4.0048069758530165" [color=brown shape=Msquare label ="bloque"];
-"3.3086988638413253" -> "4.0048069758530165"
-"4.3802198014442" [color=brown shape=Msquare label ="print"];
-"4.0048069758530165" -> "4.3802198014442"
-"5.155485146955153" [color=brown shape=Msquare label ="EXP"];
-"4.3802198014442" -> "5.155485146955153"
-"6.1342187297899695" [color=brown shape=Msquare label ="literal"];
-"5.155485146955153" -> "6.1342187297899695"
-"7.098344814796505" [color=brown shape=Msquare label ="identificacdor"];
-"6.1342187297899695" -> "7.098344814796505"
-"7.495277227557408" [color=green shape=Mcircle label ="c"];
-"7.098344814796505" -> "7.495277227557408"
-"2.3779817926650706" [color=brown shape=Msquare label ="llamadaFuncion"];
-"1.8782987791757024" -> "2.3779817926650706"
-"2.591104777513016" [color=green shape=Mcircle label ="suma"];
-"2.3779817926650706" -> "2.591104777513016"
-"0.35580775912728035" [color=brown shape=Msquare label ="declaracionFuncion"];
-"0.1296034306325078" -> "0.35580775912728035"
-"0.9755678634934462" [color=green shape=Mcircle label ="void"];
-"0.35580775912728035" -> "0.9755678634934462"
-"0.6487506322095027" [color=green shape=Mcircle label ="suma"];
-"0.35580775912728035" -> "0.6487506322095027"
-"0.9393670641607714" [color=brown shape=Msquare label ="bloque"];
-"0.35580775912728035" -> "0.9393670641607714"
-"0.9783297666085411" [color=brown shape=Msquare label ="print"];
-"0.9393670641607714" -> "0.9783297666085411"
-"1.2106129017579972" [color=brown shape=Msquare label ="EXP"];
-"0.9783297666085411" -> "1.2106129017579972"
-"1.722955719504817" [color=brown shape=Msquare label ="+"];
-"1.2106129017579972" -> "1.722955719504817"
-"1.8461594328717865" [color=brown shape=Msquare label ="literal"];
-"1.722955719504817" -> "1.8461594328717865"
-"2.4506001248077993" [color=brown shape=Msquare label ="entero"];
-"1.8461594328717865" -> "2.4506001248077993"
-"3.1663033970957075" [color=green shape=Mcircle label ="1"];
-"2.4506001248077993" -> "3.1663033970957075"
-"2.298120007192558" [color=brown shape=Msquare label ="literal"];
-"1.722955719504817" -> "2.298120007192558"
-"2.3729436508011066" [color=brown shape=Msquare label ="entero"];
-"2.298120007192558" -> "2.3729436508011066"
-"2.625413757029441" [color=green shape=Mcircle label ="2"];
-"2.3729436508011066" -> "2.625413757029441"
+"0.7300912438663794" [color=brown shape=Msquare label ="cuerpo"];
+"0.8181537471327216" [color=brown shape=Msquare label ="inicializando variable sin tipo"];
+"0.7300912438663794" -> "0.8181537471327216"
+"1.4574543392697827" [color=green shape=Mcircle label ="var"];
+"0.8181537471327216" -> "1.4574543392697827"
+"1.5720997479023657" [color=green shape=Mcircle label ="b"];
+"0.8181537471327216" -> "1.5720997479023657"
+"1.0810815335300616" [color=brown shape=Msquare label ="EXP"];
+"0.8181537471327216" -> "1.0810815335300616"
+"1.220626215155676" [color=brown shape=Msquare label ="literal"];
+"1.0810815335300616" -> "1.220626215155676"
+"1.286627324969669" [color=brown shape=Msquare label ="entero"];
+"1.220626215155676" -> "1.286627324969669"
+"1.8028234229031097" [color=green shape=Mcircle label ="10"];
+"1.286627324969669" -> "1.8028234229031097"
+"1.2112496984118608" [color=green shape=Mcircle label ="="];
+"1.0810815335300616" -> "1.2112496984118608"
+"1.611685218536733" [color=brown shape=Msquare label ="declaracionFuncion"];
+"0.7300912438663794" -> "1.611685218536733"
+"2.0159949268746447" [color=green shape=Mcircle label ="void"];
+"1.611685218536733" -> "2.0159949268746447"
+"1.7467571688695163" [color=green shape=Mcircle label ="principal"];
+"1.611685218536733" -> "1.7467571688695163"
+"1.7880200057853417" [color=brown shape=Msquare label ="bloque"];
+"1.611685218536733" -> "1.7880200057853417"
+"2.677974325191639" [color=brown shape=Msquare label ="print"];
+"1.7880200057853417" -> "2.677974325191639"
+"3.419177686993068" [color=brown shape=Msquare label ="EXP"];
+"2.677974325191639" -> "3.419177686993068"
+"3.673555901219248" [color=brown shape=Msquare label ="literal"];
+"3.419177686993068" -> "3.673555901219248"
+"3.7917092212013994" [color=brown shape=Msquare label ="caracter"];
+"3.673555901219248" -> "3.7917092212013994"
+"4.687826041493458" [color=green shape=Mcircle label ="a"];
+"3.7917092212013994" -> "4.687826041493458"
+"2.08628852839337" [color=brown shape=Msquare label ="incremento"];
+"1.7880200057853417" -> "2.08628852839337"
+"2.08628852839337" -> "2.586914992341868"
+"2.143679441983864" [color=brown shape=Msquare label ="print"];
+"1.7880200057853417" -> "2.143679441983864"
+"2.2755388613357264" [color=brown shape=Msquare label ="EXP"];
+"2.143679441983864" -> "2.2755388613357264"
+"2.3069151574180924" [color=brown shape=Msquare label ="literal"];
+"2.2755388613357264" -> "2.3069151574180924"
+"2.5872033089001407" [color=brown shape=Msquare label ="identificacdor"];
+"2.3069151574180924" -> "2.5872033089001407"
+"3.075512835150997" [color=green shape=Mcircle label ="b"];
+"2.5872033089001407" -> "3.075512835150997"
+"2.7459264680236855" [color=brown shape=Msquare label ="llamadaFuncion"];
+"1.7880200057853417" -> "2.7459264680236855"
+"3.04943138464967" [color=green shape=Mcircle label ="resta"];
+"2.7459264680236855" -> "3.04943138464967"
+"2.8845215256488204" [color=brown shape=Msquare label ="listaExpresiones"];
+"2.7459264680236855" -> "2.8845215256488204"
+"3.2973041981588667" [color=brown shape=Msquare label ="literal"];
+"2.8845215256488204" -> "3.2973041981588667"
+"3.5339368387579686" [color=brown shape=Msquare label ="entero"];
+"3.2973041981588667" -> "3.5339368387579686"
+"4.333310775415892" [color=green shape=Mcircle label ="15"];
+"3.5339368387579686" -> "4.333310775415892"
+"3.1193190984458727" [color=brown shape=Msquare label ="literal"];
+"2.8845215256488204" -> "3.1193190984458727"
+"3.1751743721598107" [color=brown shape=Msquare label ="entero"];
+"3.1193190984458727" -> "3.1751743721598107"
+"4.08410036504843" [color=green shape=Mcircle label ="3"];
+"3.1751743721598107" -> "4.08410036504843"
+"0.8487013841492259" [color=brown shape=Msquare label ="declaracionFuncion"];
+"0.7300912438663794" -> "0.8487013841492259"
+"1.4234860680696668" [color=green shape=Mcircle label ="void"];
+"0.8487013841492259" -> "1.4234860680696668"
+"1.8045343990814313" [color=green shape=Mcircle label ="resta"];
+"0.8487013841492259" -> "1.8045343990814313"
+"1.570882450766212" [color=brown shape=Msquare label ="patametros"];
+"0.8487013841492259" -> "1.570882450766212"
+"2.268115292360957" [color=brown shape=Msquare label ="parametro"];
+"1.570882450766212" -> "2.268115292360957"
+"2.7198240232498945" [color=green shape=Mcircle label ="integer"];
+"2.268115292360957" -> "2.7198240232498945"
+"3.0894878104948544" [color=green shape=Mcircle label ="aa"];
+"2.268115292360957" -> "3.0894878104948544"
+"2.0316127445690357" [color=brown shape=Msquare label ="parametro"];
+"1.570882450766212" -> "2.0316127445690357"
+"2.2250310789029726" [color=green shape=Mcircle label ="integer"];
+"2.0316127445690357" -> "2.2250310789029726"
+"2.7660900226309186" [color=green shape=Mcircle label ="bb"];
+"2.0316127445690357" -> "2.7660900226309186"
+"1.4524196756669066" [color=brown shape=Msquare label ="bloque"];
+"0.8487013841492259" -> "1.4524196756669066"
+"2.327631960646995" [color=brown shape=Msquare label ="ifInstruccion"];
+"1.4524196756669066" -> "2.327631960646995"
+"2.7732185267934746" [color=brown shape=Msquare label ="ifs"];
+"2.327631960646995" -> "2.7732185267934746"
+"3.3712467149068113" [color=brown shape=Msquare label ="if"];
+"2.7732185267934746" -> "3.3712467149068113"
+"4.005842262471676" [color=brown shape=Msquare label ="=="];
+"3.3712467149068113" -> "4.005842262471676"
+"4.565392870197931" [color=brown shape=Msquare label ="literal"];
+"4.005842262471676" -> "4.565392870197931"
+"5.513663414396017" [color=brown shape=Msquare label ="identificacdor"];
+"4.565392870197931" -> "5.513663414396017"
+"5.520154060482727" [color=green shape=Mcircle label ="aa"];
+"5.513663414396017" -> "5.520154060482727"
+"4.033274221956698" [color=brown shape=Msquare label ="literal"];
+"4.005842262471676" -> "4.033274221956698"
+"4.404887170115957" [color=brown shape=Msquare label ="entero"];
+"4.033274221956698" -> "4.404887170115957"
+"4.983250445344943" [color=green shape=Mcircle label ="0"];
+"4.404887170115957" -> "4.983250445344943"
+"3.6895035225744603" [color=brown shape=Msquare label ="bloque"];
+"3.3712467149068113" -> "3.6895035225744603"
+"4.179270206047379" [color=brown shape=Msquare label ="print"];
+"3.6895035225744603" -> "4.179270206047379"
+"4.195996599445779" [color=brown shape=Msquare label ="EXP"];
+"4.179270206047379" -> "4.195996599445779"
+"4.554942700623146" [color=brown shape=Msquare label ="-"];
+"4.195996599445779" -> "4.554942700623146"
+"5.355340880558808" [color=brown shape=Msquare label ="literal"];
+"4.554942700623146" -> "5.355340880558808"
+"5.8487613516859955" [color=brown shape=Msquare label ="identificacdor"];
+"5.355340880558808" -> "5.8487613516859955"
+"6.208628677943143" [color=green shape=Mcircle label ="aa"];
+"5.8487613516859955" -> "6.208628677943143"
+"4.684274887007159" [color=brown shape=Msquare label ="literal"];
+"4.554942700623146" -> "4.684274887007159"
+"4.751730110068642" [color=brown shape=Msquare label ="identificacdor"];
+"4.684274887007159" -> "4.751730110068642"
+"5.458828288712329" [color=green shape=Mcircle label ="bb"];
+"4.751730110068642" -> "5.458828288712329"
+"3.2107193716523597" [color=brown shape=Msquare label ="else"];
+"2.327631960646995" -> "3.2107193716523597"
+"3.7210408498701124" [color=brown shape=Msquare label ="bloque"];
+"3.2107193716523597" -> "3.7210408498701124"
+"4.399611573497944" [color=brown shape=Msquare label ="llamadaFuncion"];
+"3.7210408498701124" -> "4.399611573497944"
+"4.5729665584326025" [color=green shape=Mcircle label ="resta"];
+"4.399611573497944" -> "4.5729665584326025"
+"5.11136425264438" [color=brown shape=Msquare label ="listaExpresiones"];
+"4.399611573497944" -> "5.11136425264438"
+"5.489713554309069" [color=brown shape=Msquare label ="-"];
+"5.11136425264438" -> "5.489713554309069"
+"5.666526201070339" [color=brown shape=Msquare label ="literal"];
+"5.489713554309069" -> "5.666526201070339"
+"5.864238324008782" [color=brown shape=Msquare label ="identificacdor"];
+"5.666526201070339" -> "5.864238324008782"
+"6.406587851150731" [color=green shape=Mcircle label ="aa"];
+"5.864238324008782" -> "6.406587851150731"
+"5.912322028801209" [color=brown shape=Msquare label ="literal"];
+"5.489713554309069" -> "5.912322028801209"
+"6.510979934694181" [color=brown shape=Msquare label ="entero"];
+"5.912322028801209" -> "6.510979934694181"
+"7.295663190901992" [color=green shape=Mcircle label ="1"];
+"6.510979934694181" -> "7.295663190901992"
+"6.067599619247441" [color=brown shape=Msquare label ="literal"];
+"5.11136425264438" -> "6.067599619247441"
+"6.81382885206413" [color=brown shape=Msquare label ="identificacdor"];
+"6.067599619247441" -> "6.81382885206413"
+"7.159419214264951" [color=green shape=Mcircle label ="bb"];
+"6.81382885206413" -> "7.159419214264951"
 }
