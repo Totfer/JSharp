@@ -23,6 +23,25 @@ class tablaSimbolos {
         return 1
     }
 
+    insertarReturn = function insertarReturn(simbolo) {
+        for (let i = 0; i < simbolo.padre.length; i++) {
+            if (this.simbolos[i].idAmbito == simbolo.padre[i] &&
+                this.simbolos[i].funcionaldad == 'funcion') {
+                simbolo.tipo = this.simbolos[i].tipo
+            }
+        }
+        
+        for (let i = 0; i < this.simbolos.length; i++) {
+            if (this.simbolos[i].nombre == simbolo.nombre &&
+                this.simbolos[i].idAmbito == simbolo.idAmbito) {
+                return 0
+            }
+        }
+
+        this.simbolos.push(simbolo);
+        return 1
+    }
+
     //-----------------------------------------------------------
 
     obtenerPosicionHeap = function obtenerPosicionHeap(nombre, idAmbito) {
@@ -119,6 +138,28 @@ class tablaSimbolos {
             if (this.simbolos[i].nombre == nombre &&
                 this.simbolos[i].funcionaldad == 'funcion') {
                 return this.simbolos[i]
+            }
+        }
+        return 'error'
+    }
+
+    obtenerFuncionR = function obtenerFuncionR(idAmbito) {
+        let padres = []
+        for (let i = 0; i < this.simbolos.length; i++) {
+            if (this.simbolos[i].idAmbito == idAmbito) {
+                for (let j = 0; j < this.simbolos[i].padre.length; j++) {
+                    padres.push(this.simbolos[i].padre[j])
+                }
+            }
+        }
+
+        while (padres.length != 0) {
+            idAmbito = padres.pop();
+            for (let i = 0; i < this.simbolos.length; i++) {
+                if (this.simbolos[i].funcionaldad == 'funcion' &&
+                    this.simbolos[i].idAmbito == idAmbito) {
+                    return this.simbolos[i]
+                }
             }
         }
         return 'error'

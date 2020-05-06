@@ -70,7 +70,7 @@ class AST {
 
         retorno.c3d += 'call principal;'
 
-        return  retorno.c3d
+        return retorno.c3d
     }
 
     compilarSentencia = function compilarSentencia() {
@@ -157,11 +157,46 @@ class AST {
                     valor = this.hijos[i].compilarDecremento(idAmbito);
                     retorno.c3d += valor.c3d;
                     break;
+                case 'return':
+                    valor = this.hijos[i].compilarRetorno(idAmbito);
+                    retorno.c3d += valor.c3d;
+                    break;
                 default:
             }
         }
 
         return retorno;
+    }
+
+    compilarRetorno = function compilarRetorno(idAmbito) {
+        let valor = tablaS.obtenerFuncionR(idAmbito);
+        let retorno = new retornoAST('', 0, '', '', '');
+
+        if (this.hijos.length == 1) {
+            let resultado = this.hijos[0].obtenerExp(idAmbito);
+            if (valor != 'error') {
+                let retorno = new retornoAST('', 0, '', '', '');
+
+                retorno.c3d += resultado.c3d;
+
+                retorno.c3d += 't' + (contadorT++) + '=P-0;\n';
+                retorno.t = 't' + (contadorT - 1);
+
+                retorno.c3d += 'Stack[t' + (contadorT - 1) + ']=' + resultado.t + ';\n';
+
+                retorno.tipo = valor.tipo
+                return retorno
+
+            }
+            else {
+                let err = new Error('La variable ' + this.hijos[0].identificador +
+                    ' no existe', this.hijos[0].linea, this.hijos[0].columna);
+
+                error.push(err)
+            }
+        }
+        //retorno.c3d = 'goto L'+ ';\n' 
+        return retorno
     }
 
     compilarIncremento = function compilarIncremento(idAmbito) {
@@ -244,14 +279,23 @@ class AST {
         let retorno = new retornoAST('', 0, '', '', '');
         if (this.hijos.length == 1) {
             retorno.c3d += 'call ' + this.hijos[0].identificador + ';\n'
+            retorno.c3d += 't' + (contadorT++) + '=P-' + copia.posicionS + ';\n';
+            retorno.c3d += 't' + (contadorT++) + '=Stack[t' + (contadorT - 2) + '];\n';
+            retorno.t = 't' + (contadorT - 1)    
+            
+            let resultado = tablaS.obtenerFuncion(this.hijos[0].identificador);
+
+            retorno.c3d += 'P = P-' + resultado.tamano + ';\n';
         }
         else {
             let nombre = '';
             if (this.hijos[1].identificador == 'listaExpresiones') {
-                nombre = this.hijos[1].obtenerNombreLlamadaFuncion(this.hijos[0].identificador, idAmbito)
+                nombre = this.hijos[0].identificador+this.hijos[1].obtenerTipoLisataExpresiones(this.hijos[0].identificador, idAmbito)
 
 
                 let resultado = tablaS.obtenerFuncion(nombre);
+
+                let copia = resultado
 
                 if (resultado == 'error') {
                     return retorno;
@@ -271,12 +315,18 @@ class AST {
                 retorno.c3d += 'P = P+' + valor.tamano + ';\n'
 
                 retorno.c3d += 'call ' + nombre + ';\n'
-
+                retorno.c3d += 't' + (contadorT++) + '=P-' + copia.posicionS + ';\n';
+                retorno.c3d += 't' + (contadorT++) + '=Stack[t' + (contadorT - 2) + '];\n';
+                retorno.t = 't' + (contadorT - 1)            
+                retorno.tipo = copia.tipo;
+                
+                retorno.c3d += 'P = P-' + copia.tamano + ';\n';
             }
             else {
 
             }
         }
+
 
         return retorno;
     }
@@ -852,7 +902,6 @@ class AST {
             retorno.c3d = 'proc ' + this.hijos[1].identificador + ' begin\n' +
                 retorno.c3d;
 
-            retorno.c3d += 'P = P-' + valor.tamano + ';\n';
         }
         else {
             let parametros = this.hijos[2].compilarParametros(idAmbito)
@@ -867,8 +916,6 @@ class AST {
 
             retorno.c3d = 'proc ' + this.hijos[1].identificador + parametros + ' begin\n' +
                 retorno.c3d;
-
-            retorno.c3d += 'P = P-' + valor.tamano + ';\n';
         }
         retorno.c3d += 'end\n';
 
@@ -883,7 +930,6 @@ class AST {
 
         return parametros;
     }
-
 
     obtenerExp = function obtenerExp(idAmbito) {
         switch (this.identificador) {
@@ -1422,6 +1468,8 @@ class AST {
                 return this.hijos[0].compilarIncremento(idAmbito);
             case 'decremento':
                 return this.hijos[0].compilarDecremento(idAmbito);
+            case 'llamadaFuncion':
+                return this.hijos[0].compilarLlamadaAFuncion(idAmbito);
             default:
         }
     }
@@ -2825,18 +2873,21 @@ class AST {
 
         nuevoPadre.push(idAmbito)
 
-        let tamano = 0
+        let posS = contadorS++
+
+        let tamano = posS
         let simbolo
 
+
         if (this.hijos.length == 3) {
-            tamano = this.hijos[2].compilarSentenciaControlTS(nuevoPadre, idAmbito);
+            tamano += this.hijos[2].compilarSentenciaControlTS(nuevoPadre, idAmbito);
 
             simbolo = new tabla.simbolo(this.hijos[1].identificador,
                 this.hijos[0].identificador,
                 padre,
                 idAmbito,
                 -1,
-                -1,
+                posS,
                 tamano,
                 '',
                 'funcion',
@@ -2852,7 +2903,7 @@ class AST {
                 padre,
                 idAmbito,
                 -1,
-                -1,
+                posS,
                 tamano,
                 '',
                 'funcion',
@@ -3099,12 +3150,32 @@ class AST {
                 case 'asignacion':
                     contadorVarables += this.hijos[i].asignacionTS(padre, idAmbito);
                     break;
+                case 'return':
+                    this.hijos[i].returnTS(padre, idAmbito);
+                    contadorVarables += 1;
+                    break;
                 default:
             }
         }
 
         return contadorVarables;
     }
+
+    returnTS = function returnTS(padre, idAmbito) {
+        let simbolo = new tabla.simbolo('return',
+            '',
+            padre,
+            idAmbito,
+            0,
+            0,
+            1,
+            'stack',
+            'return',
+            0);
+
+        tablaS.insertarReturn(simbolo);
+    }
+
 
     asignacionTS = function asignacionTS(padre, idAmbito) {
         let simbolo;

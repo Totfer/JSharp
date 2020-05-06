@@ -247,6 +247,21 @@ llamadaFuncion : id '(' ')' ';'
         }
 ; 
 
+
+llamadaFuncion2 : id '(' ')'
+        {
+                $$ = yy.crearNodo('llamadaFuncion',@1.first_line,@1.first_column,[yy.crearHoja($1,@1.first_line,@1.first_column)])
+        }
+    |  id '(' listaExp ')'
+        {
+                $$ = yy.crearNodo('llamadaFuncion',@1.first_line,@1.first_column,[yy.crearHoja($1,@1.first_line,@1.first_column),$3])
+        } 
+    |  id '(' listaAsignacion ')' 
+        {
+                $$ = yy.crearNodo('llamadaFuncion',@1.first_line,@1.first_column,[yy.crearHoja($1,@1.first_line,@1.first_column),$3])
+        }
+; 
+
 listaExp : listaExp ',' EXP 
         {
             $1.setHijo($3)
@@ -301,11 +316,28 @@ sentenciaContinue :'continue'
 
 
 sentenciaReturn :'return' sentenciaReturnEXP 
+    {
+        if($2 == ''){
+            $$ = yy.crearNodo('return',@1.first_line,@1.first_column,[]);
+        }
+        else{
+            $$ = yy.crearNodo('return',@1.first_line,@1.first_column,[$2]);
+        }   
+    }
 ;
 
 sentenciaReturnEXP: ';'
+    {
+        $$ = ''
+    }
     | EXP
+    {
+        $$ = $1
+    }
     | EXP ';'
+    {
+        $$ = $1
+    }
 ;
 
 sentenciaSwitch : 'switch' '(' EXP ')' '{' bloqueSwitch '}'
@@ -755,5 +787,9 @@ literal : entero
     | id '--'
         {
             $$ = yy.crearNodo('decremento',0,0,[yy.crearHoja($1,@1.first_line,@1.first_column)])   
+        }
+    | llamadaFuncion2
+        {
+            $$ = $1;
         }
 ;
