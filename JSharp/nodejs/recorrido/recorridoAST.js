@@ -103,11 +103,11 @@ function Compilar(codigo) {
     arbol.contadorT = 0;
     arbol.contadorL = 0;
     arbol.llenarTablaSimbolos();
-    arbol.compilar();
+    codigo = arbol.compilar();
     console.log("--------------------Todo bien-------------------");
     // Nodo.Nodo = llenarNuevoArbol(arbol, Nodo.Nodo);
     //return Interprete(arbol);
-    return null;
+    return codigo;
 }
 
 var auxe = '';
@@ -148,6 +148,7 @@ function compilar3D(codigo) {
     var errores = require("../Errores/errores");
     retorno = '';
     if (errores.lista.length == 0) {
+        codigo = codigo.toLowerCase();
         var arbol = parser3d.parse(codigo);
 
         var aux = llenarNuevoArbol3d(arbol, Nodo3d.Nodo);
@@ -158,12 +159,12 @@ function compilar3D(codigo) {
         auxo = html.obtenerTablaOptimisacion();
 
         var opt = require("../tablaOptimisacion").lista;
-        arbol = parser3d.parse(codigoOptimisado);
-        aux = llenarNuevoArbol3d(arbol, Nodo3d.Nodo);
+      //  arbol = parser3d.parse(codigoOptimisado);
+        //aux = llenarNuevoArbol3d(arbol, Nodo3d.Nodo);
 
-        retorno = Nodo3d.compilar(aux);
+        //retorno = Nodo3d.compilar(aux);
     }
-    ret = { optimizacion: auxo, retorno: retorno };
+    ret = { optimizacion: auxo, retorno: codigoOptimisado };
     return ret;
 }
 

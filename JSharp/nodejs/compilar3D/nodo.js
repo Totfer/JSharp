@@ -1,17 +1,17 @@
-function Nodo(){
-    this.nombre   = '';
+function Nodo() {
+    this.nombre = '';
     this.padre = Nodo;
     this.linea = '';
     this.columna = '';
-    this.hijos   = [];
+    this.hijos = [];
 
-    this.ejecutar = function(){
+    this.ejecutar = function () {
         return "Edgar gay :v";
     }
 
 
-    this.generar3D = function generar3D(actual,cont){
-        for(let i=0;actual.hijos.length;i++){
+    this.generar3D = function generar3D(actual, cont) {
+        for (let i = 0; actual.hijos.length; i++) {
             generar3D(actual.hijos[i]);
         }
         return "";
@@ -33,234 +33,235 @@ var ts = [];
 
 var enFuncion = 0;
 var fns;
-function compilar(actual){
+function compilar(actual) {
     texto = '';
     gSaltos(actual.hijos[0]);
     fns = actual.hijos[0];
     _3d(actual.hijos[0]);
-    
+
     console.log(texto);
     return texto;
 }
 
-function gSaltos(actual){
-    if(actual==undefined){return;}
-    for(var i=0;i<actual.hijos.length;i++){
-        if(actual.hijos[i].nombre=='salto'){
-            for(var j=0;j<actual.hijos[i].hijos.length;j++){
-                saltos.push({posicion:i,nombre:actual.hijos[i].hijos[j].nombre});
+function gSaltos(actual) {
+    if (actual == undefined) { return; }
+    for (var i = 0; i < actual.hijos.length; i++) {
+        if (actual.hijos[i].nombre == 'salto') {
+            for (var j = 0; j < actual.hijos[i].hijos.length; j++) {
+                saltos.push({ posicion: i, nombre: actual.hijos[i].hijos[j].nombre });
             }
         }
-        if(actual.hijos[i].nombre=='invocacion metodo'){
+        if (actual.hijos[i].nombre == 'invocacion metodo') {
             gSaltos(actual.hijos[i].hijos[1]);
-        }else{
+        } else {
             gSaltos(actual.hijos[i]);
         }
     }
 }
 
-function obtenerValor(valor){
-    if(valor.nombre==undefined){
-        for(var i=0;i<tabla.length;i++){
-            if(tabla[i].id==valor){
-                return tabla[i].valor[tabla[i].valor.length-1];
+function obtenerValor(valor) {
+    if (valor.nombre == undefined) {
+        for (var i = 0; i < tabla.length; i++) {
+            if (tabla[i].id == valor) {
+                return tabla[i].valor[tabla[i].valor.length - 1];
             }
         }
     }
-    else if(valor.nombre=='id'){
-        for(var i=0;i<tabla.length;i++){
-            if(tabla[i].id==valor.hijos[0].nombre){
-                return tabla[i].valor[tabla[i].valor.length-1];
+    else if (valor.nombre == 'id') {
+        for (var i = 0; i < tabla.length; i++) {
+            if (tabla[i].id == valor.hijos[0].nombre) {
+                return tabla[i].valor[tabla[i].valor.length - 1];
             }
-        }}
-    else if(valor.nombre=='decimal'||valor.nombre.toLowerCase()=='entero'){
+        }
+    }
+    else if (valor.nombre == 'decimal' || valor.nombre.toLowerCase() == 'entero') {
         return parseFloat(valor.hijos[0].nombre);
     }
 }
 
-function IF(actual){
-    let op1 =obtenerValor(actual.hijos[0]);
-    let op2 =obtenerValor(actual.hijos[2]);
-    switch(actual.hijos[1].nombre){
+function IF(actual) {
+    let op1 = obtenerValor(actual.hijos[0]);
+    let op2 = obtenerValor(actual.hijos[2]);
+    switch (actual.hijos[1].nombre) {
         case '<':
-            if(obtenerValor(actual.hijos[0]) < obtenerValor(actual.hijos[2])){
+            if (obtenerValor(actual.hijos[0]) < obtenerValor(actual.hijos[2])) {
                 return actual.hijos[3].nombre;
             }
-            else{
+            else {
                 return '';
             }
-        case '>':  
-            
-            if(op1 > op2){
+        case '>':
+
+            if (op1 > op2) {
                 return actual.hijos[3].nombre;
             }
-            else{
+            else {
                 return '';
             }
-        case '>=':     
-            if(obtenerValor(actual.hijos[0]) <= obtenerValor(actual.hijos[2])){
+        case '>=':
+            if (obtenerValor(actual.hijos[0]) <= obtenerValor(actual.hijos[2])) {
                 return actual.hijos[3].nombre;
             }
-            else{
+            else {
                 return '';
             }
         case '<=':
-            if(obtenerValor(actual.hijos[0]) <= obtenerValor(actual.hijos[2])){
+            if (obtenerValor(actual.hijos[0]) <= obtenerValor(actual.hijos[2])) {
                 return actual.hijos[3].nombre;
             }
-            else{
+            else {
                 return '';
             }
         case '==':
-            if(op1 == op2){
+            if (op1 == op2) {
                 return actual.hijos[3].nombre;
             }
-            else{
+            else {
                 return '';
             }
         case '!=':
-            if(obtenerValor(actual.hijos[0]) != obtenerValor(actual.hijos[2])){
+            if (obtenerValor(actual.hijos[0]) != obtenerValor(actual.hijos[2])) {
                 return actual.hijos[3].nombre;
             }
-            else{
+            else {
                 return '';
             }
     }
 }
 
-function IFFalse(actual){
-    let op1 =obtenerValor(actual.hijos[0]);
-    let op2 =obtenerValor(actual.hijos[2]);
-    switch(actual.hijos[1].nombre){
+function IFFalse(actual) {
+    let op1 = obtenerValor(actual.hijos[0]);
+    let op2 = obtenerValor(actual.hijos[2]);
+    switch (actual.hijos[1].nombre) {
         case '<':
-            if(!(obtenerValor(actual.hijos[0]) < obtenerValor(actual.hijos[2]))){
+            if (!(obtenerValor(actual.hijos[0]) < obtenerValor(actual.hijos[2]))) {
                 return actual.hijos[3].nombre;
             }
-            else{
+            else {
                 return '';
             }
-        case '>':  
-            
-            if(!(op1 > op2)){
+        case '>':
+
+            if (!(op1 > op2)) {
                 return actual.hijos[3].nombre;
             }
-            else{
+            else {
                 return '';
             }
-        case '>=':     
-            if(!(obtenerValor(actual.hijos[0]) <= obtenerValor(actual.hijos[2]))){
+        case '>=':
+            if (!(obtenerValor(actual.hijos[0]) <= obtenerValor(actual.hijos[2]))) {
                 return actual.hijos[3].nombre;
             }
-            else{
+            else {
                 return '';
             }
         case '<=':
-            if(!(obtenerValor(actual.hijos[0]) <= obtenerValor(actual.hijos[2]))){
+            if (!(obtenerValor(actual.hijos[0]) <= obtenerValor(actual.hijos[2]))) {
                 return actual.hijos[3].nombre;
             }
-            else{
+            else {
                 return '';
             }
         case '==':
-            if(!(op1 == op2)){
+            if (!(op1 == op2)) {
                 return actual.hijos[3].nombre;
             }
-            else{
+            else {
                 return '';
             }
         case '!=':
-            if(!(obtenerValor(actual.hijos[0]) != obtenerValor(actual.hijos[2]))){
+            if (!(obtenerValor(actual.hijos[0]) != obtenerValor(actual.hijos[2]))) {
                 return actual.hijos[3].nombre;
             }
-            else{
+            else {
                 return '';
             }
     }
 }
 
-function EXP(op,e1,e2){
-    switch(op){
+function EXP(op, e1, e2) {
+    switch (op) {
         case '+':
-            return e1+e2;
+            return e1 + e2;
         case '-':
-            return e1-e2;
+            return e1 - e2;
         case '*':
-            return e1*e2;
+            return e1 * e2;
         case '/':
-            return e1/e2;
+            return e1 / e2;
         case '%':
-            return e1%e2;
-        
+            return e1 % e2;
+
         case '<':
-            if(e1<e2){
+            if (e1 < e2) {
                 return '1';
             }
             return '0';
         case '>':
-            if(e1>e2){
+            if (e1 > e2) {
                 return '1';
             }
             return '0';
-        case '>=':     
-            if(e1>=e2){
+        case '>=':
+            if (e1 >= e2) {
                 return '1';
             }
             return '0';
         case '<=':
-            if(e1<=e2){
+            if (e1 <= e2) {
                 return '1';
             }
             return '0';
         case '==':
-            if(e1==e2){
+            if (e1 == e2) {
                 return '1';
             }
             return '0';
         case '!=':
-            if(e1!=e2){
+            if (e1 != e2) {
                 return '1';
             }
             return '0';
-            default :
-    }     
+        default:
+    }
 }
 
-function ASIGNACION2(actual){
-    if(actual.hijos.length=4){
-        var valor = EXP(actual.hijos[2].nombre,obtenerValor(actual.hijos[1]),obtenerValor(actual.hijos[3]));
-        
-        var elemento = {id:actual.hijos[0].nombre,valor:[valor]};
-        
-        for(var i=0; i<tabla.length; i++){
-            if(tabla[i].id == actual.hijos[0].nombre){
-                if(enFuncion!=0&&tabla[i].id!='p'&&tabla[i].id!='h'){
-                  
+function ASIGNACION2(actual) {
+    if (actual.hijos.length = 4) {
+        var valor = EXP(actual.hijos[2].nombre, obtenerValor(actual.hijos[1]), obtenerValor(actual.hijos[3]));
+
+        var elemento = { id: actual.hijos[0].nombre, valor: [valor] };
+
+        for (var i = 0; i < tabla.length; i++) {
+            if (tabla[i].id == actual.hijos[0].nombre) {
+                if (enFuncion != 0 && tabla[i].id != 'p' && tabla[i].id != 'h') {
+
                     tabla[i].valor[tabla[i].valor.length] = valor;
-                  
+
                     ts.push(tabla[i].id);
                 }
-                else{
-                    tabla[i].valor[tabla[i].valor.length-1] = valor;
+                else {
+                    tabla[i].valor[tabla[i].valor.length - 1] = valor;
                 }
                 return;
             }
-        } 
+        }
         tabla.push(elemento);
     }
 }
 
-function ASIGNACION1(actual){
+function ASIGNACION1(actual) {
     var valor = obtenerValor(actual.hijos[1]);
-    var elemento = {id:actual.hijos[0].nombre,valor:[valor]};
+    var elemento = { id: actual.hijos[0].nombre, valor: [valor] };
 
-    for(var i=0; i<tabla.length; i++){
-        if(tabla[i].id == actual.hijos[0].nombre){
-            if(enFuncion!=0){
+    for (var i = 0; i < tabla.length; i++) {
+        if (tabla[i].id == actual.hijos[0].nombre) {
+            if (enFuncion != 0) {
                 tabla[i].valor[tabla[i].valor.length] = valor;
                 ts.push(tabla[i].id);
             }
-            else{ 
-                tabla[i].valor[tabla[i].valor.length-1] = valor;
+            else {
+                tabla[i].valor[tabla[i].valor.length - 1] = valor;
             }
             return;
         }
@@ -268,22 +269,22 @@ function ASIGNACION1(actual){
     tabla.push(elemento);
 }
 
-function ASIGNACION3(actual){
-    if(actual.hijos[0].nombre == 'parametrosx'){
+function ASIGNACION3(actual) {
+    if (actual.hijos[0].nombre == 'parametrosx') {
         ts.push('-');
     }
     var valor = obtenerValor(actual.hijos[1]);
-    
-    var elemento = {id:actual.hijos[0].nombre,valor:[valor]};
 
-    for(var i=0; i<tabla.length; i++){
-        if(tabla[i].id == actual.hijos[0].nombre){
-            if(enFuncion!=0){
+    var elemento = { id: actual.hijos[0].nombre, valor: [valor] };
+
+    for (var i = 0; i < tabla.length; i++) {
+        if (tabla[i].id == actual.hijos[0].nombre) {
+            if (enFuncion != 0) {
                 tabla[i].valor[tabla[i].valor.length] = valor;
                 ts.push(tabla[i].id);
             }
-            else{
-                tabla[i].valor[tabla[i].valor.length-1] = valor;
+            else {
+                tabla[i].valor[tabla[i].valor.length - 1] = valor;
             }
             return;
         }
@@ -291,100 +292,100 @@ function ASIGNACION3(actual){
     tabla.push(elemento);
 }
 
-function IMPRIMIR(actual){
+function IMPRIMIR(actual) {
     //console.log(memoria);
     var imprimir = obtenerValor(actual.hijos[1].nombre);
-    
-    switch(actual.hijos[0].nombre){
+
+    switch (actual.hijos[0].nombre) {
         case 'c':
-        imprimir = String.fromCharCode( parseInt(imprimir, 10));
-        break;
+            imprimir = String.fromCharCode(parseInt(imprimir, 10));
+            break;
         case 'e':
-        break;
+            break;
         case 'd':
-        break;
+            break;
     }
 
-    if(parseInt(imprimir, 10)>99999999){
+    if (parseInt(imprimir, 10) > 99999999) {
         imprimir = imprimir.toExponential(8);
-        if(''==''){
+        if ('' == '') {
 
-        }    
+        }
     }
-   // console.log(imprimir);
+    // console.log(imprimir);
     texto += imprimir;
 }
 
-function STACK1(actual){
-    for(var i=0;i<tabla.length;i++){
-        if(actual.hijos[0].hijos[0].nombre==tabla[i].id){
+function STACK1(actual) {
+    for (var i = 0; i < tabla.length; i++) {
+        if (actual.hijos[0].hijos[0].nombre == tabla[i].id) {
             var aux = obtenerValor(actual.hijos[0]);
-            if(obtenerValor(actual.hijos[1])<0){
-                temp = {signo:'-',valor:obtenerValor(actual.hijos[1])*(-1)};
-                memoria.memoria.memori[aux]= temp;
+            if (obtenerValor(actual.hijos[1]) < 0) {
+                temp = { signo: '-', valor: obtenerValor(actual.hijos[1]) * (-1) };
+                memoria.memoria.memori[aux] = temp;
                 break;
             }
-            else{
-                temp = {signo:'+',valor:obtenerValor(actual.hijos[1])};
+            else {
+                temp = { signo: '+', valor: obtenerValor(actual.hijos[1]) };
                 var aux2 = actual.hijos[0].hijos[0].nombre;
-                memoria.memoria.memori[aux]= temp;
+                memoria.memoria.memori[aux] = temp;
                 break;
             }
         }
     }
 }
 
-function HEAP1(actual){
-    for(var i=0;i<tabla.length;i++){
-        if(actual.hijos[0].hijos[0].nombre==tabla[i].id){
-            monticulo.monticulo.lista[tabla[i].valor[tabla[i].valor.length-1]]=obtenerValor(actual.hijos[1]);
+function HEAP1(actual) {
+    for (var i = 0; i < tabla.length; i++) {
+        if (actual.hijos[0].hijos[0].nombre == tabla[i].id) {
+            monticulo.monticulo.lista[tabla[i].valor[tabla[i].valor.length - 1]] = obtenerValor(actual.hijos[1]);
             return;
         }
     }
 }
 
-function STACK2(actual){
-    for(var i=0;i<tabla.length;i++){
-        if(actual.hijos[1].hijos[0].nombre==tabla[i].id){
+function STACK2(actual) {
+    for (var i = 0; i < tabla.length; i++) {
+        if (actual.hijos[1].hijos[0].nombre == tabla[i].id) {
             var existe = true;
-            for(var j=0;j<tabla.length;j++){    
-                if(tabla[j].id==actual.hijos[0].hijos[0].nombre){
-                    if(memoria.memoria.memori[tabla[i].valor[tabla[i].valor.length-1]].signo=='-'){
-                        if(enFuncion!=0){
-                            
+            for (var j = 0; j < tabla.length; j++) {
+                if (tabla[j].id == actual.hijos[0].hijos[0].nombre) {
+                    if (memoria.memoria.memori[tabla[i].valor[tabla[i].valor.length - 1]].signo == '-') {
+                        if (enFuncion != 0) {
+
                             ts.push(tabla[j].id);
-                            tabla[j].valor[tabla[j].valor.length] = memoria.memoria.memori[tabla[i].valor[tabla[i].valor.length-1]].valor*(-1);
-                        
+                            tabla[j].valor[tabla[j].valor.length] = memoria.memoria.memori[tabla[i].valor[tabla[i].valor.length - 1]].valor * (-1);
+
                         }
-                        else{
-                            tabla[j].valor[tabla[j].valor.length-1] = memoria.memoria.memori[tabla[i].valor[tabla[i].valor.length-1]].valor*(-1);
-                        
+                        else {
+                            tabla[j].valor[tabla[j].valor.length - 1] = memoria.memoria.memori[tabla[i].valor[tabla[i].valor.length - 1]].valor * (-1);
+
                         }
                         return;
                     }
-                    else{
-                        if(enFuncion!=0){
+                    else {
+                        if (enFuncion != 0) {
                             ts.push(tabla[j].id);
-                            var index = tabla[i].valor[tabla[i].valor.length-1];
+                            var index = tabla[i].valor[tabla[i].valor.length - 1];
                             tabla[j].valor[tabla[j].valor.length] = memoria.memoria.memori[index].valor;
 
                         }
-                        else{
-                            tabla[j].valor[tabla[j].valor.length-1] = memoria.memoria.memori[tabla[i].valor[tabla[i].valor.length-1]].valor;
+                        else {
+                            tabla[j].valor[tabla[j].valor.length - 1] = memoria.memoria.memori[tabla[i].valor[tabla[i].valor.length - 1]].valor;
                         }
                         existe = false;
                         return;
                     }
                 }
             }
-            if(existe){
+            if (existe) {
                 var vsr = '';
-                if(memoria.memoria.memori[tabla[i].valor[tabla[i].valor.length-1]].signo=='-'){
-                    vsr=memoria.memoria.memori[tabla[i].valor[tabla[i].valor.length-1]].valor*(-1);
-                }else{
-                    vsr=memoria.memoria.memori[tabla[i].valor[tabla[i].valor.length-1]].valor;       
+                if (memoria.memoria.memori[tabla[i].valor[tabla[i].valor.length - 1]].signo == '-') {
+                    vsr = memoria.memoria.memori[tabla[i].valor[tabla[i].valor.length - 1]].valor * (-1);
+                } else {
+                    vsr = memoria.memoria.memori[tabla[i].valor[tabla[i].valor.length - 1]].valor;
                 }
-                var elemento = {id:actual.hijos[0].hijos[0].nombre,valor:[vsr]};
+                var elemento = { id: actual.hijos[0].hijos[0].nombre, valor: [vsr] };
                 tabla.push(elemento);
                 return;
             }
@@ -392,26 +393,26 @@ function STACK2(actual){
     }
 }
 
-function HEAP2(actual){
-    for(var i=0;i<tabla.length;i++){
-        if(actual.hijos[1].hijos[0].nombre==tabla[i].id){
+function HEAP2(actual) {
+    for (var i = 0; i < tabla.length; i++) {
+        if (actual.hijos[1].hijos[0].nombre == tabla[i].id) {
             var existe = true;
-            for(var j=0;j<tabla.length;j++){    
-                if(tabla[j].id==actual.hijos[0].hijos[0].nombre){
-                    if(enFuncion!=0){
+            for (var j = 0; j < tabla.length; j++) {
+                if (tabla[j].id == actual.hijos[0].hijos[0].nombre) {
+                    if (enFuncion != 0) {
 
                         tabla[j].valor[tabla[j].valor.length] = monticulo.monticulo.lista[obtenerValor(actual.hijos[1])];
                         ts.push(tabla[j].id);
                     }
-                    else{
-                        tabla[j].valor[tabla[j].valor.length-1] = monticulo.monticulo.lista[obtenerValor(actual.hijos[1])];
+                    else {
+                        tabla[j].valor[tabla[j].valor.length - 1] = monticulo.monticulo.lista[obtenerValor(actual.hijos[1])];
                     }
                     existe = false;
                     return;
                 }
             }
-            if(existe){
-                var elemento = {id:actual.hijos[0].hijos[0].nombre,valor:[monticulo.monticulo.lista[obtenerValor(actual.hijos[1])]]};
+            if (existe) {
+                var elemento = { id: actual.hijos[0].hijos[0].nombre, valor: [monticulo.monticulo.lista[obtenerValor(actual.hijos[1])]] };
                 tabla.push(elemento);
                 return;
             }
@@ -419,91 +420,91 @@ function HEAP2(actual){
     }
 }
 
-function _3d(actual){
+function _3d(actual) {
     var salto = '';
-    for(var i=0;i<actual.hijos.length;i++){ 
-            switch(actual.hijos[i].nombre){
-                case 'declaracion variable asignacion':
-                    ASIGNACION3(actual.hijos[i]);
+    for (var i = 0; i < actual.hijos.length; i++) {
+        switch (actual.hijos[i].nombre) {
+            case 'declaracion variable asignacion':
+                ASIGNACION3(actual.hijos[i]);
                 break;
-                case 'asignacion2':
-                    ASIGNACION2(actual.hijos[i]);
+            case 'asignacion2':
+                ASIGNACION2(actual.hijos[i]);
                 break;
-                case 'asignacion1':
-                    ASIGNACION1(actual.hijos[i]);
+            case 'asignacion1':
+                ASIGNACION1(actual.hijos[i]);
                 break;
-                case 'print':
-                    IMPRIMIR(actual.hijos[i]);
+            case 'print':
+                IMPRIMIR(actual.hijos[i]);
                 break;
-                case 'if':
-                    salto = IF(actual.hijos[i]);
-                    if(salto==""){break;}
-                    for(var l=0;l<saltos.length;l++){
-                        if(saltos[l].nombre==salto){
-                            i=saltos[l].posicion;
-                            break;
-                        }
+            case 'if':
+                salto = IF(actual.hijos[i]);
+                if (salto == "") { break; }
+                for (var l = 0; l < saltos.length; l++) {
+                    if (saltos[l].nombre == salto) {
+                        i = saltos[l].posicion;
+                        break;
                     }
+                }
                 break;
-                case 'ifFalse':
-                    salto = IFFalse(actual.hijos[i]);
-                    if(salto==""){break;}
-                    for(var l=0;l<saltos.length;l++){
-                        if(saltos[l].nombre==salto){
-                            i=saltos[l].posicion;
-                            break;
-                        }
+            case 'ifFalse':
+                salto = IFFalse(actual.hijos[i]);
+                if (salto == "") { break; }
+                for (var l = 0; l < saltos.length; l++) {
+                    if (saltos[l].nombre == salto) {
+                        i = saltos[l].posicion;
+                        break;
                     }
+                }
                 break;
-                case 'stack1':
-                    STACK1(actual.hijos[i]);
+            case 'stack1':
+                STACK1(actual.hijos[i]);
                 break;
-                case 'stack2':
-                    STACK2(actual.hijos[i]);
+            case 'stack2':
+                STACK2(actual.hijos[i]);
                 break;
-                case 'heap2':
-                    HEAP2(actual.hijos[i]);
+            case 'heap2':
+                HEAP2(actual.hijos[i]);
                 break;
-                case 'heap1':
-                    HEAP1(actual.hijos[i]);
+            case 'heap1':
+                HEAP1(actual.hijos[i]);
                 break;
-                case 'saltar':
-                    salto = actual.hijos[i].hijos[0].nombre;
-                    for(var l=0;l<saltos.length;l++){
-                        if(actual.hijos[i].hijos[0].nombre==saltos[l].nombre){
-                            i=saltos[l].posicion;
-                            break;
-                        }
+            case 'saltar':
+                salto = actual.hijos[i].hijos[0].nombre;
+                for (var l = 0; l < saltos.length; l++) {
+                    if (actual.hijos[i].hijos[0].nombre == saltos[l].nombre) {
+                        i = saltos[l].posicion;
+                        break;
                     }
-                break;   
-                case 'invocacion metodo':
-                    enFuncion += 1;
-                    CALL(fns,actual.hijos[i]);
-                    PopTabla();
-                    enFuncion -= 1;
+                }
                 break;
-                case 'end':
-                    PopTabla();
+            case 'invocacion metodo':
+                enFuncion += 1;
+                CALL(fns, actual.hijos[i]);
+                PopTabla();
+                enFuncion -= 1;
                 break;
-            }
+            case 'end':
+                PopTabla();
+                break;
+        }
     }
 }
 
-function PopTabla(){
+function PopTabla() {
     var salir = 0;
-    for(var j=ts.length-1;j>0;j--){   
-        if(ts[j]=='-'){
+    for (var j = ts.length - 1; j > 0; j--) {
+        if (ts[j] == '-') {
             break;
         }
-        for(var i=0;i<tabla.length;i++){
-            if(tabla[i].id==ts[j]){
+        for (var i = 0; i < tabla.length; i++) {
+            if (tabla[i].id == ts[j]) {
                 tabla[i].valor.pop();
             }
         }
     }
-    
-    for(var j=ts.length-1;j>-1;j--){   
-        if(ts[j]=='-'){
+
+    for (var j = ts.length - 1; j > -1; j--) {
+        if (ts[j] == '-') {
             ts.pop();
             return;
         }
@@ -511,15 +512,15 @@ function PopTabla(){
     }
 }
 
-function CALL(actual,llamada){
-    for(var i=0;i<actual.hijos.length;i++){ 
-        var op1 =actual.hijos[i].nombre; 
-        var op2 =llamada.hijos[0].nombre;
-        var op3 =actual.hijos[i].hijos[0].nombre;
-        if(op1=='declaracion metodo'&&op2==op3){
+function CALL(actual, llamada) {
+    for (var i = 0; i < actual.hijos.length; i++) {
+        var op1 = actual.hijos[i].nombre;
+        var op2 = llamada.hijos[0].nombre;
+        var op3 = actual.hijos[i].hijos[0].nombre;
+        if (op1 == 'declaracion metodo' && op2 == op3) {
             _3d(actual.hijos[i].hijos[1]);
             break;
-        }       
+        }
     }
 }
 
@@ -528,113 +529,127 @@ exports.compilar = compilar;
 exports.Nodo = Nodo;
 
 
-function optimizarCodigo(actual){
+function optimizarCodigo(actual) {
     return listaOptimisacion(actual.hijos[0]);
 }
 
 exports.optimizarCodigo = optimizarCodigo;
 
 
-function obtenerValorOptimisacion(valor){
-    if(valor.nombre==undefined){
+function obtenerValorOptimisacion(valor) {
+    if (valor.nombre == undefined) {
         return valor;
     }
-    else if(valor.nombre=='id'){
+    else if (valor.nombre == 'id') {
         return valor.hijos[0].nombre;
     }
-    else if(valor.nombre=='decimal'||valor.nombre.toLowerCase()=='entero'){
+    else if (valor.nombre == 'decimal' || valor.nombre.toLowerCase() == 'entero') {
         return parseFloat(valor.hijos[0].nombre);
     }
 }
 
 
-function listaOptimisacion(actual){
+function listaOptimisacion(actual) {
     var cadena = '';
-    for(var i=0;i<actual.hijos.length;i++){
-        switch(actual.hijos[i].nombre){
+    let omitir = []
+    for (var i = 0; i < actual.hijos.length; i++) {
+        let omite = false;
+        for (let j = 0; j < omitir.length; j++) {
+            if(i==omitir[j]){
+                omite = true;
+            }
+        }
+        if (omite) {
+            omite = false;
+            continue
+        }
+        switch (actual.hijos[i].nombre) {
             case 'asignacion2':
-                cadena += optimisacionesAlgebraicas(actual.hijos[i])+'\n';
-            break;
+                cadena += optimisacionesAlgebraicas(actual.hijos[i]) + '\n';
+                break;
             case 'if':
                 var op = true;
-                if(actual.hijos[i+1]!=undefined){
-                    if(actual.hijos[i+1].nombre=='saltar'){ 
-                    if(actual.hijos[i+2]!=undefined){          
-                    if(actual.hijos[i+2].nombre=='salto'){
+                if (actual.hijos[i + 1] != undefined) {
+                    if (actual.hijos[i + 1].nombre == 'saltar') {
+                        if (actual.hijos[i + 2] != undefined) {
+                            if (actual.hijos[i + 2].nombre == 'salto') {
 
-                        if(actual.hijos[i].hijos[3].nombre==actual.hijos[i+2].hijos[0].nombre){
-                        if(actual.hijos[i].hijos[1].nombre=='=='){
-                            if(actual.hijos[i].hijos[0].hijos[0].nombre!=undefined&&actual.hijos[i].hijos[2].hijos[0].nombre!=undefined){
-                                if((actual.hijos[i].hijos[1].nombre=='<'||actual.hijos[i].hijos[1].nombre=='<='||actual.hijos[i].hijos[1].nombre=='>='||actual.hijos[i].hijos[1].nombre=='>'||actual.hijos[i].hijos[1].nombre=='=='||actual.hijos[i].hijos[1].nombre=='!=')){
-                                    var operador ='';
-                                    switch(actual.hijos[i].hijos[1].nombre){
-                                        case '<':
-                                        operador = '>=';
-                                        break;
-                                        case '<=':
-                                        operador = '>';
-                                        break;
-                                        case '>':
-                                        operador = '<=';
-                                        break;
-                                        case '>=':
-                                        operador = '<';
-                                        break;
-                                        case '==':
-                                        operador = '!=';
-                                        break;
-                                        case '!=':
-                                        operador = '==';
-                                        break;
-                                    }     
-                                    let opt = {exp:'',result:'',regla:0};
-                                    opt.regla =3;
-                                    opt.exp += 'if('+actual.hijos[i].hijos[0].hijos[0].nombre+operador+actual.hijos[i].hijos[2].hijos[0].nombre+') goto '+actual.hijos[i].hijos[3].nombre+';\n';
-                                    opt.exp += 'goto '+actual.hijos[i+1].hijos[0].nombre+';\n';
-                                    opt.exp += actual.hijos[i+2].hijos[0].nombre+':\n';
-                                   
-                                    opt.result += 'if('+actual.hijos[i].hijos[0].hijos[0].nombre+actual.hijos[i].hijos[1].nombre+actual.hijos[i].hijos[2].hijos[0].nombre+') goto '+actual.hijos[i+1].hijos[0].nombre+';\n';
-                                    tablaOptimisacion.push(opt);
-                                    cadena += 'if('+actual.hijos[i].hijos[0].hijos[0].nombre+operador+actual.hijos[i].hijos[2].hijos[0].nombre+') goto '+actual.hijos[i+1].hijos[0].nombre+';\n';
-                                    i++;
-                                    i++;
-                                    break;
+                                if (actual.hijos[i].hijos[3].nombre == actual.hijos[i + 2].hijos[0].nombre) {
+                                    if (actual.hijos[i].hijos[1].nombre == '==') {
+                                        if (actual.hijos[i].hijos[0].hijos[0].nombre != undefined && actual.hijos[i].hijos[2].hijos[0].nombre != undefined) {
+                                            if ((actual.hijos[i].hijos[1].nombre == '<' || actual.hijos[i].hijos[1].nombre == '<=' || actual.hijos[i].hijos[1].nombre == '>=' || actual.hijos[i].hijos[1].nombre == '>' || actual.hijos[i].hijos[1].nombre == '==' || actual.hijos[i].hijos[1].nombre == '!=')) {
+                                                var operador = '';
+                                                switch (actual.hijos[i].hijos[1].nombre) {
+                                                    case '<':
+                                                        operador = '>=';
+                                                        break;
+                                                    case '<=':
+                                                        operador = '>';
+                                                        break;
+                                                    case '>':
+                                                        operador = '<=';
+                                                        break;
+                                                    case '>=':
+                                                        operador = '<';
+                                                        break;
+                                                    case '==':
+                                                        operador = '!=';
+                                                        break;
+                                                    case '!=':
+                                                        operador = '==';
+                                                        break;
+                                                }
+                                                let opt = { exp: '', result: '', regla: 0 };
+                                                opt.regla = 3;
+                                                opt.exp += 'if(' + actual.hijos[i].hijos[0].hijos[0].nombre + operador + actual.hijos[i].hijos[2].hijos[0].nombre + ') goto ' + actual.hijos[i].hijos[3].nombre + ';\n';
+                                                opt.exp += 'goto ' + actual.hijos[i + 1].hijos[0].nombre + ';\n';
+                                                opt.exp += actual.hijos[i + 2].hijos[0].nombre + ':\n';
+
+                                                opt.result += 'if(' + actual.hijos[i].hijos[0].hijos[0].nombre + actual.hijos[i].hijos[1].nombre + actual.hijos[i].hijos[2].hijos[0].nombre + ') goto ' + actual.hijos[i + 1].hijos[0].nombre + ';\n';
+                                                tablaOptimisacion.push(opt);
+                                                cadena += 'if(' + actual.hijos[i].hijos[0].hijos[0].nombre + operador + actual.hijos[i].hijos[2].hijos[0].nombre + ') goto ' + actual.hijos[i + 1].hijos[0].nombre + ';\n';
+                                                i++;
+                                                i++;
+                                                break;
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
-                    }}}}
+                    }
                 }
-                if(actual.hijos[i+1]!=undefined){
-                    if(actual.hijos[i+1].nombre=='saltar'){
-                        if(actual.hijos[i].hijos[1].nombre=='=='){
-                            if(actual.hijos[i].hijos[0].hijos[0].nombre!=undefined&&actual.hijos[i].hijos[2].hijos[0].nombre!=undefined){
-                                if((actual.hijos[i].hijos[2].nombre=='decimal'||actual.hijos[i].hijos[2].nombre.toLowerCase()=='entero'||actual.hijos[i].hijos[2].nombre=='char')&&(actual.hijos[i].hijos[0].nombre=='decimal'||actual.hijos[i].hijos[0].nombre.toLowerCase()=='entero'||actual.hijos[i].hijos[0].nombre=='char')){
-                                    var valor = EXP(actual.hijos[i].hijos[1].nombre,obtenerValor(actual.hijos[i].hijos[0]),obtenerValor(actual.hijos[i].hijos[2]));
-                                    
-                                    if(valor=='1'){
-                                        cadena += 'goto '+ actual.hijos[i].hijos[3].nombre+';\n';                
-                                        let opt = {exp:'',result:'',regla:0};
-                                            opt.regla = 4;
-                                            opt.result += 'goto '+actual.hijos[i].hijos[3].nombre+';\n';
-                                            
-                                            opt.exp += 'if('+actual.hijos[i].hijos[0].hijos[0].nombre+actual.hijos[i].hijos[1].nombre+actual.hijos[i].hijos[2].hijos[0].nombre+') goto '+actual.hijos[i].hijos[3].nombre+';\n';
-                                            opt.exp += 'goto '+actual.hijos[i+1].hijos[0].nombre+';\n';
-                                            tablaOptimisacion.push(opt);
-                                            op =false;
-                                            i++;
+                if (actual.hijos[i + 1] != undefined) {
+                    if (actual.hijos[i + 1].nombre == 'saltar') {
+                        if (actual.hijos[i].hijos[1].nombre == '==') {
+                            if (actual.hijos[i].hijos[0].hijos[0].nombre != undefined && actual.hijos[i].hijos[2].hijos[0].nombre != undefined) {
+                                if ((actual.hijos[i].hijos[2].nombre == 'decimal' || actual.hijos[i].hijos[2].nombre.toLowerCase() == 'entero' || actual.hijos[i].hijos[2].nombre == 'char') && (actual.hijos[i].hijos[0].nombre == 'decimal' || actual.hijos[i].hijos[0].nombre.toLowerCase() == 'entero' || actual.hijos[i].hijos[0].nombre == 'char')) {
+                                    var valor = EXP(actual.hijos[i].hijos[1].nombre, obtenerValor(actual.hijos[i].hijos[0]), obtenerValor(actual.hijos[i].hijos[2]));
+
+                                    if (valor == '1') {
+                                        cadena += 'goto ' + actual.hijos[i].hijos[3].nombre + ';\n';
+                                        let opt = { exp: '', result: '', regla: 0 };
+                                        opt.regla = 4;
+                                        opt.result += 'goto ' + actual.hijos[i].hijos[3].nombre + ';\n';
+
+                                        opt.exp += 'if(' + actual.hijos[i].hijos[0].hijos[0].nombre + actual.hijos[i].hijos[1].nombre + actual.hijos[i].hijos[2].hijos[0].nombre + ') goto ' + actual.hijos[i].hijos[3].nombre + ';\n';
+                                        opt.exp += 'goto ' + actual.hijos[i + 1].hijos[0].nombre + ';\n';
+                                        tablaOptimisacion.push(opt);
+                                        op = false;
+                                        i++;
                                         break;
                                     }
-                                    if(valor=='0'){
-                                        cadena += 'goto '+ actual.hijos[i+1].hijos[0].nombre+';\n';    
-                                        let opt = {exp:'',result:'',regla:0};
-                                            opt.regla = 5;
-                                            opt.result += 'goto '+actual.hijos[i].hijos[3].nombre+';\n';
-                                            
-                                            opt.exp += 'if('+actual.hijos[i].hijos[0].hijos[0].nombre+actual.hijos[i].hijos[1].nombre+actual.hijos[i].hijos[2].hijos[0].nombre+') goto '+actual.hijos[i].hijos[3].nombre+';\n';
-                                            opt.exp += 'goto '+actual.hijos[i+1].hijos[0].nombre+';\n';
-                                            tablaOptimisacion.push(opt);
-                                            op =false;
-                                            i++;
+                                    if (valor == '0') {
+                                        cadena += 'goto ' + actual.hijos[i + 1].hijos[0].nombre + ';\n';
+                                        let opt = { exp: '', result: '', regla: 0 };
+                                        opt.regla = 5;
+                                        opt.result += 'goto ' + actual.hijos[i + 1].hijos[0].nombre + ';\n';
+
+                                        opt.exp += 'if(' + actual.hijos[i].hijos[0].hijos[0].nombre + actual.hijos[i].hijos[1].nombre + actual.hijos[i].hijos[2].hijos[0].nombre + ') goto ' + actual.hijos[i].hijos[3].nombre + ';\n';
+                                        opt.exp += 'goto ' + actual.hijos[i + 1].hijos[0].nombre + ';\n';
+                                        tablaOptimisacion.push(opt);
+                                        op = false;
+                                        i++;
                                         break;
                                     }
                                 }
@@ -643,24 +658,24 @@ function listaOptimisacion(actual){
                     }
                 }
                 var op2 = true;
-                if(op){
-                    for(j=i;j<actual.hijos.length;j++){ 
-                        if(actual.hijos[j].nombre=='salto'){
-                            if(actual.hijos[j].hijos[0].nombre==actual.hijos[i].hijos[3].nombre){
-                                if(actual.hijos[j+1]!=undefined){
-                                    if(actual.hijos[j+1].nombre=='saltar'){
-                                        cadena +='if('+actual.hijos[i].hijos[0].hijos[0].nombre+actual.hijos[i].hijos[1].nombre+actual.hijos[i].hijos[2].hijos[0].nombre+') goto '+actual.hijos[j+1].hijos[0].nombre+';\n';
-                                        let opt = {exp:'',result:'',regla:0};
+                if (op) {
+                    for (j = i; j < actual.hijos.length; j++) {
+                        if (actual.hijos[j].nombre == 'salto') {
+                            if (actual.hijos[j].hijos[0].nombre == actual.hijos[i].hijos[3].nombre) {
+                                if (actual.hijos[j + 1] != undefined) {
+                                    if (actual.hijos[j + 1].nombre == 'saltar') {
+                                        cadena += 'if(' + actual.hijos[i].hijos[0].hijos[0].nombre + actual.hijos[i].hijos[1].nombre + actual.hijos[i].hijos[2].hijos[0].nombre + ') goto ' + actual.hijos[j + 1].hijos[0].nombre + ';\n';
+                                        let opt = { exp: '', result: '', regla: 0 };
                                         opt.regla = 7;
-                                        opt.result += 'if('+actual.hijos[i].hijos[0].hijos[0].nombre+actual.hijos[i].hijos[1].nombre+actual.hijos[i].hijos[2].hijos[0].nombre+') goto '+actual.hijos[j+1].hijos[0].nombre+';\n';
+                                        opt.result += 'if(' + actual.hijos[i].hijos[0].hijos[0].nombre + actual.hijos[i].hijos[1].nombre + actual.hijos[i].hijos[2].hijos[0].nombre + ') goto ' + actual.hijos[j + 1].hijos[0].nombre + ';\n';
                                         opt.result += '...\n';
-                                        opt.result += actual.hijos[j].hijos[0].nombre+':\n';
-                                        opt.result += 'goto '+actual.hijos[j+1].hijos[0].nombre+';\n';
-                                        
-                                        opt.exp += 'if('+actual.hijos[i].hijos[0].hijos[0].nombre+actual.hijos[i].hijos[1].nombre+actual.hijos[i].hijos[2].hijos[0].nombre+') goto '+actual.hijos[i].hijos[3].nombre+';\n';
+                                        opt.result += actual.hijos[j].hijos[0].nombre + ':\n';
+                                        opt.result += 'goto ' + actual.hijos[j + 1].hijos[0].nombre + ';\n';
+
+                                        opt.exp += 'if(' + actual.hijos[i].hijos[0].hijos[0].nombre + actual.hijos[i].hijos[1].nombre + actual.hijos[i].hijos[2].hijos[0].nombre + ') goto ' + actual.hijos[i].hijos[3].nombre + ';\n';
                                         opt.exp += '...\n';
-                                        opt.exp += actual.hijos[j].hijos[0].nombre+':\n';
-                                        opt.exp += 'goto '+actual.hijos[j+1].hijos[0].nombre+';\n';
+                                        opt.exp += actual.hijos[j].hijos[0].nombre + ':\n';
+                                        opt.exp += 'goto ' + actual.hijos[j + 1].hijos[0].nombre + ';\n';
                                         op2 = false;
                                         tablaOptimisacion.push(opt);
                                         break;
@@ -670,34 +685,36 @@ function listaOptimisacion(actual){
                         }
                     }
                 }
-                if(op2){
-                    cadena += 'if('+obtenerValorOptimisacion(actual.hijos[i].hijos[0])+actual.hijos[i].hijos[1].nombre+obtenerValorOptimisacion(actual.hijos[i].hijos[2])+') goto '+actual.hijos[i].hijos[3].nombre+';\n';
+                if (op2) {
+                    cadena += 'if(' + obtenerValorOptimisacion(actual.hijos[i].hijos[0]) + actual.hijos[i].hijos[1].nombre + obtenerValorOptimisacion(actual.hijos[i].hijos[2]) + ') goto ' + actual.hijos[i].hijos[3].nombre + ';\n';
                 }
-            break;
-            
+                break;
+
             case 'ifFalse':
-                cadena += 'ifFalse('+obtenerValorOptimisacion(actual.hijos[i].hijos[0])+actual.hijos[i].hijos[1].nombre+obtenerValorOptimisacion(actual.hijos[i].hijos[2])+') goto '+actual.hijos[i].hijos[3].nombre+';\n'
-            break;
+                cadena += 'ifFalse(' + obtenerValorOptimisacion(actual.hijos[i].hijos[0]) + actual.hijos[i].hijos[1].nombre + obtenerValorOptimisacion(actual.hijos[i].hijos[2]) + ') goto ' + actual.hijos[i].hijos[3].nombre + ';\n'
+                break;
             case 'saltar':
-                var op=true; 
-                for(j=i;j<actual.hijos.length;j++){ 
-                    if(actual.hijos[j].nombre=='salto'){
-                        if(actual.hijos[j].hijos[0].nombre==actual.hijos[i].hijos[0].nombre){
-                            if(actual.hijos[j+1]!=undefined){
-                                if(actual.hijos[j+1].nombre=='saltar'){
-                                    cadena +='goto '+actual.hijos[j+1].hijos[0].nombre+';\n';
-                                    let opt = {exp:'',result:'',regla:0};
+                var op = true;
+                var op2 = true;
+                for (j = i; j < actual.hijos.length; j++) {
+                    if (actual.hijos[j].nombre == 'salto') {
+                        if (actual.hijos[j].hijos[0].nombre == actual.hijos[i].hijos[0].nombre) {
+                            if (actual.hijos[j + 1] != undefined) {
+                                if (actual.hijos[j + 1].nombre == 'saltar') {
+                                    cadena += 'goto ' + actual.hijos[j + 1].hijos[0].nombre + ';\n';
+                                    let opt = { exp: '', result: '', regla: 0 };
                                     opt.regla = 6;
-                                    opt.result += 'goto '+actual.hijos[j+1].hijos[0].nombre+';\n';
+                                    opt.result += 'goto ' + actual.hijos[j + 1].hijos[0].nombre + ';\n';
                                     opt.result += '...\n';
-                                    opt.result += actual.hijos[j].hijos[0].nombre+':\n';
-                                    opt.result += 'goto '+actual.hijos[j+1].hijos[0].nombre+';\n';
-                                    
-                                    opt.exp += 'goto '+actual.hijos[i].hijos[0].nombre+';\n';
+                                    opt.result += actual.hijos[j].hijos[0].nombre + ':\n';
+                                    opt.result += 'goto ' + actual.hijos[j + 1].hijos[0].nombre + ';\n';
+
+                                    opt.exp += 'goto ' + actual.hijos[i].hijos[0].nombre + ';\n';
                                     opt.exp += '...\n';
-                                    opt.exp += actual.hijos[j].hijos[0].nombre+':\n';
-                                    opt.exp += 'goto '+actual.hijos[j+1].hijos[0].nombre+';\n';
+                                    opt.exp += actual.hijos[j].hijos[0].nombre + ':\n';
+                                    opt.exp += 'goto ' + actual.hijos[j + 1].hijos[0].nombre + ';\n';
                                     op = false;
+                                    op2 = false;
                                     tablaOptimisacion.push(opt);
                                     break;
                                 }
@@ -705,268 +722,313 @@ function listaOptimisacion(actual){
                         }
                     }
                 }
-                if(op){
-                    for(j=i;j<actual.hijos.length;j++){
-                        if(actual.hijos[j].nombre=='salto'){
-                            if(actual.hijos[j].hijos[0].nombre==actual.hijos[i].hijos[0].nombre){
-                                cadena +=actual.hijos[j].hijos[0].nombre;   
-            
-                                for(var x=1;x<actual.hijos[j].hijos.length;x++){
-                                    cadena +=','+actual.hijos[j].hijos[x].nombre;   
+                if (op) {
+                    for (j = i; j < actual.hijos.length; j++) {
+                        if (actual.hijos[j].nombre == 'salto') {
+                            op2 = false
+                            if (actual.hijos[j].hijos[0].nombre == actual.hijos[i].hijos[0].nombre) {
+                                cadena += actual.hijos[j].hijos[0].nombre;
+
+                                for (var x = 1; x < actual.hijos[j].hijos.length; x++) {
+                                    cadena += ',' + actual.hijos[j].hijos[x].nombre;
                                 }
-                                cadena +=':\n';
-                                i=j;
-                                let opt = {exp:'',result:'',regla:0};
-                                opt.regla = 2;
-                                opt.result = actual.hijos[j].hijos[0].nombre+':\n';
-                                 
-                                opt.exp += 'goto '+actual.hijos[i].hijos[0].nombre+';\n';
+                                cadena += ':\n';
+                                i = j;
+                                let opt = { exp: '', result: '', regla: 0 };
+                                opt.regla = 'Eliminacion de codigo inalcanzable';
+                                opt.result = actual.hijos[j].hijos[0].nombre + ':\n';
+
+                                opt.exp += 'goto ' + actual.hijos[i].hijos[0].nombre + ';\n';
                                 opt.exp += '...\n';
-                                opt.exp += actual.hijos[j].hijos[0].nombre+':\n';
-                            
+                                opt.exp += actual.hijos[j].hijos[0].nombre + ':\n';
+
                                 tablaOptimisacion.push(opt);
                                 break;
                             }
-                            else{
-                                cadena +='goto '+actual.hijos[i].hijos[0].nombre+';\n';
+                            else {
+                                cadena += 'goto ' + actual.hijos[i].hijos[0].nombre + ';\n';
                                 break;
                             }
                         }
                     }
                 }
-            break;
-            case 'asignacion1':
-                cadena +=actual.hijos[i].hijos[0].nombre+'='+actual.hijos[i].hijos[1].hijos[0].nombre+';\n';
-            break;
-            case 'stack1':
-                cadena +='stack['+actual.hijos[i].hijos[0].hijos[0].nombre+']='+actual.hijos[i].hijos[1].hijos[0].nombre+';\n';
-            break;
-            case 'stack2':
-                cadena += actual.hijos[i].hijos[0].hijos[0].nombre+'=stack['+actual.hijos[i].hijos[1].hijos[0].nombre+'];\n';
-            break;
-            case 'salto':
-                cadena +=actual.hijos[i].hijos[0].nombre;   
-            
-                for(var x=1;x<actual.hijos[i].hijos.length;x++){
-                    cadena +=','+actual.hijos[i].hijos[x].nombre;   
+
+                if (op2) {
+                    cadena += 'goto ' + actual.hijos[i].hijos[0].nombre + ';\n';
                 }
-                cadena +=':\n';
-            break;
+                break;
+            case 'asignacion1':
+                cadena += actual.hijos[i].hijos[0].nombre + '=' + actual.hijos[i].hijos[1].hijos[0].nombre + ';\n';
+                let posOm = optimizacion1(i+1, actual, actual.hijos[i].hijos[0].nombre, actual.hijos[i].hijos[1].hijos[0].nombre)
+                if(posOm != ''){
+                    omitir.push(posOm)
+                }
+                break;
+            case 'stack1':
+                cadena += 'stack[' + actual.hijos[i].hijos[0].hijos[0].nombre + ']=' + actual.hijos[i].hijos[1].hijos[0].nombre + ';\n';
+                break;
+            case 'stack2':
+                cadena += actual.hijos[i].hijos[0].hijos[0].nombre + '=stack[' + actual.hijos[i].hijos[1].hijos[0].nombre + '];\n';
+                break;
+            case 'salto':
+                cadena += actual.hijos[i].hijos[0].nombre;
+
+                for (var x = 1; x < actual.hijos[i].hijos.length; x++) {
+                    cadena += ',' + actual.hijos[i].hijos[x].nombre;
+                }
+                cadena += ':\n';
+                break;
             case 'print':
-                cadena +='print(\"%'+actual.hijos[i].hijos[0].nombre+'\",'+actual.hijos[i].hijos[1].nombre+');\n';
-            break;
+                cadena += 'print(\"%' + actual.hijos[i].hijos[0].nombre + '\",' + actual.hijos[i].hijos[1].nombre + ');\n';
+                break;
             case 'println':
-                cadena +='println(\"%'+actual.hijos[i].hijos[0].nombre+'\",'+actual.hijos[i].hijos[1].nombre+');\n';
-            break;
+                cadena += 'println(\"%' + actual.hijos[i].hijos[0].nombre + '\",' + actual.hijos[i].hijos[1].nombre + ');\n';
+                break;
             case 'invocacion metodo':
-                cadena +='call '+actual.hijos[i].hijos[0].nombre+';\n';
-            break;
+                cadena += 'call ' + actual.hijos[i].hijos[0].nombre + ';\n';
+                break;
             case 'declaracion metodo':
-            cadena +='proc '+actual.hijos[i].hijos[0].nombre+' begin\n';
-            cadena += listaOptimisacion(actual.hijos[i].hijos[1]);
-            cadena +='end\n';
-            break;
+                cadena += 'proc ' + actual.hijos[i].hijos[0].nombre + ' begin\n';
+                cadena += listaOptimisacion(actual.hijos[i].hijos[1]);
+                cadena += 'end\n';
+                break;
             case 'declaracion variable asignacion':
-                cadena +='var '+actual.hijos[i].hijos[0].nombre+'='+actual.hijos[i].hijos[1].hijos[0].nombre+';\n';
-            break; 
+                cadena += 'var ' + actual.hijos[i].hijos[0].nombre + '=' + actual.hijos[i].hijos[1].hijos[0].nombre + ';\n';
+                break;
             case 'heap1':
-                cadena +='heap['+actual.hijos[i].hijos[0].hijos[0].nombre+']='+actual.hijos[i].hijos[1].hijos[0].nombre+';\n';
-            break;
+                cadena += 'heap[' + actual.hijos[i].hijos[0].hijos[0].nombre + ']=' + actual.hijos[i].hijos[1].hijos[0].nombre + ';\n';
+                break;
             case 'heap2':
-                cadena += actual.hijos[i].hijos[0].hijos[0].nombre+'=heap['+actual.hijos[i].hijos[1].hijos[0].nombre+'];\n';
-            break;  
+                cadena += actual.hijos[i].hijos[0].hijos[0].nombre + '=heap[' + actual.hijos[i].hijos[1].hijos[0].nombre + '];\n';
+                break;
             case 'param':
                 cadena += 'param;\n';
-            break;  
+                break;
         }
     }
     return cadena;
 }
 
-function optimisacionesAlgebraicas(actual){
-    switch(actual.hijos[2].nombre){
+function optimisacionesAlgebraicas(actual) {
+    switch (actual.hijos[2].nombre) {
         case '+':
-            if(actual.hijos[3].hijos[0].nombre=='0'){ 
-                if(actual.hijos[0].nombre==actual.hijos[1].hijos[0].nombre){
-                    let opt = {exp:'',result:'',regla:0};
-                        opt.regla = 8;
-                        opt.result = '';
-                        opt.exp = actual.hijos[0].nombre+'='+actual.hijos[1].hijos[0].nombre+actual.hijos[2].nombre+actual.hijos[3].hijos[0].nombre+';';
-        
-                        tablaOptimisacion.push(opt);
+            if (actual.hijos[3].hijos[0].nombre == '0') {
+                if (actual.hijos[0].nombre == actual.hijos[1].hijos[0].nombre) {
+                    let opt = { exp: '', result: '', regla: 0 };
+                    opt.regla = 8;
+                    opt.result = '';
+                    opt.exp = actual.hijos[0].nombre + '=' + actual.hijos[1].hijos[0].nombre + actual.hijos[2].nombre + actual.hijos[3].hijos[0].nombre + ';';
+
+                    tablaOptimisacion.push(opt);
                     return '';
-                }   
-                else if(actual.hijos[0].nombre!=actual.hijos[1].hijos[0].nombre){
-                    let opt = {exp:'',result:'',regla:0};
-                        opt.regla = 12;
-                        opt.result = actual.hijos[0].nombre+'='+actual.hijos[1].hijos[0].nombre;
-                        opt.exp = actual.hijos[0].nombre+'='+actual.hijos[1].hijos[0].nombre+actual.hijos[2].nombre+actual.hijos[3].hijos[0].nombre+';';
-        
-                        tablaOptimisacion.push(opt);
-                    return actual.hijos[0].nombre+'='+actual.hijos[1].hijos[0].nombre+';';
-                }   
+                }
+                else if (actual.hijos[0].nombre != actual.hijos[1].hijos[0].nombre) {
+                    let opt = { exp: '', result: '', regla: 0 };
+                    opt.regla = 12;
+                    opt.result = actual.hijos[0].nombre + '=' + actual.hijos[1].hijos[0].nombre;
+                    opt.exp = actual.hijos[0].nombre + '=' + actual.hijos[1].hijos[0].nombre + actual.hijos[2].nombre + actual.hijos[3].hijos[0].nombre + ';';
+
+                    tablaOptimisacion.push(opt);
+                    return actual.hijos[0].nombre + '=' + actual.hijos[1].hijos[0].nombre + ';';
+                }
             }
-            if(actual.hijos[1].hijos[0].nombre=='0'){ 
-                if(actual.hijos[0].nombre==actual.hijos[3].hijos[0].nombre){
-                    let opt = {exp:'',result:'',regla:0};
-                        opt.regla = 8;
-                        opt.result = '';
-                        opt.exp = actual.hijos[0].nombre+'='+actual.hijos[1].hijos[0].nombre+actual.hijos[2].nombre+actual.hijos[3].hijos[0].nombre+';';
-        
-                        tablaOptimisacion.push(opt);
+            if (actual.hijos[1].hijos[0].nombre == '0') {
+                if (actual.hijos[0].nombre == actual.hijos[3].hijos[0].nombre) {
+                    let opt = { exp: '', result: '', regla: 0 };
+                    opt.regla = 8;
+                    opt.result = '';
+                    opt.exp = actual.hijos[0].nombre + '=' + actual.hijos[1].hijos[0].nombre + actual.hijos[2].nombre + actual.hijos[3].hijos[0].nombre + ';';
+
+                    tablaOptimisacion.push(opt);
                     return '';
-                }   
-                else if(actual.hijos[0].nombre!=actual.hijos[3].hijos[0].nombre){
-                    let opt = {exp:'',result:'',regla:0};
-                        opt.regla = 12;
-                        opt.result = actual.hijos[0].nombre+'='+actual.hijos[3].hijos[0].nombre;
-                        opt.exp = actual.hijos[0].nombre+'='+actual.hijos[1].hijos[0].nombre+actual.hijos[2].nombre+actual.hijos[3].hijos[0].nombre+';';
-        
-                        tablaOptimisacion.push(opt);
-                    return actual.hijos[0].nombre+'='+actual.hijos[3].hijos[0].nombre+';';
-                }   
+                }
+                else if (actual.hijos[0].nombre != actual.hijos[3].hijos[0].nombre) {
+                    let opt = { exp: '', result: '', regla: 0 };
+                    opt.regla = 12;
+                    opt.result = actual.hijos[0].nombre + '=' + actual.hijos[3].hijos[0].nombre;
+                    opt.exp = actual.hijos[0].nombre + '=' + actual.hijos[1].hijos[0].nombre + actual.hijos[2].nombre + actual.hijos[3].hijos[0].nombre + ';';
+
+                    tablaOptimisacion.push(opt);
+                    return actual.hijos[0].nombre + '=' + actual.hijos[3].hijos[0].nombre + ';';
+                }
             }
-            return actual.hijos[0].nombre+'='+actual.hijos[1].hijos[0].nombre+'+'+actual.hijos[3].hijos[0].nombre+';';
+            return actual.hijos[0].nombre + '=' + actual.hijos[1].hijos[0].nombre + '+' + actual.hijos[3].hijos[0].nombre + ';';
         case '-':
-            if(actual.hijos[3].hijos[0].nombre=='0'){
-                if(actual.hijos[0].nombre==actual.hijos[1].hijos[0].nombre){     
-                    let opt = {exp:'',result:'',regla:0};
+            if (actual.hijos[3].hijos[0].nombre == '0') {
+                if (actual.hijos[0].nombre == actual.hijos[1].hijos[0].nombre) {
+                    let opt = { exp: '', result: '', regla: 0 };
                     opt.regla = 9;
                     opt.result = '';
-                    opt.exp = actual.hijos[0].nombre+'='+actual.hijos[1].hijos[0].nombre+actual.hijos[2].nombre+actual.hijos[3].hijos[0].nombre+';';
-    
+                    opt.exp = actual.hijos[0].nombre + '=' + actual.hijos[1].hijos[0].nombre + actual.hijos[2].nombre + actual.hijos[3].hijos[0].nombre + ';';
+
                     tablaOptimisacion.push(opt);
-             
+
                     return '';
-                }  
-                else if(actual.hijos[0].nombre!=actual.hijos[1].hijos[0].nombre){
-                        let opt = {exp:'',result:'',regla:0};
-                        opt.regla = 13;
-                        opt.result = actual.hijos[0].nombre+'='+actual.hijos[1].hijos[0].nombre;
-                        opt.exp = actual.hijos[0].nombre+'='+actual.hijos[1].hijos[0].nombre+actual.hijos[2].nombre+actual.hijos[3].hijos[0].nombre+';';
-        
-                        tablaOptimisacion.push(opt);
-                    return actual.hijos[0].nombre+'='+actual.hijos[1].hijos[0].nombre+';';
-                }  
+                }
+                else if (actual.hijos[0].nombre != actual.hijos[1].hijos[0].nombre) {
+                    let opt = { exp: '', result: '', regla: 0 };
+                    opt.regla = 13;
+                    opt.result = actual.hijos[0].nombre + '=' + actual.hijos[1].hijos[0].nombre;
+                    opt.exp = actual.hijos[0].nombre + '=' + actual.hijos[1].hijos[0].nombre + actual.hijos[2].nombre + actual.hijos[3].hijos[0].nombre + ';';
+
+                    tablaOptimisacion.push(opt);
+                    return actual.hijos[0].nombre + '=' + actual.hijos[1].hijos[0].nombre + ';';
+                }
             }
-            return actual.hijos[0].nombre+'='+actual.hijos[1].hijos[0].nombre+'-'+actual.hijos[3].hijos[0].nombre+';';
+            return actual.hijos[0].nombre + '=' + actual.hijos[1].hijos[0].nombre + '-' + actual.hijos[3].hijos[0].nombre + ';';
         case '*':
-            if(actual.hijos[3].hijos[0].nombre=='0'){
-                let opt = {exp:'',result:'',regla:0};
-                    opt.regla = 17;
-                    opt.result = actual.hijos[0].nombre+'=0;';
-                    opt.exp = actual.hijos[0].nombre+'='+actual.hijos[1].hijos[0].nombre+actual.hijos[2].nombre+actual.hijos[3].hijos[0].nombre+';';
-
-                    tablaOptimisacion.push(opt);
-                return actual.hijos[0].nombre+'=0;';        
-            }
-            else if(actual.hijos[1].hijos[0].nombre=='0'){
-                let opt = {exp:'',result:'',regla:0};
-                    opt.regla = 17;
-                    opt.result = actual.hijos[0].nombre+'=0;';
-                    opt.exp = actual.hijos[0].nombre+'='+actual.hijos[1].hijos[0].nombre+actual.hijos[2].nombre+actual.hijos[3].hijos[0].nombre+';';
-
-                    tablaOptimisacion.push(opt);
-                return actual.hijos[0].nombre+'=0;';        
-            }
-            else if(actual.hijos[1].hijos[0].nombre=='1'){
-                if(actual.hijos[0].nombre==actual.hijos[3].hijos[0].nombre){
-                    let opt = {exp:'',result:'',regla:0};
-                    opt.regla = 10;
-                    opt.result = '';
-                    opt.exp = actual.hijos[0].nombre+'='+actual.hijos[1].hijos[0].nombre+actual.hijos[2].nombre+actual.hijos[3].hijos[0].nombre+';';
-
-                    tablaOptimisacion.push(opt);
-                
-                    return '';
-                }  
-                else if(actual.hijos[0].nombre!=actual.hijos[3].hijos[0].nombre){        
-                    let opt = {exp:'',result:'',regla:0};
-                    opt.regla = 14;
-                    opt.result =  actual.hijos[0].nombre+'='+actual.hijos[3].hijos[0].nombre;
-                    opt.exp = actual.hijos[0].nombre+'='+actual.hijos[1].hijos[0].nombre+actual.hijos[2].nombre+actual.hijos[3].hijos[0].nombre+';';
-
-                    tablaOptimisacion.push(opt);
-            
-                    return actual.hijos[0].nombre+'='+actual.hijos[3].hijos[0].nombre+';';
-                }  
-            }
-            else if(actual.hijos[3].hijos[0].nombre=='1'){
-                if(actual.hijos[0].nombre==actual.hijos[1].hijos[0].nombre){
-                    let opt = {exp:'',result:'',regla:0};
-                    opt.regla = 10;
-                    opt.result = '';
-                    opt.exp = actual.hijos[0].nombre+'='+actual.hijos[1].hijos[0].nombre+actual.hijos[2].nombre+actual.hijos[3].hijos[0].nombre+';';
-
-                    tablaOptimisacion.push(opt);
-                
-                    return '';
-                }  
-                else if(actual.hijos[0].nombre!=actual.hijos[1].hijos[0].nombre){        
-                    let opt = {exp:'',result:'',regla:0};
-                    opt.regla = 14;
-                    opt.result =  actual.hijos[0].nombre+'='+actual.hijos[1].hijos[0].nombre;
-                    opt.exp = actual.hijos[0].nombre+'='+actual.hijos[1].hijos[0].nombre+actual.hijos[2].nombre+actual.hijos[3].hijos[0].nombre+';';
-
-                    tablaOptimisacion.push(opt);
-            
-                    return actual.hijos[0].nombre+'='+actual.hijos[1].hijos[0].nombre+';';
-                }  
-            }
-            else if(actual.hijos[3].hijos[0].nombre=='2'){
-                let opt = {exp:'',result:'',regla:0};
-                opt.regla = 16;
-                opt.result =  actual.hijos[0].nombre+'='+actual.hijos[1].hijos[0].nombre+'+'+actual.hijos[1].hijos[0].nombre+';';
-                opt.exp = actual.hijos[0].nombre+'='+actual.hijos[1].hijos[0].nombre+actual.hijos[2].nombre+actual.hijos[3].hijos[0].nombre+';';
+            if (actual.hijos[3].hijos[0].nombre == '0') {
+                let opt = { exp: '', result: '', regla: 0 };
+                opt.regla = 17;
+                opt.result = actual.hijos[0].nombre + '=0;';
+                opt.exp = actual.hijos[0].nombre + '=' + actual.hijos[1].hijos[0].nombre + actual.hijos[2].nombre + actual.hijos[3].hijos[0].nombre + ';';
 
                 tablaOptimisacion.push(opt);
-                return actual.hijos[0].nombre+'='+actual.hijos[1].hijos[0].nombre+'+'+actual.hijos[1].hijos[0].nombre+';';        
+                return actual.hijos[0].nombre + '=0;';
             }
-            else if(actual.hijos[1].hijos[0].nombre=='2'){
-                let opt = {exp:'',result:'',regla:0};
-                opt.regla = 16;
-                opt.result =  actual.hijos[0].nombre+'='+actual.hijos[3].hijos[0].nombre+'+'+actual.hijos[3].hijos[0].nombre+';';
-                opt.exp = actual.hijos[0].nombre+'='+actual.hijos[1].hijos[0].nombre+actual.hijos[2].nombre+actual.hijos[3].hijos[0].nombre+';';
+            else if (actual.hijos[1].hijos[0].nombre == '0') {
+                let opt = { exp: '', result: '', regla: 0 };
+                opt.regla = 17;
+                opt.result = actual.hijos[0].nombre + '=0;';
+                opt.exp = actual.hijos[0].nombre + '=' + actual.hijos[1].hijos[0].nombre + actual.hijos[2].nombre + actual.hijos[3].hijos[0].nombre + ';';
 
                 tablaOptimisacion.push(opt);
-                return actual.hijos[0].nombre+'='+actual.hijos[3].hijos[0].nombre+'+'+actual.hijos[3].hijos[0].nombre+';';        
+                return actual.hijos[0].nombre + '=0;';
             }
-            return actual.hijos[0].nombre+'='+actual.hijos[1].hijos[0].nombre+'*'+actual.hijos[3].hijos[0].nombre+';';
+            else if (actual.hijos[1].hijos[0].nombre == '1') {
+                if (actual.hijos[0].nombre == actual.hijos[3].hijos[0].nombre) {
+                    let opt = { exp: '', result: '', regla: 0 };
+                    opt.regla = 10;
+                    opt.result = '';
+                    opt.exp = actual.hijos[0].nombre + '=' + actual.hijos[1].hijos[0].nombre + actual.hijos[2].nombre + actual.hijos[3].hijos[0].nombre + ';';
+
+                    tablaOptimisacion.push(opt);
+
+                    return '';
+                }
+                else if (actual.hijos[0].nombre != actual.hijos[3].hijos[0].nombre) {
+                    let opt = { exp: '', result: '', regla: 0 };
+                    opt.regla = 14;
+                    opt.result = actual.hijos[0].nombre + '=' + actual.hijos[3].hijos[0].nombre;
+                    opt.exp = actual.hijos[0].nombre + '=' + actual.hijos[1].hijos[0].nombre + actual.hijos[2].nombre + actual.hijos[3].hijos[0].nombre + ';';
+
+                    tablaOptimisacion.push(opt);
+
+                    return actual.hijos[0].nombre + '=' + actual.hijos[3].hijos[0].nombre + ';';
+                }
+            }
+            else if (actual.hijos[3].hijos[0].nombre == '1') {
+                if (actual.hijos[0].nombre == actual.hijos[1].hijos[0].nombre) {
+                    let opt = { exp: '', result: '', regla: 0 };
+                    opt.regla = 10;
+                    opt.result = '';
+                    opt.exp = actual.hijos[0].nombre + '=' + actual.hijos[1].hijos[0].nombre + actual.hijos[2].nombre + actual.hijos[3].hijos[0].nombre + ';';
+
+                    tablaOptimisacion.push(opt);
+
+                    return '';
+                }
+                else if (actual.hijos[0].nombre != actual.hijos[1].hijos[0].nombre) {
+                    let opt = { exp: '', result: '', regla: 0 };
+                    opt.regla = 14;
+                    opt.result = actual.hijos[0].nombre + '=' + actual.hijos[1].hijos[0].nombre;
+                    opt.exp = actual.hijos[0].nombre + '=' + actual.hijos[1].hijos[0].nombre + actual.hijos[2].nombre + actual.hijos[3].hijos[0].nombre + ';';
+
+                    tablaOptimisacion.push(opt);
+
+                    return actual.hijos[0].nombre + '=' + actual.hijos[1].hijos[0].nombre + ';';
+                }
+            }
+            else if (actual.hijos[3].hijos[0].nombre == '2') {
+                let opt = { exp: '', result: '', regla: 0 };
+                opt.regla = 16;
+                opt.result = actual.hijos[0].nombre + '=' + actual.hijos[1].hijos[0].nombre + '+' + actual.hijos[1].hijos[0].nombre + ';';
+                opt.exp = actual.hijos[0].nombre + '=' + actual.hijos[1].hijos[0].nombre + actual.hijos[2].nombre + actual.hijos[3].hijos[0].nombre + ';';
+
+                tablaOptimisacion.push(opt);
+                return actual.hijos[0].nombre + '=' + actual.hijos[1].hijos[0].nombre + '+' + actual.hijos[1].hijos[0].nombre + ';';
+            }
+            else if (actual.hijos[1].hijos[0].nombre == '2') {
+                let opt = { exp: '', result: '', regla: 0 };
+                opt.regla = 16;
+                opt.result = actual.hijos[0].nombre + '=' + actual.hijos[3].hijos[0].nombre + '+' + actual.hijos[3].hijos[0].nombre + ';';
+                opt.exp = actual.hijos[0].nombre + '=' + actual.hijos[1].hijos[0].nombre + actual.hijos[2].nombre + actual.hijos[3].hijos[0].nombre + ';';
+
+                tablaOptimisacion.push(opt);
+                return actual.hijos[0].nombre + '=' + actual.hijos[3].hijos[0].nombre + '+' + actual.hijos[3].hijos[0].nombre + ';';
+            }
+            return actual.hijos[0].nombre + '=' + actual.hijos[1].hijos[0].nombre + '*' + actual.hijos[3].hijos[0].nombre + ';';
         case '/':
-            if(actual.hijos[1].hijos[0].nombre=='0'){
-                let opt = {exp:'',result:'',regla:0};
+            if (actual.hijos[1].hijos[0].nombre == '0') {
+                let opt = { exp: '', result: '', regla: 0 };
                 opt.regla = 18;
-                opt.result = actual.hijos[0].nombre+'=0;';
-                opt.exp = actual.hijos[0].nombre+'='+actual.hijos[1].hijos[0].nombre+actual.hijos[2].nombre+actual.hijos[3].hijos[0].nombre+';';
+                opt.result = actual.hijos[0].nombre + '=0;';
+                opt.exp = actual.hijos[0].nombre + '=' + actual.hijos[1].hijos[0].nombre + actual.hijos[2].nombre + actual.hijos[3].hijos[0].nombre + ';';
 
                 tablaOptimisacion.push(opt);
-                return actual.hijos[0].nombre+'=0;';        
+                return actual.hijos[0].nombre + '=0;';
             }
-            else if(actual.hijos[3].hijos[0].nombre=='1'){
-                if(actual.hijos[0].nombre==actual.hijos[1].hijos[0].nombre){
-                    let opt = {exp:'',result:'',regla:0};
+            else if (actual.hijos[3].hijos[0].nombre == '1') {
+                if (actual.hijos[0].nombre == actual.hijos[1].hijos[0].nombre) {
+                    let opt = { exp: '', result: '', regla: 0 };
                     opt.regla = 11;
                     opt.result = '';
-                    opt.exp = actual.hijos[0].nombre+'='+actual.hijos[1].hijos[0].nombre+actual.hijos[2].nombre+actual.hijos[3].hijos[0].nombre+';';
-    
+                    opt.exp = actual.hijos[0].nombre + '=' + actual.hijos[1].hijos[0].nombre + actual.hijos[2].nombre + actual.hijos[3].hijos[0].nombre + ';';
+
                     tablaOptimisacion.push(opt);
                     return '';
-                }  
-                if(actual.hijos[0].nombre!=actual.hijos[1].hijos[0].nombre){
-                    let opt = {exp:'',result:'',regla:0};
+                }
+                if (actual.hijos[0].nombre != actual.hijos[1].hijos[0].nombre) {
+                    let opt = { exp: '', result: '', regla: 0 };
                     opt.regla = 15;
-                    opt.result = actual.hijos[0].nombre+'='+actual.hijos[1].hijos[0].nombre+';';
-                    opt.exp = actual.hijos[0].nombre+'='+actual.hijos[1].hijos[0].nombre+actual.hijos[2].nombre+actual.hijos[3].hijos[0].nombre+';';
-    
+                    opt.result = actual.hijos[0].nombre + '=' + actual.hijos[1].hijos[0].nombre + ';';
+                    opt.exp = actual.hijos[0].nombre + '=' + actual.hijos[1].hijos[0].nombre + actual.hijos[2].nombre + actual.hijos[3].hijos[0].nombre + ';';
+
                     tablaOptimisacion.push(opt);
-                    return actual.hijos[0].nombre+'='+actual.hijos[1].hijos[0].nombre+';';
-                }  
+                    return actual.hijos[0].nombre + '=' + actual.hijos[1].hijos[0].nombre + ';';
+                }
             }
-            return actual.hijos[0].nombre+'='+actual.hijos[1].hijos[0].nombre+'/'+actual.hijos[3].hijos[0].nombre+';';
+            return actual.hijos[0].nombre + '=' + actual.hijos[1].hijos[0].nombre + '/' + actual.hijos[3].hijos[0].nombre + ';';
         default:
-            return actual.hijos[0].nombre+'='+actual.hijos[1].hijos[0].nombre+actual.hijos[2].nombre+actual.hijos[3].hijos[0].nombre+';';
-        
-    }    
+            return actual.hijos[0].nombre + '=' + actual.hijos[1].hijos[0].nombre + actual.hijos[2].nombre + actual.hijos[3].hijos[0].nombre + ';';
+
+    }
 
 }
 
+function optimizacion1(contador, actual, t1, t2) {
+    for (let i = contador; i < actual.hijos.length; i++) {
+        switch (actual.hijos[i].nombre) {
+            case 'asignacion2':
+                if (t1 == actual.hijos[i].hijos[0].nombre) {
+                    return ''
+                }
+                break;
+            case 'asignacion1':
+                if (t2 == actual.hijos[i].hijos[0].nombre &&
+                    t1 == actual.hijos[i].hijos[1].hijos[0].nombre) {
+                        
+                        let opt = { exp: '', result: '', regla: 0 };
+                        opt.regla = 'Eliminacion de instrucciones redundantes de carga y almacenamiento';
+                        opt.result = t1+'='+t2+';\n'
+                        opt.result += '...\n';
+
+                        opt.exp += t1+'='+t2+';\n'
+                        opt.exp += '...\n';
+                        opt.exp += t2+'='+t1+';\n'
+
+                        tablaOptimisacion.push(opt);
+
+                    return i
+                }
+                else if (t2 == actual.hijos[i].hijos[0].nombre &&
+                    t1 != actual.hijos[i].hijos[1].hijos[0].nombre) {
+                    return ''
+                }
+                break;
+            case 'salto':
+                return '';
+        }
+    }
+    return ''
+}

@@ -70,7 +70,7 @@ class AST {
 
         retorno.c3d += 'call principal;'
 
-        console.log(retorno.c3d)
+        return  retorno.c3d
     }
 
     compilarSentencia = function compilarSentencia() {

@@ -27,20 +27,20 @@
 "}"                   return '}';
 "["                   return '[';
 "]"                   return ']';
-"<"                   return '<';
-">"                   return '>';
-
+"<>"                   return '<>';
 "\""                  return '\"';
 
 "c"                   return 'c';
-"e"                   return 'e';
+"i"                   return 'i';
 "d"                   return 'd';
 
 "<="                   return '<=';
 ">="                   return '>=';
 
+"<"                   return '<';
+">"                   return '>';
+
 "%"                    return '%';
-"!="                   return '!=';
 "&&"                   return '&&';
 "||"                   return '||';
 
@@ -219,7 +219,7 @@ imprimir : 'print' '(' '\"' '%' 'c' '\"' ',' ID ')' ';'
         
         $$.hijos=[temp1,temp2];
     }
-    |'print' '(' '\"' '%' 'e' '\"' ',' ID ')' ';'
+    |'print' '(' '\"' '%' 'i' '\"' ',' ID ')' ';'
     {
         $$={nombre:'print',linea:'',columna:'',hijos:{}};
         
@@ -426,7 +426,7 @@ op : '+'  {$$=$1;}
     |'%'  {$$=$1;}
     |'/'  {$$=$1;}
     |'*' {$$=$1;}
-    |'!=' {$$=$1;}
+    |'<>' {$$=$1;}
     |'<=' {$$=$1;}
     |'==' {$$=$1;}
     |'<'  {$$=$1;}
