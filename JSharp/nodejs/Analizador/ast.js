@@ -61,7 +61,7 @@ class AST {
         contadorA = 0;
         error = [];
 
-        let got = 'L'+(contadorL++)
+        let got = 'L' + (contadorL++)
 
         let retorno = this.compilarSentencia();
 
@@ -81,7 +81,7 @@ class AST {
 
         retorno.c3d = cabecera + retorno.c3d;
 
-        retorno.c3d += got +':\n'
+        retorno.c3d += got + ':\n'
 
         retorno.c3d += 'call principal;'
 
@@ -142,18 +142,18 @@ class AST {
                     retorno.c3d += valor.c3d;
                     break;
                 case 'break':
-                    if(bcr.break == ''){
-                        error.push(new Error('El break no puede existir fuera de ciclos o switch',this.hijos[i].linea,this.hijos[i].columna))
+                    if (bcr.break == '') {
+                        error.push(new Error('El break no puede existir fuera de ciclos o switch', this.hijos[i].linea, this.hijos[i].columna))
                     }
-                    else{
+                    else {
                         retorno.c3d += 'goto ' + bcr.break + ';\n'
                     }
                     break;
                 case 'continur':
-                    if(bcr.continue == ''){
-                        error.push(new Error('El continue no puede existir fuera de ciclos',this.hijos[i].linea,this.hijos[i].columna))
+                    if (bcr.continue == '') {
+                        error.push(new Error('El continue no puede existir fuera de ciclos', this.hijos[i].linea, this.hijos[i].columna))
                     }
-                    else{
+                    else {
                         retorno.c3d += 'goto ' + bcr.continue + ';\n'
                     }
                     break;
@@ -183,7 +183,7 @@ class AST {
                     break;
                 case 'return':
                     valor = this.hijos[i].compilarRetorno(idAmbito);
-                    retorno.c3d += valor.c3d;                    
+                    retorno.c3d += valor.c3d;
                     retorno.c3d += 'goto ' + bcr.return + ';\n'
                     break;
                 default:
@@ -306,8 +306,8 @@ class AST {
             retorno.c3d += 'call ' + this.hijos[0].identificador + ';\n'
             retorno.c3d += 't' + (contadorT++) + '=P-' + copia.posicionS + ';\n';
             retorno.c3d += 't' + (contadorT++) + '=Stack[t' + (contadorT - 2) + '];\n';
-            retorno.t = 't' + (contadorT - 1)    
-            
+            retorno.t = 't' + (contadorT - 1)
+
             let resultado = tablaS.obtenerFuncion(this.hijos[0].identificador);
 
             retorno.c3d += 'P = P-' + resultado.tamano + ';\n';
@@ -315,7 +315,7 @@ class AST {
         else {
             let nombre = '';
             if (this.hijos[1].identificador == 'listaExpresiones') {
-                nombre = this.hijos[0].identificador+this.hijos[1].obtenerTipoLisataExpresiones(this.hijos[0].identificador, idAmbito)
+                nombre = this.hijos[0].identificador + this.hijos[1].obtenerTipoLisataExpresiones(this.hijos[0].identificador, idAmbito)
 
 
                 let resultado = tablaS.obtenerFuncion(nombre);
@@ -342,9 +342,9 @@ class AST {
                 retorno.c3d += 'call ' + nombre + ';\n'
                 retorno.c3d += 't' + (contadorT++) + '=P-' + copia.posicionS + ';\n';
                 retorno.c3d += 't' + (contadorT++) + '=Stack[t' + (contadorT - 2) + '];\n';
-                retorno.t = 't' + (contadorT - 1)            
+                retorno.t = 't' + (contadorT - 1)
                 retorno.tipo = copia.tipo;
-                
+
                 retorno.c3d += 'P = P-' + copia.tamano + ';\n';
             }
             else {
@@ -410,6 +410,7 @@ class AST {
         let retorno = new retornoAST('', 0, '', '', '');
         let resultado = this.hijos[1].obtenerExp(idAmbito);
 
+        retorno.c3d = resultado.c3d
         if (this.hijos[0].hijos.length == 1) {
             let posicion = tablaS.obtenerPosicionStack(this.hijos[0].hijos[0].hijos[0].identificador, idAmbito);
 
@@ -646,8 +647,8 @@ class AST {
 
         let nuevoBCR = new BCR();
         nuevoBCR.return = bcr.return;
-        nuevoBCR.break = 'L'+(contadorL++)
-        
+        nuevoBCR.break = 'L' + (contadorL++)
+
         let l1 = nuevoBCR.break
         let breakL = '';
         for (let i = 0; i < this.hijos.length; i++) {
@@ -670,7 +671,7 @@ class AST {
         }
 
         retorno.c3d += l1 + ':\n';
-        
+
         return retorno;
 
     }
@@ -749,13 +750,13 @@ class AST {
         let retorno = new retornoAST('', 0, '', '', '');
 
         let retorno1 = this.hijos[1].obtenerExp(idAmbito);
-        
+
         let nuevoBCR = new BCR();
         nuevoBCR.return = bcr.return;
-        nuevoBCR.break = 'L'+(contadorL++)
-        nuevoBCR.continue = 'L'+(contadorL++)
+        nuevoBCR.break = 'L' + (contadorL++)
+        nuevoBCR.continue = 'L' + (contadorL++)
 
-        let l1 = nuevoBCR.break 
+        let l1 = nuevoBCR.break
         let l2 = ('L' + contadorL++)
 
         let retorno2 = this.hijos[0].compilarSentenciaControl(idAmbito, nuevoBCR);
@@ -765,12 +766,12 @@ class AST {
         retorno.c3d += l2 + ':\n';
 
         retorno.c3d += retorno2.c3d;
-        
+
         retorno.c3d += nuevoBCR.continue + ':\n';
 
         retorno.c3d += 'if(' + retorno1.t + '==0) goto ' + l1 + ';\n';
         retorno.c3d += 'goto ' + l2 + ';\n';
-        retorno.c3d +=  l1 + ':\n';
+        retorno.c3d += l1 + ':\n';
 
         return retorno
     }
@@ -780,13 +781,13 @@ class AST {
 
         let nuevoBCR = new BCR();
         nuevoBCR.return = bcr.return;
-        nuevoBCR.break = 'L'+(contadorL++)
-        nuevoBCR.continue = 'L'+(contadorL++)
+        nuevoBCR.break = 'L' + (contadorL++)
+        nuevoBCR.continue = 'L' + (contadorL++)
 
         let retorno1 = this.hijos[0].obtenerExp(idAmbito);
 
         let l1 = nuevoBCR.break
-        let l2 =  nuevoBCR.continue
+        let l2 = nuevoBCR.continue
 
         let retorno2 = this.hijos[1].compilarSentenciaControl(idAmbito, nuevoBCR);
         let tipo = 'error'
@@ -818,7 +819,7 @@ class AST {
         for (let i = 0; i < this.hijos.length; i++) {
             switch (this.hijos[i].identificador) {
                 case 'ifs':
-                    valor = this.hijos[i].sentenciaIfs(idAmbito, l , bcr);
+                    valor = this.hijos[i].sentenciaIfs(idAmbito, l, bcr);
                     c3d += valor.c3d;
                     break;
                 case 'else':
@@ -918,7 +919,7 @@ class AST {
 
         let bcr = new BCR();
 
-        bcr.return = 'L'+(contadorL++);
+        bcr.return = 'L' + (contadorL++);
 
         if (this.hijos.length == 3) {
             valor = tablaS.obtenerFuncion(this.hijos[1].identificador, idAmbito);
@@ -948,7 +949,7 @@ class AST {
             retorno.c3d = 'proc ' + this.hijos[1].identificador + parametros + ' begin\n' +
                 retorno.c3d;
         }
-        retorno.c3d += bcr.return+':\n';
+        retorno.c3d += bcr.return + ':\n';
         retorno.c3d += 'end\n';
 
         return retorno
@@ -1007,10 +1008,28 @@ class AST {
             case '--':
                 return this.logicoNeg(idAmbito);
 
+            case 'integer':
+                return this.casteoExplicito(idAmbito);
+            case 'char':
+                return this.casteoExplicito(idAmbito);
+
             case 'literal':
                 return this.obtenerLiteral(idAmbito);
             default:
         }
+    }
+
+    casteoExplicito = function casteoExplicito(idAmbito){
+        let retorno = new retornoAST('', 0, '', '', '');
+        let resultado1 = this.hijos[0].obtenerExp(idAmbito);
+
+        retorno.t = 't'+contadorT++;
+        retorno.c3d += resultado1.c3d;
+        
+        retorno.c3d += 't'+(contadorT)+'='+resultado1.t+'%1;\n';
+        retorno.c3d += retorno.t+'='+resultado1.t+'-t'+(contadorT++)+';\n';
+
+        return retorno;
     }
 
     logicoNeg = function logicoNeg(idAmbito) {
@@ -2156,82 +2175,82 @@ class AST {
         return retorno;
     }
 
-    convertiDouleString = function convertiDouleString(t){
+    convertiDouleString = function convertiDouleString(t) {
         let retorno = new retornoAST('', 0, '', '', '');
 
-        let decimal = 't'+(contadorT);
+        let decimal = 't' + (contadorT);
 
-        retorno.c3d += 't'+(contadorT++)+'='+t.t+'%1;\n';
+        retorno.c3d += 't' + (contadorT++) + '=' + t.t + '%1;\n';
 
-        retorno.c3d += 't'+(contadorT)+'='+t.t+'-'+decimal+';\n';
+        retorno.c3d += 't' + (contadorT) + '=' + t.t + '-' + decimal + ';\n';
 
         let val1 = new retornoAST('', 0, '', '', '');
-        val1.t = 't'+(contadorT++)
-        let numero1  = this.covertirIntAStr(val1)
-        
+        val1.t = 't' + (contadorT++)
+        let numero1 = this.covertirIntAStr(val1)
+
         retorno.c3d += numero1.c3d;
 
         let tamano = this.obtenerTamanoDecimal(decimal)
-        
+
         retorno.c3d += tamano.c3d;
-        retorno.c3d += 't' + (contadorT) +'='+ decimal +'*'+ tamano.t+';\n';
-        retorno.c3d += 't' + (contadorT) +'=t'+  (contadorT) +'*10;\n';
-        
-        val1.t = 't'+(contadorT++)
-        let numero2  = this.covertirIntAStr(val1)
+        retorno.c3d += 't' + (contadorT) + '=' + decimal + '*' + tamano.t + ';\n';
+        retorno.c3d += 't' + (contadorT) + '=t' + (contadorT) + '*10;\n';
+
+        val1.t = 't' + (contadorT++)
+        let numero2 = this.covertirIntAStr(val1)
         retorno.c3d += numero2.c3d;
 
-        retorno.c3d += 't'+(contadorT)+'=46;\n';
+        retorno.c3d += 't' + (contadorT) + '=46;\n';
 
-        val1.t = 't'+(contadorT++)
+        val1.t = 't' + (contadorT++)
         let punto = this.covertirCharAStr(val1)
 
         retorno.c3d += punto.c3d;
 
-        
+
         let val2 = new retornoAST('', 0, '', '', '');
         val1.t = numero1.t
         val2.t = punto.t
 
-        let concat1 = this.ConcatenarString('string','string',val1,val2);
-        
+        let concat1 = this.ConcatenarString('string', 'string', val1, val2);
+
         retorno.c3d += concat1.c3d;
 
         val1.t = concat1.t
         val2.t = numero2.t
-        
-        let concat2 = this.ConcatenarString('string','string',val1,val2);
+
+        let concat2 = this.ConcatenarString('string', 'string', val1, val2);
 
         retorno.c3d += concat2.c3d;
 
         retorno.t = concat2.t
-        
+
         return retorno;
     }
 
-    obtenerTamanoDecimal = function obtenerTamanoDecimal(t){
+    obtenerTamanoDecimal = function obtenerTamanoDecimal(t) {
         let retorno = new retornoAST('', 0, '', '', '');
 
-        let tamano = 't'+(contadorT++)
-        retorno.c3d += tamano +'=10;\n'
+        let tamano = 't' + (contadorT++)
+        retorno.c3d += tamano + '=10;\n'
 
-        let decimal = 't'+(contadorT++);
+        let decimal = 't' + (contadorT++);
 
         retorno.c3d += 'L' + (contadorL++) + ':\n'
         retorno.c3d += decimal + '=' + tamano + '*' + t + ';\n';
-        
+
         retorno.c3d += 't' + (contadorT) + '=' + decimal + '%1;\n';
-        
-        retorno.c3d += 'if(t'+(contadorT++)+'==0) goto L' + (contadorL++) + ';\n'
-        retorno.c3d += tamano +'='+tamano+'*10;\n'
-        retorno.c3d += 'goto L' + (contadorL-2) + ';\n'
+
+        retorno.c3d += 'if(t' + (contadorT++) + '==0) goto L' + (contadorL++) + ';\n'
+        retorno.c3d += tamano + '=' + tamano + '*10;\n'
+        retorno.c3d += 'goto L' + (contadorL - 2) + ';\n'
         retorno.c3d += 'L' + (contadorL - 1) + ':\n'
 
         retorno.t = tamano
 
         return retorno
     }
-    
+
 
     ConcatenarString = function ConcatenarString(tipo1, tipo2, t1, t2) {
         let valor1 = this.realizarCasteoAString(tipo1, t1)
@@ -2239,9 +2258,9 @@ class AST {
 
         let retorno = new retornoAST('', 0, '', '', '');
 
-        if(tipo1 != 'string'){
+        if (tipo1 != 'string') {
             retorno.c3d += valor2.c3d + valor1.c3d;
-        }else{
+        } else {
             retorno.c3d += valor1.c3d + valor2.c3d;
         }
 
@@ -3004,7 +3023,7 @@ class AST {
 
 
         if (this.hijos.length == 3) {
-            
+
             simbolo = new tabla.simbolo(this.hijos[1].identificador,
                 this.hijos[0].identificador,
                 padre,
@@ -3015,9 +3034,9 @@ class AST {
                 '',
                 'funcion',
                 0);
-                
+
             tablaS.simbolos.push(simbolo)
-            
+
             tamano += this.hijos[2].compilarSentenciaControlTS(nuevoPadre, idAmbito);
 
             tablaS.insertarTamanoFuncion(simbolo.nombre, tamano)
@@ -3040,7 +3059,7 @@ class AST {
 
             tamano += this.hijos[2].compilarParametrosTS(padre, idAmbito)
             tamano += this.hijos[3].compilarSentenciaControlTS(nuevoPadre, idAmbito);
-            
+
             tablaS.insertarTamanoFuncion(simbolo.nombre, tamano)
         }
     }
@@ -3311,7 +3330,7 @@ class AST {
     asignacionTS = function asignacionTS(padre, idAmbito) {
         let simbolo;
 
-        let resultado = this.hijos[1].obtenerExp(padre, idAmbito);
+        let resultado = this.hijos[1].obtenerExp(idAmbito);
         if (this.hijos[0].hijos.length == 1) {
             if (resultado.tipo == 'string') {
                 simbolo = new tabla.simbolo(this.hijos[0].hijos[0].hijos[0].identificador,

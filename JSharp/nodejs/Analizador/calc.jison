@@ -127,6 +127,7 @@
 %right '-''!' 
 
 %left '[' ']' 
+%left 'integer' 'char' 
 
 %start inicio
 
@@ -709,6 +710,7 @@ tipoId : id
 tipoDato: "integer"   {$$ = yy.crearHoja('integer',@1.first_line,@1.first_column)}
     |'char'           {$$ = yy.crearHoja('char',@1.first_line,@1.first_column)}
     |'boolean'        {$$ = yy.crearHoja('boolean',@1.first_line,@1.first_column)}
+    |'double'        {$$ = yy.crearHoja('double',@1.first_line,@1.first_column)}
     |'void'           {$$ = yy.crearHoja('void',@1.first_line,@1.first_column)}
 ;
 
@@ -737,6 +739,8 @@ EXP
     | '!' EXP       {$$ = yy.crearNodo('!',@1.first_line,@1.first_column,[$2])}
 	| '-' EXP %prec UMINUS {$$ = yy.crearNodo('-',@1.first_line,@1.first_column,[$2])}
 	| '(' EXP ')'   {$$ = $2;}
+    | '(' 'integer' ')'  EXP {$$ = yy.crearNodo('integer',@1.first_line,@1.first_column,[$4])}
+    | '(' 'char' ')'     EXP {$$ = yy.crearNodo('char',@1.first_line,@1.first_column,[$4])}    
 	| literal       {$$ = yy.crearNodo('literal',0,0,[$1])}
 ;
 
