@@ -31,6 +31,15 @@ class retornoAST {
     }
 }
 
+
+class BCR {
+    constructor() {
+        this.break = ''
+        this.continue = ''
+        this.return = ''
+    }
+}
+
 var tablaS = new tabla.tablaSimbolos();
 
 class AST {
@@ -51,6 +60,9 @@ class AST {
         contadorL = 0;
         contadorA = 0;
         error = [];
+
+        let got = 'L'+(contadorL++)
+
         let retorno = this.compilarSentencia();
 
         let cabecera = 'var ';
@@ -65,8 +77,11 @@ class AST {
         cabecera += 'var P = 1;\n';
         cabecera += 'var H = 0;\n';
         cabecera += 'H = H+' + contadorH + ';\n';
+        cabecera += 'goto ' + got + ';\n';
 
         retorno.c3d = cabecera + retorno.c3d;
+
+        retorno.c3d += got +':\n'
 
         retorno.c3d += 'call principal;'
 
@@ -101,7 +116,7 @@ class AST {
     }
 
 
-    compilarSentenciaControl = function compilarSentenciaControl(idAmbito, bl, cl) {
+    compilarSentenciaControl = function compilarSentenciaControl(idAmbito, bcr) {
         let retorno = new retornoAST('', 0, '', '', '');
         let valor;
         for (let i = 0; i < this.hijos.length; i++) {
@@ -111,27 +126,36 @@ class AST {
                     retorno.c3d += valor.c3d;
                     break;
                 case 'ifInstruccion':
-                    valor = this.hijos[i].sentenciaIf(bl, cl, idAmbito);
+                    valor = this.hijos[i].sentenciaIf(idAmbito, bcr);
                     retorno.c3d += valor.c3d;
                     break;
                 case 'while':
-                    valor = this.hijos[i].sentenciaWhile(idAmbito);
+                    valor = this.hijos[i].sentenciaWhile(idAmbito, bcr);
                     retorno.c3d += valor.c3d;
                     break;
                 case 'do while':
-                    valor = this.hijos[i].sentenciaDoWhile(idAmbito);
+                    valor = this.hijos[i].sentenciaDoWhile(idAmbito, bcr);
                     retorno.c3d += valor.c3d;
                     break;
                 case 'switch':
-                    valor = this.hijos[i].sentenciaSwitch(idAmbito);
+                    valor = this.hijos[i].sentenciaSwitch(idAmbito, bcr);
                     retorno.c3d += valor.c3d;
                     break;
                 case 'break':
-                    retorno.c3d += 'goto ' + bl + ';\n'
-                    retorno.break = 'break'
+                    if(bcr.break == ''){
+                        error.push(new Error('El break no puede existir fuera de ciclos o switch',this.hijos[i].linea,this.hijos[i].columna))
+                    }
+                    else{
+                        retorno.c3d += 'goto ' + bcr.break + ';\n'
+                    }
                     break;
                 case 'continur':
-                    retorno.c3d += 'goto ' + cl + ';\n'
+                    if(bcr.continue == ''){
+                        error.push(new Error('El continue no puede existir fuera de ciclos',this.hijos[i].linea,this.hijos[i].columna))
+                    }
+                    else{
+                        retorno.c3d += 'goto ' + bcr.continue + ';\n'
+                    }
                     break;
                 case 'inicializando variable con tipo':
                     valor = this.hijos[i].inicializandoVariable2(idAmbito);
@@ -159,7 +183,8 @@ class AST {
                     break;
                 case 'return':
                     valor = this.hijos[i].compilarRetorno(idAmbito);
-                    retorno.c3d += valor.c3d;
+                    retorno.c3d += valor.c3d;                    
+                    retorno.c3d += 'goto ' + bcr.return + ';\n'
                     break;
                 default:
             }
@@ -608,29 +633,34 @@ class AST {
         *
     */
 
-    sentenciaSwitch = function sentenciaSwitch(padre, idAmbito) {
+    sentenciaSwitch = function sentenciaSwitch(idAmbito, bcr) {
         let retorno1 = this.hijos[0].obtenerExp(idAmbito);
 
-        let retorno2 = this.hijos[1].bloqueSwitch(retorno1, idAmbito);
+        let retorno2 = this.hijos[1].bloqueSwitch(idAmbito, retorno1, bcr);
 
         return retorno2
     }
 
-    bloqueSwitch = function bloqueSwitch(valor, idAmbito) {
+    bloqueSwitch = function bloqueSwitch(idAmbito, valor, bcr) {
         let retorno = new retornoAST('', 0, '', '', '');
-        let l1 = ('L' + contadorL++)
+
+        let nuevoBCR = new BCR();
+        nuevoBCR.return = bcr.return;
+        nuevoBCR.break = 'L'+(contadorL++)
+        
+        let l1 = nuevoBCR.break
         let breakL = '';
         for (let i = 0; i < this.hijos.length; i++) {
             switch (this.hijos[i].identificador) {
                 case 'listaSwitch':
-                    valor = this.hijos[i].cases(idAmbito, l1, valor);
+                    valor = this.hijos[i].cases(idAmbito, valor, nuevoBCR);
                     retorno.c3d += valor.c3d;
                     if (valor.break != '') {
                         breakL = valor.break;
                     }
                     break;
                 case 'default':
-                    valor = this.hijos[i].hijos[0].compilarSentenciaControl(idAmbito, l1, '');
+                    valor = this.hijos[i].hijos[0].compilarSentenciaControl(idAmbito, nuevoBCR);
                     retorno.c3d += valor.c3d;
                     if (valor.break != '') {
                         breakL = valor.break;
@@ -639,20 +669,18 @@ class AST {
             }
         }
 
-        if (breakL != '') {
-            retorno.c3d += l1 + ':\n';
-        }
-
+        retorno.c3d += l1 + ':\n';
+        
         return retorno;
 
     }
 
-    cases = function cases(idAmbito, bl, valor) {
+    cases = function cases(idAmbito, valor, bcr) {
         let retorno = new retornoAST('', 0, '', '', '');
         let breakL = '';
         let l = '';
         for (let i = 0; i < this.hijos.length; i++) {
-            let resultado1 = this.hijos[i].sentenciaCase(idAmbito, bl, valor, l);
+            let resultado1 = this.hijos[i].sentenciaCase(idAmbito, valor, l, bcr);
             retorno.c3d += resultado1.c3d;
             l = resultado1.l;
             if (resultado1.break != '') {
@@ -667,7 +695,7 @@ class AST {
         return retorno
     }
 
-    sentenciaCase = function sentenciaCase(idAmbito, bl, valor, l) {
+    sentenciaCase = function sentenciaCase(idAmbito, valor, l, bcr) {
         let retorno = new retornoAST('', 0, '', '', '');
 
         let resultado1 = this.hijos[0].obtenerExp(idAmbito);
@@ -697,7 +725,7 @@ class AST {
             retorno.c3d += l + ':\n'
         }
         if (this.hijos[1] != undefined) {
-            let retorno2 = this.hijos[1].compilarSentenciaControl(idAmbito, bl, '');
+            let retorno2 = this.hijos[1].compilarSentenciaControl(idAmbito, bcr);
             retorno.c3d += retorno2.c3d;
             if (retorno2.break != '') {
                 retorno.break = retorno2.break;
@@ -717,45 +745,50 @@ class AST {
         *
     */
 
-    sentenciaDoWhile = function sentenciaDoWhile(idAmbito) {
+    sentenciaDoWhile = function sentenciaDoWhile(idAmbito, bcr) {
         let retorno = new retornoAST('', 0, '', '', '');
 
         let retorno1 = this.hijos[1].obtenerExp(idAmbito);
+        
+        let nuevoBCR = new BCR();
+        nuevoBCR.return = bcr.return;
+        nuevoBCR.break = 'L'+(contadorL++)
+        nuevoBCR.continue = 'L'+(contadorL++)
 
-        let l1 = ('L' + contadorL++)
+        let l1 = nuevoBCR.break 
         let l2 = ('L' + contadorL++)
 
-        let retorno2 = this.hijos[0].compilarSentenciaControl(idAmbito, l1, l2);
-        let tipo = 'error'
+        let retorno2 = this.hijos[0].compilarSentenciaControl(idAmbito, nuevoBCR);
 
         retorno.c3d += retorno1.c3d;
 
         retorno.c3d += l2 + ':\n';
 
         retorno.c3d += retorno2.c3d;
+        
+        retorno.c3d += nuevoBCR.continue + ':\n';
 
         retorno.c3d += 'if(' + retorno1.t + '==0) goto ' + l1 + ';\n';
         retorno.c3d += 'goto ' + l2 + ';\n';
-        retorno.c3d += '' + l1 + ':\n';
-
-        if (retorno2.break != '') {
-            retorno.c3d += retorno2.break + ':\n';
-            retorno.break = '';
-        }
+        retorno.c3d +=  l1 + ':\n';
 
         return retorno
-
     }
 
-    sentenciaWhile = function sentenciaWhile(idAmbito) {
+    sentenciaWhile = function sentenciaWhile(idAmbito, bcr) {
         let retorno = new retornoAST('', 0, '', '', '');
+
+        let nuevoBCR = new BCR();
+        nuevoBCR.return = bcr.return;
+        nuevoBCR.break = 'L'+(contadorL++)
+        nuevoBCR.continue = 'L'+(contadorL++)
 
         let retorno1 = this.hijos[0].obtenerExp(idAmbito);
 
-        let l1 = ('L' + contadorL++)
-        let l2 = ('L' + contadorL++)
+        let l1 = nuevoBCR.break
+        let l2 =  nuevoBCR.continue
 
-        let retorno2 = this.hijos[1].compilarSentenciaControl(idAmbito, l1, l2);
+        let retorno2 = this.hijos[1].compilarSentenciaControl(idAmbito, nuevoBCR);
         let tipo = 'error'
 
         retorno.c3d += retorno1.c3d;
@@ -768,13 +801,7 @@ class AST {
         retorno.c3d += 'goto ' + l2 + ';\n';
         retorno.c3d += l1 + ':\n';
 
-        if (retorno2.break != '') {
-            retorno.c3d += retorno2.break + ':\n';
-            retorno.break = '';
-        }
-
         return retorno
-
     }
 
     /*
@@ -783,7 +810,7 @@ class AST {
         *
     */
 
-    sentenciaIf = function sentenciaIf(bl, cl, idAmbito) {
+    sentenciaIf = function sentenciaIf(idAmbito, bcr) {
         let retorno = new retornoAST('', 0, '', '', '');
         let c3d = '';
         let valor;
@@ -791,12 +818,12 @@ class AST {
         for (let i = 0; i < this.hijos.length; i++) {
             switch (this.hijos[i].identificador) {
                 case 'ifs':
-                    valor = this.hijos[i].sentenciaIfs(l, bl, cl, idAmbito);
+                    valor = this.hijos[i].sentenciaIfs(idAmbito, l , bcr);
                     c3d += valor.c3d;
                     break;
                 case 'else':
                     idAmbito = contadorA++
-                    valor = this.hijos[i].hijos[0].compilarSentenciaControl(idAmbito, bl, cl);
+                    valor = this.hijos[i].hijos[0].compilarSentenciaControl(idAmbito, bcr);
                     c3d += valor.c3d;
                     break;
             }
@@ -807,18 +834,18 @@ class AST {
         return retorno;
     }
 
-    sentenciaIfs = function sentenciaIfs(l, bl, cl, idAmbito) {
+    sentenciaIfs = function sentenciaIfs(idAmbito, l, bcr) {
         let retorno = new retornoAST('', 0, '', '', '');
         let c3d = '';
         let valor;
         for (let i = 0; i < this.hijos.length; i++) {
             switch (this.hijos[i].identificador) {
                 case 'if':
-                    valor = this.hijos[i].if3d(l, bl, cl, idAmbito);
+                    valor = this.hijos[i].if3d(idAmbito, l, bcr);
                     c3d += valor.c3d;
                     break;
                 case 'lista else if':
-                    valor = this.hijos[i].ifElse(l, bl, cl, idAmbito);
+                    valor = this.hijos[i].ifElse(idAmbito, l, bcr);
                     c3d += valor.c3d;
                     break;
             }
@@ -828,24 +855,24 @@ class AST {
         return retorno;
     }
 
-    ifElse = function ifElse(l, bl, cl, idAmbito) {
+    ifElse = function ifElse(idAmbito, l, bcr) {
         let retorno = new retornoAST('', 0, '', '', '');
         let valor = new retornoAST('', 0, '', '', '');
         for (let i = 0; i < this.hijos.length; i++) {
-            valor = this.hijos[i].if3d(l, bl, cl, idAmbito);
+            valor = this.hijos[i].if3d(idAmbito, l, bcr);
             retorno.c3d += valor.c3d;
         }
 
         return retorno;
     }
 
-    if3d = function if3d(l, bl, cl, idAmbito) {
+    if3d = function if3d(idAmbito, l, bcr) {
         let retorno = new retornoAST('', 0, '', '', '');
 
         let retorno1 = this.hijos[0].obtenerExp(idAmbito);
 
         idAmbito = contadorA++
-        let retorno2 = this.hijos[1].compilarSentenciaControl(idAmbito, bl, cl);
+        let retorno2 = this.hijos[1].compilarSentenciaControl(idAmbito, bcr);
 
 
         retorno.c3d += retorno1.c3d;
@@ -889,6 +916,10 @@ class AST {
         let retorno = new retornoAST('', 0, '', '', '');
         let valor
 
+        let bcr = new BCR();
+
+        bcr.return = 'L'+(contadorL++);
+
         if (this.hijos.length == 3) {
             valor = tablaS.obtenerFuncion(this.hijos[1].identificador, idAmbito);
 
@@ -897,7 +928,7 @@ class AST {
                 return retorno;
             }
 
-            retorno = this.hijos[2].compilarSentenciaControl(idAmbito, '', '')
+            retorno = this.hijos[2].compilarSentenciaControl(idAmbito, bcr)
 
             retorno.c3d = 'proc ' + this.hijos[1].identificador + ' begin\n' +
                 retorno.c3d;
@@ -912,11 +943,12 @@ class AST {
             }
 
             let cadena = this.llenarStack(valor.tamano);
-            retorno = this.hijos[3].compilarSentenciaControl(idAmbito, '', '')
+            retorno = this.hijos[3].compilarSentenciaControl(idAmbito, bcr)
 
             retorno.c3d = 'proc ' + this.hijos[1].identificador + parametros + ' begin\n' +
                 retorno.c3d;
         }
+        retorno.c3d += bcr.return+':\n';
         retorno.c3d += 'end\n';
 
         return retorno
@@ -1940,6 +1972,12 @@ class AST {
         }
     }
 
+    /*
+        *
+        * -------------------------------- string y casteos a string
+        * 
+    */
+
     generarString3d = function generarString3d(cadena) {
         let retorno = new retornoAST('', 0, '', '', '');
 
@@ -1968,7 +2006,7 @@ class AST {
             return this.covertirIntAStr(t);
         }
         else if (tipo == 'double') {
-
+            return this.convertiDouleString(t)
         }
 
         return t;
@@ -2113,8 +2151,87 @@ class AST {
 
         retorno.t = 't' + (contadorT - 3);
 
+        retorno.tipo = 'string'
+
         return retorno;
     }
+
+    convertiDouleString = function convertiDouleString(t){
+        let retorno = new retornoAST('', 0, '', '', '');
+
+        let decimal = 't'+(contadorT);
+
+        retorno.c3d += 't'+(contadorT++)+'='+t.t+'%1;\n';
+
+        retorno.c3d += 't'+(contadorT)+'='+t.t+'-'+decimal+';\n';
+
+        let val1 = new retornoAST('', 0, '', '', '');
+        val1.t = 't'+(contadorT++)
+        let numero1  = this.covertirIntAStr(val1)
+        
+        retorno.c3d += numero1.c3d;
+
+        let tamano = this.obtenerTamanoDecimal(decimal)
+        
+        retorno.c3d += tamano.c3d;
+        retorno.c3d += 't' + (contadorT) +'='+ decimal +'*'+ tamano.t+';\n';
+        retorno.c3d += 't' + (contadorT) +'=t'+  (contadorT) +'*10;\n';
+        
+        val1.t = 't'+(contadorT++)
+        let numero2  = this.covertirIntAStr(val1)
+        retorno.c3d += numero2.c3d;
+
+        retorno.c3d += 't'+(contadorT)+'=46;\n';
+
+        val1.t = 't'+(contadorT++)
+        let punto = this.covertirCharAStr(val1)
+
+        retorno.c3d += punto.c3d;
+
+        
+        let val2 = new retornoAST('', 0, '', '', '');
+        val1.t = numero1.t
+        val2.t = punto.t
+
+        let concat1 = this.ConcatenarString('string','string',val1,val2);
+        
+        retorno.c3d += concat1.c3d;
+
+        val1.t = concat1.t
+        val2.t = numero2.t
+        
+        let concat2 = this.ConcatenarString('string','string',val1,val2);
+
+        retorno.c3d += concat2.c3d;
+
+        retorno.t = concat2.t
+        
+        return retorno;
+    }
+
+    obtenerTamanoDecimal = function obtenerTamanoDecimal(t){
+        let retorno = new retornoAST('', 0, '', '', '');
+
+        let tamano = 't'+(contadorT++)
+        retorno.c3d += tamano +'=10;\n'
+
+        let decimal = 't'+(contadorT++);
+
+        retorno.c3d += 'L' + (contadorL++) + ':\n'
+        retorno.c3d += decimal + '=' + tamano + '*' + t + ';\n';
+        
+        retorno.c3d += 't' + (contadorT) + '=' + decimal + '%1;\n';
+        
+        retorno.c3d += 'if(t'+(contadorT++)+'==0) goto L' + (contadorL++) + ';\n'
+        retorno.c3d += tamano +'='+tamano+'*10;\n'
+        retorno.c3d += 'goto L' + (contadorL-2) + ';\n'
+        retorno.c3d += 'L' + (contadorL - 1) + ':\n'
+
+        retorno.t = tamano
+
+        return retorno
+    }
+    
 
     ConcatenarString = function ConcatenarString(tipo1, tipo2, t1, t2) {
         let valor1 = this.realizarCasteoAString(tipo1, t1)
@@ -2122,7 +2239,12 @@ class AST {
 
         let retorno = new retornoAST('', 0, '', '', '');
 
-        retorno.c3d += valor1.c3d + valor2.c3d;
+        if(tipo1 != 'string'){
+            retorno.c3d += valor2.c3d + valor1.c3d;
+        }else{
+            retorno.c3d += valor1.c3d + valor2.c3d;
+        }
+
         retorno.c3d += 't' + (contadorT++) + '=H;\n';
 
         retorno.c3d += 't' + (contadorT++) + '=' + valor1.t + ';\n';
@@ -2201,9 +2323,11 @@ class AST {
         return retorno;
     }
 
-
-
-
+    /*
+        *
+        * -------------------------------- end
+        * 
+    */
 
 
 
@@ -2880,8 +3004,7 @@ class AST {
 
 
         if (this.hijos.length == 3) {
-            tamano += this.hijos[2].compilarSentenciaControlTS(nuevoPadre, idAmbito);
-
+            
             simbolo = new tabla.simbolo(this.hijos[1].identificador,
                 this.hijos[0].identificador,
                 padre,
@@ -2892,12 +3015,16 @@ class AST {
                 '',
                 'funcion',
                 0);
+                
+            tablaS.simbolos.push(simbolo)
+            
+            tamano += this.hijos[2].compilarSentenciaControlTS(nuevoPadre, idAmbito);
+
+            tablaS.insertarTamanoFuncion(simbolo.nombre, tamano)
+
         }
         else {
             let parametros = this.hijos[2].compilarParametros(idAmbito)
-            tamano += this.hijos[2].compilarParametrosTS(padre, idAmbito)
-            tamano += this.hijos[3].compilarSentenciaControlTS(nuevoPadre, idAmbito);
-
             simbolo = new tabla.simbolo(this.hijos[1].identificador + parametros,
                 this.hijos[0].identificador,
                 padre,
@@ -2908,10 +3035,14 @@ class AST {
                 '',
                 'funcion',
                 0);
+
+            tablaS.simbolos.push(simbolo)
+
+            tamano += this.hijos[2].compilarParametrosTS(padre, idAmbito)
+            tamano += this.hijos[3].compilarSentenciaControlTS(nuevoPadre, idAmbito);
+            
+            tablaS.insertarTamanoFuncion(simbolo.nombre, tamano)
         }
-
-
-        tablaS.simbolos.push(simbolo)
     }
 
     compilarParametrosTS = function compilarParametrosTS(padre, idAmbito) {
@@ -3173,7 +3304,7 @@ class AST {
             'return',
             0);
 
-        tablaS.insertarReturn(simbolo);
+        tablaS.insertarAsignacion(simbolo);
     }
 
 

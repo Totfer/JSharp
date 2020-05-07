@@ -24,13 +24,11 @@ class tablaSimbolos {
     }
 
     insertarReturn = function insertarReturn(simbolo) {
+        let padres = []
         for (let i = 0; i < simbolo.padre.length; i++) {
-            if (this.simbolos[i].idAmbito == simbolo.padre[i] &&
-                this.simbolos[i].funcionaldad == 'funcion') {
-                simbolo.tipo = this.simbolos[i].tipo
-            }
+            padres.push(simbolo.padre[i])
         }
-        
+
         for (let i = 0; i < this.simbolos.length; i++) {
             if (this.simbolos[i].nombre == simbolo.nombre &&
                 this.simbolos[i].idAmbito == simbolo.idAmbito) {
@@ -40,6 +38,17 @@ class tablaSimbolos {
 
         this.simbolos.push(simbolo);
         return 1
+    }
+
+    
+
+    insertarTamanoFuncion = function insertarTamanoFuncion(nombre, tamano) {
+        for (let i = 0; i < this.simbolos.length; i++) {
+            if (this.simbolos[i].nombre == nombre &&
+                this.simbolos[i].funcionaldad == 'funcion') {
+                this.simbolos[i].tamano = tamano
+            }
+        }
     }
 
     //-----------------------------------------------------------
