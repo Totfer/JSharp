@@ -10,7 +10,7 @@ var contadorA = 0;
 var contadorH = 0;
 var contadorS = 0;
 
-
+var funcionPrincipal;
 
 class Error {
     constructor(error, linea, columna) {
@@ -51,6 +51,13 @@ class AST {
         this.hijos = hi
     }
 
+    getTabla(){
+        return tablaS;
+    }
+    getError(){
+        return error;
+    }
+
     setHijo(nodo) {
         this.hijos.push(nodo);
     }
@@ -66,8 +73,7 @@ class AST {
         let retorno = this.compilarSentencia();
 
         let cabecera = 'var ';
-
-        for (let i = 0; i < contadorT; i++) {
+        for (let i = 0; i < (contadorT+1); i++) {
             cabecera += 't' + i + ',';
         }
 
@@ -82,6 +88,11 @@ class AST {
         retorno.c3d = cabecera + retorno.c3d;
 
         retorno.c3d += got + ':\n'
+
+        
+        let cadena = this.llenarStack(funcionPrincipal.tamano);
+        retorno.c3d += cadena
+        retorno.c3d += 'P = P+' + funcionPrincipal.tamano + ';\n'
 
         retorno.c3d += 'call principal;'
 
@@ -139,6 +150,10 @@ class AST {
                     break;
                 case 'switch':
                     valor = this.hijos[i].sentenciaSwitch(idAmbito, bcr);
+                    retorno.c3d += valor.c3d;
+                    break;
+                case 'for':
+                    valor = this.hijos[i].sentenciaFor(idAmbito, bcr);
                     retorno.c3d += valor.c3d;
                     break;
                 case 'break':
@@ -244,7 +259,7 @@ class AST {
                 retorno.t = 't' + (contadorT - 1);
 
                 retorno.c3d += 't' + (contadorT++) + '=t' + (contadorT - 2) + '+1;\n';
-                retorno.c3d += 'Stack[' + valor.posicionH + ']=t' + (contadorT - 1) + ';\n';
+                retorno.c3d += 'Stack[t' + (contadorT - 3) + ']=t' + (contadorT - 1) + ';\n';
             }
 
             retorno.tipo = valor.tipo
@@ -282,7 +297,7 @@ class AST {
                 retorno.t = 't' + (contadorT - 1);
 
                 retorno.c3d += 't' + (contadorT++) + '=t' + (contadorT - 2) + '-1;\n';
-                retorno.c3d += 'Stack[' + valor.posicionH + ']=t' + (contadorT - 1) + ';\n';
+                retorno.c3d += 'Stack[t' + (contadorT - 3) + ']=t' + (contadorT - 1) + ';\n';
             }
 
             retorno.tipo = valor.tipo
@@ -315,7 +330,7 @@ class AST {
         else {
             let nombre = '';
             if (this.hijos[1].identificador == 'listaExpresiones') {
-                nombre = this.hijos[0].identificador + this.hijos[1].obtenerTipoLisataExpresiones(this.hijos[0].identificador, idAmbito)
+                nombre = this.hijos[0].identificador + this.hijos[1].obtenerTipoLisataExpresiones(idAmbito)
 
 
                 let resultado = tablaS.obtenerFuncion(nombre);
@@ -356,10 +371,6 @@ class AST {
         return retorno;
     }
 
-    obtenerNombreLlamadaFuncion = function obtenerNombreLlamadaFuncion(nombre, idAmbito) {
-
-    }
-
     compilarLisataExpresiones = function compilarLisataExpresiones(idAmbito, tamano) {
         let retorno = new retornoAST('', 0, '', '', '');
         for (let i = 0; i < this.hijos.length; i++) {
@@ -370,7 +381,7 @@ class AST {
             retorno.c3d += resultado.c3d;
             retorno.c3d += 'P = P+' + tamano + ';\n'
 
-            retorno.c3d += 't' + contadorT + '=P-' + i + ';\n';
+            retorno.c3d += 't' + contadorT + '=P-' + (i+1) + ';\n';
             retorno.c3d += 'Stack[t' + (contadorT++) + ']=' + resultado.t + ';\n';
             retorno.c3d += 'P = P-' + tamano + ';\n'
         }
@@ -426,24 +437,45 @@ class AST {
         return retorno;
     }
 
-    sentenciaFor = function sentenciaFor(idAmbito) {
+    sentenciaFor = function sentenciaFor(idAmbito, bcr) {
         let retorno = new retornoAST('', 0, '', '', '');
+        let resultado1 = new retornoAST('', 0, '', '', '');
+        let resultado2 = new retornoAST('', 0, '', '', '');
+        let resultado3 = new retornoAST('', 0, '', '', '');
 
-        let resultado1 = compilarInstrucciones('instruccion1', idAmbito)
-        let resultado2 = compilarInstrucciones('instruccion2', idAmbito)
-        let resultado3 = compilarInstrucciones('instruccion3', idAmbito)
+        let nuevoBCR = new BCR();
+        nuevoBCR.return = bcr.return;
+        nuevoBCR.break = 'L' + (contadorL++)
+        nuevoBCR.continue = 'L' + (contadorL++)
 
+        idAmbito = contadorA++
+        for (let i = 0; i < this.hijos[0].hijos.length; i++) {
+            if (this.hijos[0].hijos[i].identificador == 'instruccion1') {
+                resultado1 = this.hijos[0].hijos[i].compilarInstrucciones(idAmbito, nuevoBCR)
+            }
+            else if (this.hijos[0].hijos[i].identificador == 'instruccion2') {
+                resultado2 = this.hijos[0].hijos[i].compilarInstrucciones(idAmbito, nuevoBCR)
+            }
+            else if (this.hijos[0].hijos[i].identificador == 'instruccion3') {
+                resultado3 = this.hijos[0].hijos[i].compilarInstrucciones(idAmbito, nuevoBCR)
+            }
+        }
+
+        if(resultado2.t ==''){
+            resultado2.t ='t'+(contadorT++);
+            resultado2.c3d += resultado2.t + '=1;\n';
+        }
         retorno.c3d += resultado1.c3d
 
-        let l1 = ('L' + contadorL++)
-        let l2 = ('L' + contadorL++)
+        let l1 = nuevoBCR.break
+        let l2 = nuevoBCR.continue
 
-        let resultado4 = this.hijos[1].compilarSentenciaControl(idAmbito, l1, l2);
+        let resultado4 = this.hijos[1].compilarSentenciaControl(idAmbito,nuevoBCR);
         let tipo = 'error'
 
+        retorno.c3d += l2 + ':\n';
         retorno.c3d += resultado2.c3d;
 
-        retorno.c3d += l2 + ':\n';
         retorno.c3d += 'if(' + resultado2.t + '==0) goto ' + l1 + ';\n';
 
         retorno.c3d += resultado4.c3d;
@@ -452,39 +484,33 @@ class AST {
         retorno.c3d += 'goto ' + l2 + ';\n';
         retorno.c3d += l1 + ':\n';
 
-        if (resultado4.break != '') {
-            retorno.c3d += resultado4.break + ':\n';
-            retorno.break = '';
-        }
-
-        if (resultado4.continue != '') {
-            retorno.c3d += resultado4.continue + ':\n';
-            retorno.continue = '';
-        }
-
         return retorno
     }
 
-    compilarInstrucciones = function compilarInstrucciones(instruccion, idAmbito) {
+    compilarInstrucciones = function compilarInstrucciones(idAmbito) {
         let retorno = new retornoAST('', 0, '', '', '')
-        if (this.hijos.length != 0) {
-            for (let i = 0; i < this.hijos.length; i++) {
-                if (instruccion == this.hijos[i].identificador) {
-                    if (this.hijos[i].hijos[0].identificador != 'asignacion') {
-
-                    }
-                    else if (this.hijos[i].hijos[0].identificador != 'inicializando variable con tipo') {
-                        valor = this.hijos[i].hijos[0].inicializandoVariable(idAmbito);
-                    }
-                    else if (this.hijos[i].hijos[0].identificador != 'inicializando variable sin tipo') {
-                        valor = this.hijos[i].hijos[0].inicializandoVariable(idAmbito);
-                    }
-                    else {
-                        retorno = this.hijos[i].hijos[0].obtenerExp(idAmbito);
-                    }
-                }
-            }
+        let valor
+        if (this.hijos[0].identificador == 'asignacion') {
+            valor = this.hijos[i].compilarAsignacion(idAmbito);
+            retorno.c3d += valor.c3d;
+            retorno.t = valor.t
         }
+        else if (this.hijos[0].identificador == 'inicializando variable con tipo') {
+            valor = this.hijos[0].inicializandoVariable2(idAmbito);
+            retorno.c3d += valor.c3d;
+            retorno.t = valor.t
+        }
+        else if (this.hijos[0].identificador == 'inicializando variable sin tipo') {
+            valor = this.hijos[0].inicializandoVariable2(idAmbito);
+            retorno.c3d += valor.c3d;
+            retorno.t = valor.t
+        }
+        else {
+            valor = this.hijos[0].obtenerExp(idAmbito);
+            retorno.c3d += valor.c3d;
+            retorno.t = valor.t
+        }
+
 
         return retorno
     }
@@ -635,6 +661,7 @@ class AST {
     */
 
     sentenciaSwitch = function sentenciaSwitch(idAmbito, bcr) {
+        idAmbito = contadorA++
         let retorno1 = this.hijos[0].obtenerExp(idAmbito);
 
         let retorno2 = this.hijos[1].bloqueSwitch(idAmbito, retorno1, bcr);
@@ -749,6 +776,7 @@ class AST {
     sentenciaDoWhile = function sentenciaDoWhile(idAmbito, bcr) {
         let retorno = new retornoAST('', 0, '', '', '');
 
+        idAmbito = contadorA++
         let retorno1 = this.hijos[1].obtenerExp(idAmbito);
 
         let nuevoBCR = new BCR();
@@ -761,14 +789,13 @@ class AST {
 
         let retorno2 = this.hijos[0].compilarSentenciaControl(idAmbito, nuevoBCR);
 
-        retorno.c3d += retorno1.c3d;
-
         retorno.c3d += l2 + ':\n';
 
         retorno.c3d += retorno2.c3d;
 
         retorno.c3d += nuevoBCR.continue + ':\n';
 
+        retorno.c3d += retorno1.c3d;
         retorno.c3d += 'if(' + retorno1.t + '==0) goto ' + l1 + ';\n';
         retorno.c3d += 'goto ' + l2 + ';\n';
         retorno.c3d += l1 + ':\n';
@@ -784,6 +811,7 @@ class AST {
         nuevoBCR.break = 'L' + (contadorL++)
         nuevoBCR.continue = 'L' + (contadorL++)
 
+        idAmbito = contadorA++
         let retorno1 = this.hijos[0].obtenerExp(idAmbito);
 
         let l1 = nuevoBCR.break
@@ -792,9 +820,9 @@ class AST {
         let retorno2 = this.hijos[1].compilarSentenciaControl(idAmbito, nuevoBCR);
         let tipo = 'error'
 
+        retorno.c3d += l2 + ':\n';
         retorno.c3d += retorno1.c3d;
 
-        retorno.c3d += l2 + ':\n';
         retorno.c3d += 'if(' + retorno1.t + '==0) goto ' + l1 + ';\n';
 
         retorno.c3d += retorno2.c3d;
@@ -918,17 +946,17 @@ class AST {
         let valor
 
         let bcr = new BCR();
-
+        
         bcr.return = 'L' + (contadorL++);
 
         if (this.hijos.length == 3) {
             valor = tablaS.obtenerFuncion(this.hijos[1].identificador, idAmbito);
-
+            
             let cadena = this.llenarStack(valor.tamano);
             if (valor == 'error') {
                 return retorno;
             }
-
+            funcionPrincipal = valor;
             retorno = this.hijos[2].compilarSentenciaControl(idAmbito, bcr)
 
             retorno.c3d = 'proc ' + this.hijos[1].identificador + ' begin\n' +
@@ -1019,15 +1047,15 @@ class AST {
         }
     }
 
-    casteoExplicito = function casteoExplicito(idAmbito){
+    casteoExplicito = function casteoExplicito(idAmbito) {
         let retorno = new retornoAST('', 0, '', '', '');
         let resultado1 = this.hijos[0].obtenerExp(idAmbito);
 
-        retorno.t = 't'+contadorT++;
+        retorno.t = 't' + contadorT++;
         retorno.c3d += resultado1.c3d;
-        
-        retorno.c3d += 't'+(contadorT)+'='+resultado1.t+'%1;\n';
-        retorno.c3d += retorno.t+'='+resultado1.t+'-t'+(contadorT++)+';\n';
+
+        retorno.c3d += 't' + (contadorT) + '=' + resultado1.t + '%1;\n';
+        retorno.c3d += retorno.t + '=' + resultado1.t + '-t' + (contadorT++) + ';\n';
 
         return retorno;
     }
@@ -1934,6 +1962,8 @@ class AST {
 
         retorno.c3d = c3d;
 
+        retorno.c3d  += 'print("%c",10);\n';
+
         return retorno;
     }
 
@@ -2035,6 +2065,7 @@ class AST {
         let retorno = new retornoAST('', 0, '', '', '');
         retorno.t = 't' + (contadorT);
 
+        retorno.c3d += t.c3d;
         retorno.c3d += 't' + (contadorT++) + '=H;\n';
         retorno.c3d += 'Heap[H]=' + t.t + ';\n';
         retorno.c3d += 'H=H+1;\n';
@@ -2048,6 +2079,7 @@ class AST {
         let retorno = new retornoAST('', 0, '', '', '');
         retorno.t = 't' + (contadorT);
 
+        retorno.c3d += t.c3d;
         retorno.c3d += 't' + (contadorT++) + '=H;\n';
 
         retorno.c3d += 'if(1<>' + t.t + ') goto L' + (contadorL++) + ';\n'
@@ -2087,7 +2119,7 @@ class AST {
     covertirIntAStr = function covertirIntAStr(t) {
         let retorno = new retornoAST('', 0, '', '', '');
         let aux = 't' + contadorT;
-
+        retorno.c3d += t.c3d;
         retorno.c3d += 't' + (contadorT++) + '=' + t.t + ';\n';
 
         retorno.c3d += 'if(' + t.t + '>0) goto L' + (contadorL++) + ';\n';
@@ -2180,6 +2212,7 @@ class AST {
 
         let decimal = 't' + (contadorT);
 
+        retorno.c3d += t.c3d;
         retorno.c3d += 't' + (contadorT++) + '=' + t.t + '%1;\n';
 
         retorno.c3d += 't' + (contadorT) + '=' + t.t + '-' + decimal + ';\n';
@@ -2231,6 +2264,7 @@ class AST {
     obtenerTamanoDecimal = function obtenerTamanoDecimal(t) {
         let retorno = new retornoAST('', 0, '', '', '');
 
+        retorno.c3d += t.c3d;
         let tamano = 't' + (contadorT++)
         retorno.c3d += tamano + '=10;\n'
 
@@ -3103,6 +3137,19 @@ class AST {
 
         let idAmbito = contadorA++;
 
+        let simbolo = new tabla.simbolo('',
+        '',
+        padre,
+        idAmbito,
+        0,
+        0,
+        0,
+        '',
+        '',
+        0);
+
+        tablaS.simbolos.push(simbolo)
+
         let nuevoPadre = []
 
         for (let i = 0; i < padre.length; i++) {
@@ -3120,6 +3167,18 @@ class AST {
 
         let idAmbito = contadorA++;
 
+        let simbolo = new tabla.simbolo('',
+        '',
+        padre,
+        idAmbito,
+        0,
+        0,
+        0,
+        '',
+        '',
+        0);
+
+        tablaS.simbolos.push(simbolo)
         let nuevoPadre = []
 
         for (let i = 0; i < padre.length; i++) {
@@ -3225,9 +3284,73 @@ class AST {
     }
 
 
+    sentenciaForTS = function sentenciaForTS(padre) {
+        let idAmbito = contadorA++;
+        let simbolo = new tabla.simbolo('',
+        '',
+        padre,
+        idAmbito,
+        0,
+        0,
+        0,
+        '',
+        '',
+        0);
+
+    tablaS.simbolos.push(simbolo)
+        let nuevoPadre = []
+
+        for (let i = 0; i < padre.length; i++) {
+            nuevoPadre.push(padre[i])
+        }
+
+        nuevoPadre.push(idAmbito)
+
+        let retorno = 0;
+
+        for (let i = 0; i < this.hijos[0].hijos.length; i++) {
+            retorno += this.hijos[0].hijos[i].compilarInstruccionesTS(nuevoPadre, idAmbito, this.hijos[0].hijos[i].identificador)
+        }
+
+        retorno += this.hijos[1].compilarSentenciaControlTS(nuevoPadre, idAmbito);
+
+        return retorno;
+
+    }
+
+    compilarInstruccionesTS = function compilarInstruccionesTS(padre, idAmbito) {
+        let contadorVarables = 0;
+
+        if (this.hijos[0].identificador == 'asignacion') {
+            contadorVarables += this.hijos[0].asignacionTS(padre, idAmbito);
+        }
+        else if (this.hijos[0].identificador == 'inicializando variable con tipo') {
+            this.hijos[0].inicializandoVariableConTipoTS2(padre, idAmbito);
+            contadorVarables += 1
+        }
+        else if (this.hijos[0].identificador == 'inicializando variable sin tipo') {
+            contadorVarables += this.hijos[0].inicializandoVariableSinTipoTS2(padre, idAmbito);
+            contadorVarables += 1
+        }
+
+        return contadorVarables
+    }
 
     sentenciaSwitchTS = function sentenciaSwitchTS(padre) {
         let idAmbito = contadorA++;
+
+        let simbolo = new tabla.simbolo('',
+        '',
+        padre,
+        idAmbito,
+        0,
+        0,
+        0,
+        '',
+        '',
+        0);
+
+        tablaS.simbolos.push(simbolo)
 
         let nuevoPadre = []
 
@@ -3258,7 +3381,7 @@ class AST {
     casesTS = function casesTS(padre, idAmbito) {
         let contador = 0;
         for (let i = 0; i < this.hijos.length; i++) {
-            contador += this.hijos[i].sentenciaCaseTS(padre, idAmbito);
+            contador += this.hijos[i].compilarSentenciaControlTS(padre, idAmbito);
         }
 
         return contador
@@ -3289,6 +3412,9 @@ class AST {
                 case 'switch':
                     contadorVarables += this.hijos[i].sentenciaSwitchTS(padre);
                     break;
+                case 'for':
+                    contadorVarables += this.hijos[i].sentenciaForTS(padre);
+                    break;
                 case 'inicializando variable con tipo':
                     this.hijos[i].inicializandoVariableConTipoTS2(padre, idAmbito);
                     contadorVarables += 1
@@ -3296,9 +3422,6 @@ class AST {
                 case 'inicializando variable sin tipo':
                     this.hijos[i].inicializandoVariableSinTipoTS2(padre, idAmbito);
                     contadorVarables += 1
-                    break;
-                case 'asignacion':
-                    contadorVarables += this.hijos[i].asignacionTS(padre, idAmbito);
                     break;
                 case 'return':
                     this.hijos[i].returnTS(padre, idAmbito);

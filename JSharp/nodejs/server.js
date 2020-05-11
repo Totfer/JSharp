@@ -51,12 +51,12 @@ app.get('/optimisaciones', function(req, res) {
 
 app.get('/errores', function(req, res) {
     var string = '<html><body>$$arbol</body></html>';
-    res.send(tablas.erros);
+    res.send(tablas.errores);
 });
 
 app.get('/simbolos', function(req, res) {
     var string = '<html><body>$$arbol</body></html>';
-    res.send(tablas.simbolos);
+    res.send(tablas.tablaSimbolos);
 });
 
 
@@ -80,7 +80,7 @@ app.get('/text1', function(req, res) {
     tablas = Compilar.Compilar(texto[1],Nodo3d);
     codigo = texto[1];
     retorno = tablas.retorno;
-    codigo3d = tablas; 
+    codigo3d = tablas.codigo; 
     res.send('todo bien');
 });
 

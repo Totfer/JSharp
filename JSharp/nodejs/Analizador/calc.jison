@@ -678,6 +678,22 @@ asignacion : listaIdVecFun '=' EXP ';'
         {
             $$ = yy.crearNodo('asignacion',0,0,[$1,$3,yy.crearHoja($2,@2.first_line,@2.first_column)]);
         }
+    | listaIdVecFun ':=' '{' listaExp '}'
+        {
+            $$ = yy.crearNodo('arreglo',0,0,[$1,$4,yy.crearHoja($2,@2.first_line,@2.first_column)]);
+        }
+    | listaIdVecFun '=' '{' listaExp '}'
+        {
+            $$ = yy.crearNodo('arreglo',0,0,[$1,$4,yy.crearHoja($2,@2.first_line,@2.first_column)]);
+        }
+    | listaIdVecFun ':=' '{' listaExp '}' ';'
+        {
+            $$ = yy.crearNodo('arreglo',0,0,[$1,$4,yy.crearHoja($2,@2.first_line,@2.first_column)]);
+        }
+    | listaIdVecFun '=' '{' listaExp '}' ';'
+        {
+            $$ = yy.crearNodo('arreglo',0,0,[$1,$4,yy.crearHoja($2,@2.first_line,@2.first_column)]);
+        }
 ;
 
 asignacionFor :  listaIdVecFun '=' EXP 

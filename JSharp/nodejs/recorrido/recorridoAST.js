@@ -97,25 +97,189 @@ function Compilar(codigo) {
 
     parser.parser.yy.listaIds = [];
 
+    try{
     var arbol = parser.parse(codigo);
-
+    }
+    catch(err){
+        console.log(err);
+        return {codigo:err.message};
+    }
     ambito = {}
     arbol.contadorT = 0;
     arbol.contadorL = 0;
     arbol.llenarTablaSimbolos();
-    codigo = arbol.compilar();
+
+    try{
+        codigo = arbol.compilar();
+    }
+    catch(exp){
+        console.log(exp);
+    }
+
     console.log("--------------------Todo bien-------------------");
     // Nodo.Nodo = llenarNuevoArbol(arbol, Nodo.Nodo);
     //return Interprete(arbol);
-    return codigo;
+    
+    let err2 =  parser.parser.yy.ast.getError();
+
+    return {codigo:codigo, tablaSimbolos:tablaS(),errores:tablaE(err2)};
 }
 
 var auxe = '';
 var auxt = '';
 var auxo = '';
 
+function tablaS() {
+    let tab = parser.parser.yy.ast.getTabla().simbolos
 
-function Interprete(actual) {
+    var tablaHtml = '<html>\n';
+    tablaHtml += ' \t<body>\n';
+    tablaHtml += ' \t\t<table  class=\"table\">\n';
+    tablaHtml += ' \t\t\t<tbody>\n';
+    tablaHtml += ' \t\t\t<tr class = \"success\">\n';
+    tablaHtml += ' \t\t\t\t<th>\n';
+    tablaHtml += ' \t\t\t\t\tNombre\n';
+    tablaHtml += ' \t\t\t\t</th>\n';
+
+    tablaHtml += ' \t\t\t\t<th>\n';
+    tablaHtml += ' \t\t\t\t\tTipo\n';
+    tablaHtml += ' \t\t\t\t</th>\n';
+    
+    tablaHtml += ' \t\t\t\t<th>\n';
+    tablaHtml += ' \t\t\t\t\tRol\n';
+    tablaHtml += ' \t\t\t\t</th>\n';
+    
+    tablaHtml += ' \t\t\t\t<th>\n';
+    tablaHtml += ' \t\t\t\t\tAmbito\n';
+    tablaHtml += ' \t\t\t\t</th>\n';
+    
+    tablaHtml += ' \t\t\t\t<th>\n';
+    tablaHtml += ' \t\t\t\t\tAmbito Padre\n';
+    tablaHtml += ' \t\t\t\t</th>\n';
+    
+    tablaHtml += ' \t\t\t\t<th>\n';
+    tablaHtml += ' \t\t\t\t\tStack O Heap\n';
+    tablaHtml += ' \t\t\t\t</th>\n';
+    
+    tablaHtml += ' \t\t\t\t<th>\n';
+    tablaHtml += ' \t\t\t\t\tPosicion Stack\n';
+    tablaHtml += ' \t\t\t\t</th>\n';
+    
+    tablaHtml += ' \t\t\t\t<th>\n';
+    tablaHtml += ' \t\t\t\t\tPosicion Heap\n';
+    tablaHtml += ' \t\t\t\t</th>\n';
+    
+    tablaHtml += ' \t\t\t\t<th>\n';
+    tablaHtml += ' \t\t\t\t\tTamaño\n';
+    tablaHtml += ' \t\t\t\t</th>\n';
+    tablaHtml += ' \t\t\t</tr>\n';
+
+
+    for (var i = 0; i < tab.length; i++) {
+        tablaHtml += '\t\t\t<tr class=\"info\">\n';
+
+        tablaHtml += '\t\t\t\t<td>\n';
+        tablaHtml += '\t\t\t\t\t' + tab[i].nombre + '\n';
+        tablaHtml += '\t\t\t\t</td>\n';
+
+        tablaHtml += '\t\t\t\t<td>\n';
+        tablaHtml += '\t\t\t\t\t' + tab[i].tipo + '\n';
+        tablaHtml += '\t\t\t\t</td>\n';
+
+        tablaHtml += '\t\t\t\t<td>\n';
+        tablaHtml += '\t\t\t\t\t' + tab[i].funcionaldad + '\n';
+        tablaHtml += '\t\t\t\t</td>\n';
+
+        tablaHtml += '\t\t\t\t<td>\n';
+        tablaHtml += '\t\t\t\t\t' + tab[i].idAmbito + '\n';
+        tablaHtml += '\t\t\t\t</td>\n';
+
+        let padres = '';
+
+        for(let i=0;i<tab[i].padre.length;i++){
+            padres += tab[i].padre[i]+' ';
+        }
+
+        tablaHtml += '\t\t\t\t<td>\n';
+        tablaHtml += '\t\t\t\t\t' + padres + '\n';
+        tablaHtml += '\t\t\t\t</td>\n';
+
+
+        tablaHtml += '\t\t\t\t<td>\n';
+        tablaHtml += '\t\t\t\t\t' + tab[i].tipoSH + '\n';
+        tablaHtml += '\t\t\t\t</td>\n';
+
+        tablaHtml += '\t\t\t\t<td>\n';
+        tablaHtml += '\t\t\t\t\t' + tab[i].posicionH + '\n';
+        tablaHtml += '\t\t\t\t</td>\n';
+
+        tablaHtml += '\t\t\t\t<td>\n';
+        tablaHtml += '\t\t\t\t\t' + tab[i].posicionS + '\n';
+        tablaHtml += '\t\t\t\t</td>\n';
+
+        tablaHtml += '\t\t\t\t<td>\n';
+        tablaHtml += '\t\t\t\t\t' + tab[i].tamano + '\n';
+        tablaHtml += '\t\t\t\t</td>\n';
+
+        tablaHtml += '\t\t\t</tr>\n';
+
+    }
+
+    tablaHtml += ' \t\t\t</tbody>\n';
+    tablaHtml += '\t\t</table>\n';
+
+    tablaHtml += '\t</body>\n';
+    tablaHtml += '</html>\n';
+    return tablaHtml;
+}
+
+function tablaE(error){
+    console.log(error)
+    var tablaHtml ='<html>\n';
+    tablaHtml += '\t<body>\n';
+    tablaHtml += '\t\t<table class=\"table\">\n';
+   
+    tablaHtml+=' \t\t\t<tbody>\n';
+    tablaHtml+=' \t\t\t<tr class = \"success\">\n';
+    tablaHtml+=' \t\t\t\t<th>\n';
+    tablaHtml+=' \t\t\t\t\tError\n';
+    tablaHtml+=' \t\t\t\t</th>\n';
+    tablaHtml+=' \t\t\t\t<th>\n';
+    tablaHtml+=' \t\t\t\t\Linea\n';
+    tablaHtml+=' \t\t\t\t</th>\n';
+    tablaHtml+=' \t\t\t\t<th>\n';
+    tablaHtml+=' \t\t\t\t\tColumna\n';
+    tablaHtml+=' \t\t\t\t</th>\n';
+    tablaHtml+=' \t\t\t</tr>\n';
+    
+    for(var i=0;i<error.length;i++){ 
+        tablaHtml +=  '\t\t\t<tr class=\"warning\">\n';
+        
+        tablaHtml +=  '\t\t\t\t<td>\n';
+        tablaHtml +=  '\t\t\t\t\t'+error[i].error+'\n';
+        tablaHtml +=  '\t\t\t\t</td>\n';
+        
+        tablaHtml +=  '\t\t\t\t<td>\n';
+        tablaHtml +=  '\t\t\t\t\t'+error[i].linea+'\n';
+        tablaHtml +=  '\t\t\t\t</td>\n';
+        
+        tablaHtml +=  '\t\t\t\t<td>\n';
+        tablaHtml +=  '\t\t\t\t\t'+error[i].columan+'\n';
+        tablaHtml +=  '\t\t\t\t</td>\n';
+    
+        tablaHtml +=  '\t\t\t</tr>\n';   
+    }
+    tablaHtml+=' \t\t\t</tbody>\n';
+    tablaHtml += '\t\t</table>\n';
+ 
+    tablaHtml += '\t</body>\n';
+    tablaHtml += '</html>\n';
+    return tablaHtml;
+}
+
+
+
+function Interprete() {
     Nodo.IniciarRecorrido(actual);
     var temp = Nodo.CODIGO_3D(actual);
 
@@ -159,7 +323,7 @@ function compilar3D(codigo) {
         auxo = html.obtenerTablaOptimisacion();
 
         var opt = require("../tablaOptimisacion").lista;
-      //  arbol = parser3d.parse(codigoOptimisado);
+        //  arbol = parser3d.parse(codigoOptimisado);
         //aux = llenarNuevoArbol3d(arbol, Nodo3d.Nodo);
 
         //retorno = Nodo3d.compilar(aux);
@@ -175,11 +339,11 @@ function graficarArbol(child, actual, anterior) {
     if (child == undefined) {
         return;
     }
-    if (child.identificador != undefined) { 
+    if (child.identificador != undefined) {
         if (child.hijos.length != 0) {
             dot += "\"" + actual + "\" [color=brown shape=Msquare label =\"" + child.identificador.toString().replace("\"", "").replace("\"", "").replace("\n", "") + "\"];\n";
-        }   
-        else{
+        }
+        else {
             dot += "\"" + actual + "\" [color=green shape=Mcircle label =\"" + child.identificador.toString().replace("\"", "").replace("\"", "").replace("\n", "") + "\"];\n";
         }
     }
@@ -188,12 +352,12 @@ function graficarArbol(child, actual, anterior) {
         for (var i = 0; i < child.hijos.length; i++) {
             if (child.hijos[i] != undefined && child.hijos[i] != null) {
                 if (anterior != actual) {
-                    if (child.hijos[i] != undefined && child.hijos[i] != null &&anterior != undefined) {
+                    if (child.hijos[i] != undefined && child.hijos[i] != null && anterior != undefined) {
                         dot += "\"" + anterior + "\" -> \"" + actual + "\"\n";
                     }
                     else {
                         var temp = child.hijos[i];
-                        if (temp != undefined&&anterior != undefined) {
+                        if (temp != undefined && anterior != undefined) {
                             dot += "\"" + anterior + "\" -> \"" + actual + "\"\n";
                         }
                     }
@@ -205,7 +369,7 @@ function graficarArbol(child, actual, anterior) {
                 graficarArbol(chil, actual, anterior);
             }
             else {
-                if(chil[0] != undefined){
+                if (chil[0] != undefined) {
                     graficarArbol(chil[0][0], actual, anterior);
                 }
             }
