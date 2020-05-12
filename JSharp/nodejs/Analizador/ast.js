@@ -28,9 +28,10 @@ class retornoAST {
         this.l = ''
         this.tipo = ''
         this.break = ''
+        this.arreglo = 0
+        this.tamano = 0
     }
 }
-
 
 class BCR {
     constructor() {
@@ -51,10 +52,10 @@ class AST {
         this.hijos = hi
     }
 
-    getTabla(){
+    getTabla() {
         return tablaS;
     }
-    getError(){
+    getError() {
         return error;
     }
 
@@ -68,12 +69,11 @@ class AST {
         contadorA = 0;
         error = [];
 
-        let got = 'L' + (contadorL++)
 
         let retorno = this.compilarSentencia();
 
         let cabecera = 'var ';
-        for (let i = 0; i < (contadorT+1); i++) {
+        for (let i = 0; i < (contadorT + 1); i++) {
             cabecera += 't' + i + ',';
         }
 
@@ -81,15 +81,14 @@ class AST {
         cabecera += 'var Stack[];\n';
         cabecera += 'var Heap[];\n';
         cabecera += 'var P = 1;\n';
-        cabecera += 'var H = 0;\n';
+        cabecera += 'var H = 1;\n';
         cabecera += 'H = H+' + contadorH + ';\n';
-        cabecera += 'goto ' + got + ';\n';
 
         retorno.c3d = cabecera + retorno.c3d;
 
-        retorno.c3d += got + ':\n'
+        retorno.c3d += 'L0:\n'
 
-        
+
         let cadena = this.llenarStack(funcionPrincipal.tamano);
         retorno.c3d += cadena
         retorno.c3d += 'P = P+' + funcionPrincipal.tamano + ';\n'
@@ -104,6 +103,25 @@ class AST {
         let retorno = new retornoAST('', 0, '', '', '');
         let valor
         contadorA++
+        
+        for (let i = 0; i < this.hijos.length; i++) {
+            switch (this.hijos[i].identificador) {
+                 case 'inicializando variable con tipo':
+                    valor = this.hijos[i].inicializandoVariable(0);
+                    retorno.c3d += valor.c3d;
+                    break;
+                case 'inicializando variable sin tipo':
+                    valor = this.hijos[i].inicializandoVariable(0);
+                    retorno.c3d += valor.c3d;
+                    break;
+                case 'inicializando arreglo':
+                    valor = this.hijos[i].inicializandoVariableArreglo(0);
+                    retorno.c3d += valor.c3d;
+                    break;
+            }
+        }
+        (contadorL++)
+        retorno.c3d += 'goto L0;\n' 
         for (let i = 0; i < this.hijos.length; i++) {
             switch (this.hijos[i].identificador) {
                 case 'import':
@@ -111,14 +129,6 @@ class AST {
                     break;
                 case 'declaracionFuncion':
                     valor = this.hijos[i].declaracionFuncion(0)
-                    retorno.c3d += valor.c3d;
-                    break;
-                case 'inicializando variable con tipo':
-                    valor = this.hijos[i].inicializandoVariable(0);
-                    retorno.c3d += valor.c3d;
-                    break;
-                case 'inicializando variable sin tipo':
-                    valor = this.hijos[i].inicializandoVariable(0);
                     retorno.c3d += valor.c3d;
                     break;
             }
@@ -184,6 +194,10 @@ class AST {
                     valor = this.hijos[i].compilarAsignacion(idAmbito);
                     retorno.c3d += valor.c3d;
                     break;
+                case 'asignacion arreglo':
+                    valor = this.hijos[i].compilarAsignacionArreglo(idAmbito);
+                    retorno.c3d += valor.c3d;
+                    break;
                 case 'llamadaFuncion':
                     valor = this.hijos[i].compilarLlamadaAFuncion(idAmbito);
                     retorno.c3d += valor.c3d;
@@ -200,6 +214,10 @@ class AST {
                     valor = this.hijos[i].compilarRetorno(idAmbito);
                     retorno.c3d += valor.c3d;
                     retorno.c3d += 'goto ' + bcr.return + ';\n'
+                    break;
+                case 'inicializando arreglo':
+                    valor = this.hijos[i].inicializandoVariableArreglo2(idAmbito);
+                    retorno.c3d += valor.c3d;
                     break;
                 default:
             }
@@ -275,7 +293,6 @@ class AST {
 
         return retorno
     }
-
 
     compilarDecremento = function compilarDecremento(idAmbito) {
         let valor = tablaS.obtenerSimbolo(this.hijos[0].identificador, idAmbito);
@@ -381,7 +398,7 @@ class AST {
             retorno.c3d += resultado.c3d;
             retorno.c3d += 'P = P+' + tamano + ';\n'
 
-            retorno.c3d += 't' + contadorT + '=P-' + (i+1) + ';\n';
+            retorno.c3d += 't' + contadorT + '=P-' + (i + 1) + ';\n';
             retorno.c3d += 'Stack[t' + (contadorT++) + ']=' + resultado.t + ';\n';
             retorno.c3d += 'P = P-' + tamano + ';\n'
         }
@@ -419,18 +436,22 @@ class AST {
 
     compilarAsignacion = function compilarAsignacion(idAmbito) {
         let retorno = new retornoAST('', 0, '', '', '');
-        let resultado = this.hijos[1].obtenerExp(idAmbito);
 
         retorno.c3d = resultado.c3d
         if (this.hijos[0].hijos.length == 1) {
             let posicion = tablaS.obtenerPosicionStack(this.hijos[0].hijos[0].hijos[0].identificador, idAmbito);
 
             if (posicion != 'error') {
+                if (this.hijos[0].identificador == 'listaExpresiones') {
+                    resultado = this.hijos[1].insertandoArreglo(idAmbito);
+                } else {
+                    resultado = this.hijos[1].obtenerExp(idAmbito);
+                }
                 retorno.c3d += 't' + contadorT + '=P-' + posicion + ';\n';
                 retorno.c3d += 'Stack[t' + (contadorT++) + '] = ' + resultado.t + ';\n';
             }
         }
-        else {
+        else {//
 
         }
 
@@ -461,8 +482,8 @@ class AST {
             }
         }
 
-        if(resultado2.t ==''){
-            resultado2.t ='t'+(contadorT++);
+        if (resultado2.t == '') {
+            resultado2.t = 't' + (contadorT++);
             resultado2.c3d += resultado2.t + '=1;\n';
         }
         retorno.c3d += resultado1.c3d
@@ -470,7 +491,7 @@ class AST {
         let l1 = nuevoBCR.break
         let l2 = nuevoBCR.continue
 
-        let resultado4 = this.hijos[1].compilarSentenciaControl(idAmbito,nuevoBCR);
+        let resultado4 = this.hijos[1].compilarSentenciaControl(idAmbito, nuevoBCR);
         let tipo = 'error'
 
         retorno.c3d += l2 + ':\n';
@@ -578,6 +599,95 @@ class AST {
                     if (posicion != 'error') {
                         retorno.c3d += 'Heap[' + posicion + '] = ' + resultado.t + ';\n';
                     }
+                }
+            }
+        }
+
+        return retorno;
+    }
+
+    inicializandoVariableArreglo = function inicializandoVariableArreglo(idAmbito) {
+        let t = contadorT++;
+
+        let valor
+
+        let retorno = new retornoAST('', 0, '', '', '');
+
+        if (this.hijos.length==2) {
+            let valor = this.obtenerTipoDefecto(this.hijos[0].identificador.toLowerCase());
+            let valort = 't' + (contadorT);
+            retorno.c3d += 't' + (contadorT++) + '=' + valor + ';\n'
+            if (this.hijos[1].hijos.length == 0) {
+                let posicion = tablaS.obtenerPosicionHeap(this.hijos[1].identificador, idAmbito);
+                if (posicion != 'error') {
+                    retorno.c3d += 'Heap[' + posicion + '] = 0;\n';
+                }
+            }
+        }
+        else {
+            let resultado = this.hijos[2].insertandoArreglo(idAmbito);
+            retorno.c3d += resultado.c3d;
+            if (this.hijos[1].hijos.length == 0) {
+                let posicion = tablaS.obtenerPosicionHeap(this.hijos[1].identificador, idAmbito);
+                if (posicion != 'error') {
+                    retorno.c3d += 'Heap[' + posicion + '] = ' + resultado.t + ';\n';
+                }
+            }
+        }
+
+        return retorno;
+    }
+
+    insertandoArreglo = function insertandoArreglo(idAmbito) {
+        let retorno = new retornoAST('', 0, '', '', '');
+        let resultado
+        let ts = []
+        for (let i = 0; i < this.hijos[0].hijos.length; i++) {
+            resultado = this.hijos[0].hijos[i].obtenerExp(idAmbito);
+            retorno.c3d += resultado.c3d;
+            ts.push(resultado.t)
+        }
+
+        retorno.t = 't' + (contadorT)
+        retorno.c3d += 't' + (contadorT++) + ' = H;\n'
+        retorno.c3d += 'Heap[H] = ' + this.hijos[0].hijos.length + ';\n';
+        retorno.c3d += 'H = H + 1;\n';
+   
+        for (let i = 0; i <ts.length ; i++) {    
+            retorno.c3d += 'Heap[H] = ' + ts[i] + ';\n';
+            retorno.c3d += 'H = H + 1;\n';
+        }
+        return retorno;
+    }
+
+
+    inicializandoVariableArreglo2 = function inicializandoVariableArreglo2(idAmbito) {
+        let t = contadorT++;
+
+        let valor
+
+        let retorno = new retornoAST('', 0, '', '', '');
+
+        if (this.hijos.length==2) {
+            let valor = this.obtenerTipoDefecto(this.hijos[0].identificador.toLowerCase());
+            let valort = 't' + (contadorT);
+            retorno.c3d += 't' + (contadorT++) + '=' + valor + ';\n'
+            if (this.hijos[1].hijos.length == 0) {
+                let posicion = tablaS.obtenerPosicionStack(this.hijos[1].identificador, idAmbito);
+                if (posicion != 'error') {
+                    retorno.c3d += 't' + contadorT + '=P-' + posicion + ';\n';
+                    retorno.c3d += 'Stack[t' + (contadorT++) + '] = 0;\n';
+                }
+            }
+        }
+        else {
+            let resultado = this.hijos[2].insertandoArreglo(idAmbito);
+            retorno.c3d += resultado.c3d;
+            if (this.hijos[1].hijos.length == 0) {
+                let posicion = tablaS.obtenerPosicionStack(this.hijos[1].identificador, idAmbito);
+                if (posicion != 'error') {
+                    retorno.c3d += 't' + contadorT + '=P-' + posicion + ';\n';
+                    retorno.c3d += 'Stack[t' + (contadorT++) + '] = ' + resultado.t + ';\n';
                 }
             }
         }
@@ -946,12 +1056,12 @@ class AST {
         let valor
 
         let bcr = new BCR();
-        
+
         bcr.return = 'L' + (contadorL++);
 
         if (this.hijos.length == 3) {
             valor = tablaS.obtenerFuncion(this.hijos[1].identificador, idAmbito);
-            
+
             let cadena = this.llenarStack(valor.tamano);
             if (valor == 'error') {
                 return retorno;
@@ -1572,7 +1682,8 @@ class AST {
             }
 
             retorno.tipo = valor.tipo
-
+            retorno.arreglo = valor.arreglo
+            retorno.tamano = valor.tamanoR;
             return retorno
         }
         else {
@@ -1948,7 +2059,16 @@ class AST {
                 break;
         }
 
-        if (ambitoRetorno.tipo == 'boolean') {
+        
+        if (ambitoRetorno.arreglo == 1){
+            if(ambitoRetorno.tipo == 'string'){
+                c3d += this.printArregloString(ambitoRetorno.t);
+            }else{
+                c3d += ambitoRetorno.c3d 
+                c3d += this.printArreglo(ambitoRetorno.t, tipo, ambitoRetorno.tamano);
+            }
+        }
+        else if (ambitoRetorno.tipo == 'boolean') {
             c3d += this.imprimirTrueFalse(ambitoRetorno.t);
         }
 
@@ -1962,8 +2082,92 @@ class AST {
 
         retorno.c3d = c3d;
 
-        retorno.c3d  += 'print("%c",10);\n';
+        retorno.c3d += 'print("%c",10);\n';
 
+        return retorno;
+    }
+
+    printArregloString = function printArregloString(t, tipo) {
+        let retorno = '';
+        
+            let l = (contadorL++);
+            retorno += 'if(' + t + '==0) goto L' + l +';\n'
+
+            retorno += 't' + (contadorT) + '=Heap[' + t + '];\n';
+            retorno += 't' + (contadorT) +'=t' + (contadorT) +'+'+t+ ';\n';
+            let t1 = (contadorT++)
+            retorno += 't' + (contadorT) + '=' + t + '+1;\n';
+            let t2 = (contadorT++)
+            retorno += 't' + (contadorT) + '=Heap[t' + (contadorT-1) + '];\n';
+            let t3 = (contadorT++)
+            retorno += 't' + (contadorT) + '=t' + (contadorT-2) + ';\n';
+            let t4 = (contadorT++)
+            retorno += this.printString('t' + (contadorT - 2));
+            
+            retorno += 't' + t4 + '=t' + t4 + '+1;\n';
+            
+            let l2 = (contadorL)
+            retorno += 'L' + (contadorL++) + ':\n';
+
+            let l3 = (contadorL)
+            retorno += 'if(t'+ t4 +'>t' + t1 + ') goto L' + (contadorL++) + ';\n';
+
+            retorno += 't' + (contadorT) + '=Heap[t' + t4 + '];\n';
+            retorno += 'print("%c",44);\n';
+            retorno += this.printString('t' + (contadorT++));
+           
+            retorno += 't' + t4 + '=t' + t4 + '+1;\n';
+            retorno += 'goto L' + l2 + ';\n';
+
+            retorno += 'L' + l + ':\n';
+            retorno += 'print("%c",110);\n'
+            retorno += 'print("%c",117);\n'
+            retorno += 'print("%c",108);\n'
+            retorno += 'print("%c",108);\n'
+        
+
+            retorno += 'L' + l3 + ':\n';
+        return retorno;
+    }
+
+    printArreglo = function printArreglo(t, tipo) {
+        let retorno = '';
+        
+            retorno += 'if(' + t + '==0) goto L' + (contadorL++)+';\n'
+
+            retorno += 't' + (contadorT) + '=Heap[' + t + '];\n';
+            retorno += 't' + (contadorT) +'=t' + (contadorT++) +'+'+t+ ';\n';
+
+            retorno += 't' + (contadorT++) + '=' + t + '+1;\n';
+
+            retorno += 't' + (contadorT++) + '=Heap[t' + (contadorT-2) + '];\n';
+
+            retorno += 't' + (contadorT++) + '=t' + (contadorT-3) + ';\n';
+
+            retorno += 'print(' + tipo + ',t' + (contadorT - 2) + ');\n'
+            
+            retorno += 't' + (contadorT - 1) + '=t' + (contadorT-1) + '+1;\n';
+            
+            retorno += 'L' + (contadorL++) + ':\n';
+
+            retorno += 'if(t'+(contadorT - 1)+'>t' + (contadorT - 4) + ') goto L' + (contadorL++) + ';\n';
+
+            retorno += 't' + (contadorT++) + '=Heap[t' + (contadorT - 2) + '];\n';
+            retorno += 'print("%c",44);\n';
+            retorno += 'print(' + tipo + ',t' + (contadorT - 1) + ');\n'
+            
+
+            retorno += 't' + (contadorT - 2) + '=t' + (contadorT - 2) + '+1;\n';
+            retorno += 'goto L' + (contadorL - 2) + ';\n';
+
+            retorno += 'L' + (contadorL - 3) + ':\n';
+            retorno += 'print("%c",110);\n'
+            retorno += 'print("%c",117);\n'
+            retorno += 'print("%c",108);\n'
+            retorno += 'print("%c",108);\n'
+        
+
+            retorno += 'L' + (contadorL - 1) + ':\n';
         return retorno;
     }
 
@@ -2414,6 +2618,10 @@ class AST {
                 case 'inicializando variable sin tipo':
                     this.hijos[i].inicializandoVariableSinTipoTS([0], 0);
                     break;
+                case 'inicializando arreglo':
+                    this.hijos[i].inicializandoArregloTS([0], 0);
+                    break;
+
             }
         }
 
@@ -3138,15 +3346,15 @@ class AST {
         let idAmbito = contadorA++;
 
         let simbolo = new tabla.simbolo('',
-        '',
-        padre,
-        idAmbito,
-        0,
-        0,
-        0,
-        '',
-        '',
-        0);
+            '',
+            padre,
+            idAmbito,
+            0,
+            0,
+            0,
+            '',
+            '',
+            0);
 
         tablaS.simbolos.push(simbolo)
 
@@ -3168,15 +3376,15 @@ class AST {
         let idAmbito = contadorA++;
 
         let simbolo = new tabla.simbolo('',
-        '',
-        padre,
-        idAmbito,
-        0,
-        0,
-        0,
-        '',
-        '',
-        0);
+            '',
+            padre,
+            idAmbito,
+            0,
+            0,
+            0,
+            '',
+            '',
+            0);
 
         tablaS.simbolos.push(simbolo)
         let nuevoPadre = []
@@ -3287,17 +3495,17 @@ class AST {
     sentenciaForTS = function sentenciaForTS(padre) {
         let idAmbito = contadorA++;
         let simbolo = new tabla.simbolo('',
-        '',
-        padre,
-        idAmbito,
-        0,
-        0,
-        0,
-        '',
-        '',
-        0);
+            '',
+            padre,
+            idAmbito,
+            0,
+            0,
+            0,
+            '',
+            '',
+            0);
 
-    tablaS.simbolos.push(simbolo)
+        tablaS.simbolos.push(simbolo)
         let nuevoPadre = []
 
         for (let i = 0; i < padre.length; i++) {
@@ -3340,15 +3548,15 @@ class AST {
         let idAmbito = contadorA++;
 
         let simbolo = new tabla.simbolo('',
-        '',
-        padre,
-        idAmbito,
-        0,
-        0,
-        0,
-        '',
-        '',
-        0);
+            '',
+            padre,
+            idAmbito,
+            0,
+            0,
+            0,
+            '',
+            '',
+            0);
 
         tablaS.simbolos.push(simbolo)
 
@@ -3423,6 +3631,10 @@ class AST {
                     this.hijos[i].inicializandoVariableSinTipoTS2(padre, idAmbito);
                     contadorVarables += 1
                     break;
+                case 'inicializando arreglo':
+                    this.hijos[i].inicializandoArregloTS2(padre, idAmbito);
+                    contadorVarables += 1
+                    break;
                 case 'return':
                     this.hijos[i].returnTS(padre, idAmbito);
                     contadorVarables += 1;
@@ -3432,6 +3644,96 @@ class AST {
         }
 
         return contadorVarables;
+    }
+
+    inicializandoArregloTS2 = function inicializandoArregloTS2(padre, idAmbito) {
+        let simbolo;
+
+        if (this.hijos.length == 2) {
+            simbolo = new tabla.simbolo(this.hijos[1].identificador.toLowerCase(),
+                this.hijos[0].identificador,
+                padre,
+                idAmbito,
+                0,
+                (contadorS++),
+                1,
+                'stack',
+                'variable',
+                0);
+
+            simbolo.arreglo = 1;
+            let err = tablaS.insertar(simbolo)
+            if (err == 'error') {
+                error.push(new Error('La variable \"' + simbolo.nombre + '\" ya existe.', this.hijos[1].linea, this.hijos[1].columna))
+            }
+
+        }
+        else {
+            if (this.hijos[1].hijos.length == 0) {
+                simbolo = new tabla.simbolo(this.hijos[1].identificador,
+                    this.hijos[0].identificador,
+                    padre,
+                    idAmbito,
+                    0,
+                    (contadorS++),
+                    1,
+                    'stack',
+                    'variable',
+                    0);
+
+                //simbolo.tamanoR = this.hijos[2].hijos.length;
+                simbolo.arreglo = 1
+                let err = tablaS.insertar(simbolo)
+                if (err == 'error') {
+                    error.push(new Error('La variable \"' + simbolo.nombre + '\" ya existe.', this.hijos[1].linea, this.hijos[1].columna))
+                }
+            }
+        }
+    }
+
+    inicializandoArregloTS = function inicializandoArregloTS(padre, idAmbito) {
+        let simbolo;
+
+        if (this.hijos.length == 2) {
+            simbolo = new tabla.simbolo(this.hijos[1].identificador.toLowerCase(),
+                this.hijos[0].identificador,
+                padre,
+                idAmbito,
+                (contadorH++),
+                0,
+                1,
+                'heap',
+                'variable',
+                0);
+
+            simbolo.arreglo = 1;
+            let err = tablaS.insertar(simbolo)
+            if (err == 'error') {
+                error.push(new Error('La variable \"' + simbolo.nombre + '\" ya existe.', this.hijos[1].linea, this.hijos[1].columna))
+            }
+
+        }
+        else {
+            if (this.hijos[1].hijos.length == 0) {
+                simbolo = new tabla.simbolo(this.hijos[1].identificador,
+                    this.hijos[0].identificador,
+                    padre,
+                    idAmbito,
+                    (contadorH++),
+                    0,
+                    1,
+                    'heap',
+                    'variable',
+                    0);
+
+                simbolo.tamanoR = this.hijos[2].hijos[0].hijos.length;
+                simbolo.arreglo = 1
+                let err = tablaS.insertar(simbolo)
+                if (err == 'error') {
+                    error.push(new Error('La variable \"' + simbolo.nombre + '\" ya existe.', this.hijos[1].linea, this.hijos[1].columna))
+                }
+            }
+        }
     }
 
     returnTS = function returnTS(padre, idAmbito) {
@@ -3449,39 +3751,28 @@ class AST {
         tablaS.insertarAsignacion(simbolo);
     }
 
-
     asignacionTS = function asignacionTS(padre, idAmbito) {
         let simbolo;
-
-        let resultado = this.hijos[1].obtenerExp(idAmbito);
-        if (this.hijos[0].hijos.length == 1) {
-            if (resultado.tipo == 'string') {
-                simbolo = new tabla.simbolo(this.hijos[0].hijos[0].hijos[0].identificador,
-                    resultado.tipo,
-                    padre,
-                    idAmbito,
-                    0,
-                    (contadorS++),
-                    1,
-                    'stack',
-                    'variable',
-                    0);
-            }
-            else {
-                simbolo = new tabla.simbolo(this.hijos[0].hijos[0].hijos[0].identificador,
-                    resultado.tipo,
-                    padre,
-                    idAmbito,
-                    0,
-                    (contadorS++),
-                    1,
-                    'stack',
-                    'variable',
-                    0);
-
-            }
-            return tablaS.insertarAsignacion(simbolo)
+        if (this.hijos[1].identificador != 'listaExpresiones') {
+            return 0
         }
+
+        if (this.hijos[0].hijos.length == 1) {
+            simbolo = new tabla.simbolo(this.hijos[0].hijos[0].hijos[0].identificador,
+                'arreglo',
+                padre,
+                idAmbito,
+                0,
+                (contadorS++),
+                1,
+                'stack',
+                'variable',
+                0);
+
+        }
+        tablaS.insertarAsignacion(simbolo)
+
+        return 1;
     }
 
 } exports.AST = AST;

@@ -213,5 +213,7 @@ class simbolo {
         this.tipoSH = p8;
         this.funcionaldad = p9;
         this.constante = p10;
+        this.tamanoR = 0;
+        this.arreglo = 0;
     }
 } exports.simbolo = simbolo

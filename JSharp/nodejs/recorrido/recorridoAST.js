@@ -196,8 +196,8 @@ function tablaS() {
 
         let padres = '';
 
-        for(let i=0;i<tab[i].padre.length;i++){
-            padres += tab[i].padre[i]+' ';
+        for(let j=0;j<tab[i].padre.length;j++){
+            padres += tab[i].padre[j]+' ';
         }
 
         tablaHtml += '\t\t\t\t<td>\n';

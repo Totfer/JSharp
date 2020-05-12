@@ -608,6 +608,33 @@ declaracion_variables : tipoVCG id inicializador_variable
         {
             $$ = yy.crearNodo('inicializando variable con tipo',0,0,[yy.crearHoja($1,@1.first_line,@1.first_column),yy.crearHoja($2,@2.first_line,@2.first_column)]);
         }
+    | tipoDato '[' ']' id  
+        {
+            $$ = yy.crearNodo('inicializando arreglo',0,0,[$1,yy.crearHoja($4,@4.first_line,@4.first_column)]);
+        }
+    | tipoDato '[' ']' id inicializador_variable
+        {            
+            if($5 == ''){
+                $$ = yy.crearNodo('inicializando arreglo',0,0,[$1,yy.crearHoja($4,@4.first_line,@4.first_column)]);
+            }
+            else{
+                $$ = yy.crearNodo('inicializando arreglo',0,0,[$1,yy.crearHoja($4,@4.first_line,@4.first_column),$5]);
+            }
+
+        }
+    | id '[' ']' id  
+        {
+            $$ = yy.crearNodo('inicializando arreglo',0,0,[yy.crearHoja($1,@1.first_line,@1.first_column),yy.crearHoja($4,@4.first_line,@4.first_column)]);
+        }
+    | id '[' ']' id inicializador_variable
+        {   
+            if($5 == ''){
+                $$ = yy.crearNodo('inicializando arreglo',0,0,[yy.crearHoja($1,@1.first_line,@1.first_column),yy.crearHoja($4,@4.first_line,@4.first_column)]);
+            }
+            else{
+                $$ = yy.crearNodo('inicializando arreglo',0,0,[yy.crearHoja($1,@1.first_line,@1.first_column),yy.crearHoja($4,@4.first_line,@4.first_column),$5]);
+            }
+        }
 ;
 
 declaracionVariablesFor : tipoVCG id inicializadorVariableFor 
@@ -656,6 +683,8 @@ inicializador_variable : ':=' EXP ';'{$$ = yy.crearNodo('EXP',0,0,[$2,yy.crearHo
     | '=' EXP ';' {$$ = yy.crearNodo('EXP',@1.first_line,@1.first_column,[$2,yy.crearHoja($1,@1.first_line,@1.first_column)]);}
     | '=' EXP     {$$ = yy.crearNodo('EXP',@1.first_line,@1.first_column,[$2,yy.crearHoja($1,@1.first_line,@1.first_column)]);}
     | ';'          {$$ = ''}
+    | '=' '{' listaExp '}' ';' {$$ = yy.crearNodo('arreglo',@1.first_line,@1.first_column,[$3]);}
+    | '=' '{' listaExp '}'     {$$ = yy.crearNodo('arreglo',@1.first_line,@1.first_column,[$3]);}
 ;
 
 inicializadorVariableFor : ':=' EXP      {$$ = yy.crearNodo('EXP',@1.first_line,@1.first_column,[$2]);}
@@ -680,19 +709,19 @@ asignacion : listaIdVecFun '=' EXP ';'
         }
     | listaIdVecFun ':=' '{' listaExp '}'
         {
-            $$ = yy.crearNodo('arreglo',0,0,[$1,$4,yy.crearHoja($2,@2.first_line,@2.first_column)]);
+            $$ = yy.crearNodo('asignacion',0,0,[$1,$4,yy.crearHoja($2,@2.first_line,@2.first_column)]);
         }
     | listaIdVecFun '=' '{' listaExp '}'
         {
-            $$ = yy.crearNodo('arreglo',0,0,[$1,$4,yy.crearHoja($2,@2.first_line,@2.first_column)]);
+            $$ = yy.crearNodo('asignacion',0,0,[$1,$4,yy.crearHoja($2,@2.first_line,@2.first_column)]);
         }
     | listaIdVecFun ':=' '{' listaExp '}' ';'
         {
-            $$ = yy.crearNodo('arreglo',0,0,[$1,$4,yy.crearHoja($2,@2.first_line,@2.first_column)]);
+            $$ = yy.crearNodo('asignacion',0,0,[$1,$4,yy.crearHoja($2,@2.first_line,@2.first_column)]);
         }
     | listaIdVecFun '=' '{' listaExp '}' ';'
         {
-            $$ = yy.crearNodo('arreglo',0,0,[$1,$4,yy.crearHoja($2,@2.first_line,@2.first_column)]);
+            $$ = yy.crearNodo('asignacion',0,0,[$1,$4,yy.crearHoja($2,@2.first_line,@2.first_column)]);
         }
 ;
 
