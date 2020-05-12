@@ -750,6 +750,11 @@ tipoId : id
 			hoja = yy.crearHoja($1,@1.first_line,@1.first_column)
 			$$ = yy.crearNodo('identificador',@1.first_line,@1.first_column,[hoja])
 		}
+        | id '[' EXP ']' 
+		{
+			hoja = yy.crearHoja($1,@1.first_line,@1.first_column)
+			$$ = yy.crearNodo('arreglo',@1.first_line,@1.first_column,[hoja,$3])
+		}
 ;
 
 tipoDato: "integer"   {$$ = yy.crearHoja('integer',@1.first_line,@1.first_column)}
@@ -836,6 +841,10 @@ literal : entero
     | id '--'
         {
             $$ = yy.crearNodo('decremento',0,0,[yy.crearHoja($1,@1.first_line,@1.first_column)])   
+        }
+    | id '[' EXP ']'
+        {
+            $$ = yy.crearNodo('acceso a arreglo',0,0,[yy.crearHoja($1,@1.first_line,@1.first_column),$3])   
         }
     | llamadaFuncion2
         {

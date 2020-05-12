@@ -103,10 +103,10 @@ class AST {
         let retorno = new retornoAST('', 0, '', '', '');
         let valor
         contadorA++
-        
+
         for (let i = 0; i < this.hijos.length; i++) {
             switch (this.hijos[i].identificador) {
-                 case 'inicializando variable con tipo':
+                case 'inicializando variable con tipo':
                     valor = this.hijos[i].inicializandoVariable(0);
                     retorno.c3d += valor.c3d;
                     break;
@@ -121,7 +121,7 @@ class AST {
             }
         }
         (contadorL++)
-        retorno.c3d += 'goto L0;\n' 
+        retorno.c3d += 'goto L0;\n'
         for (let i = 0; i < this.hijos.length; i++) {
             switch (this.hijos[i].identificador) {
                 case 'import':
@@ -437,7 +437,6 @@ class AST {
     compilarAsignacion = function compilarAsignacion(idAmbito) {
         let retorno = new retornoAST('', 0, '', '', '');
 
-        retorno.c3d = resultado.c3d
         if (this.hijos[0].hijos.length == 1) {
             let posicion = tablaS.obtenerPosicionStack(this.hijos[0].hijos[0].hijos[0].identificador, idAmbito);
 
@@ -613,7 +612,7 @@ class AST {
 
         let retorno = new retornoAST('', 0, '', '', '');
 
-        if (this.hijos.length==2) {
+        if (this.hijos.length == 2) {
             let valor = this.obtenerTipoDefecto(this.hijos[0].identificador.toLowerCase());
             let valort = 't' + (contadorT);
             retorno.c3d += 't' + (contadorT++) + '=' + valor + ';\n'
@@ -652,8 +651,8 @@ class AST {
         retorno.c3d += 't' + (contadorT++) + ' = H;\n'
         retorno.c3d += 'Heap[H] = ' + this.hijos[0].hijos.length + ';\n';
         retorno.c3d += 'H = H + 1;\n';
-   
-        for (let i = 0; i <ts.length ; i++) {    
+
+        for (let i = 0; i < ts.length; i++) {
             retorno.c3d += 'Heap[H] = ' + ts[i] + ';\n';
             retorno.c3d += 'H = H + 1;\n';
         }
@@ -668,7 +667,7 @@ class AST {
 
         let retorno = new retornoAST('', 0, '', '', '');
 
-        if (this.hijos.length==2) {
+        if (this.hijos.length == 2) {
             let valor = this.obtenerTipoDefecto(this.hijos[0].identificador.toLowerCase());
             let valort = 't' + (contadorT);
             retorno.c3d += 't' + (contadorT++) + '=' + valor + ';\n'
@@ -1659,8 +1658,72 @@ class AST {
                 return this.hijos[0].compilarDecremento(idAmbito);
             case 'llamadaFuncion':
                 return this.hijos[0].compilarLlamadaAFuncion(idAmbito);
+            case 'acceso a arreglo':
+                return this.hijos[0].compilarAccesoArreglo(idAmbito);
             default:
         }
+    }
+
+    compilarAccesoArreglo = function compilarAccesoArreglo(idAmbito) {
+        let valor = tablaS.obtenerSimbolo(this.hijos[0].identificador, idAmbito);
+
+        if (valor != 'error') {
+            let retorno = new retornoAST('', 0, '', '', '');
+            let retorno1 = new retornoAST('', 0, '', '', '');
+
+
+            if (valor.tipoSH == 'heap') {
+                retorno.t = 't' + (contadorT);
+                retorno.c3d += 't' + (contadorT++) + '=Heap[' + valor.posicionH + '];\n';
+            }
+            else {
+                let tamano = tablaS.obtenerTamanoFuncion(this.hijos[0].identificador, idAmbito);
+                retorno.c3d += 't' + (contadorT++) + '=P-' + valor.posicionS + ';\n';
+                retorno.c3d += 't' + (contadorT++) + '=Stack[t' + (contadorT - 2) + '];\n';
+                retorno.t = 't' + (contadorT - 1);
+            }
+
+            retorno1.tipo = valor.tipo
+            retorno1.tamano = valor.tamanoR;
+        
+            let resultado = this.hijos[1].obtenerExp(idAmbito);
+            let resultado2 = this.obtenerPoscionArreglo(retorno.t,resultado.t)
+            
+            retorno1.c3d += retorno.c3d
+            retorno1.c3d += resultado.c3d
+            retorno1.c3d += resultado2.c3d
+            retorno1.t = resultado2.t
+
+            return retorno1
+        }
+        else {
+            let err = new Error('La variable ' + this.hijos[0].identificador +
+                ' no existe', this.hijos[0].linea, this.hijos[0].columna);
+
+            error.push(err)
+        }
+    }
+
+    obtenerPoscionArreglo = function obtenerPoscionArreglo(arreglo, posicion){        
+        let retorno = new retornoAST('', 0, '', '', '');
+
+        retorno.t = 't'+(contadorT++)
+
+        retorno.c3d += 't'+(contadorT++) + '=' + 'Heap['+arreglo+'];\n'
+
+        retorno.c3d += 't'+(contadorT++) + '=' + arreglo +'+1;\n' 
+        
+        retorno.c3d += 'if(' +posicion+'>t'+(contadorT-2) +') goto L'+(contadorL++)+';\n' 
+
+        retorno.c3d += 't'+(contadorT - 1) + '=t' +(contadorT - 1) +'+'+ posicion + ';\n' 
+
+        retorno.c3d += retorno.t + '=' + 'Heap[t'+(contadorT-1)+'];\n'
+        
+        retorno.c3d += 'goto L'+(contadorL++)+';\n'
+        retorno.c3d += 'L'+(contadorL-2)+':\n'
+        retorno.c3d += retorno.t +'=0;\n'
+        retorno.c3d += 'L'+(contadorL-1)+':\n'
+        return retorno
     }
 
     obtenerValorIdentificador = function obtenerValorIdentificador(idAmbito) {
@@ -2059,12 +2122,12 @@ class AST {
                 break;
         }
 
-        
-        if (ambitoRetorno.arreglo == 1){
-            if(ambitoRetorno.tipo == 'string'){
+
+        if (ambitoRetorno.arreglo == 1) {
+            if (ambitoRetorno.tipo == 'string') {
                 c3d += this.printArregloString(ambitoRetorno.t);
-            }else{
-                c3d += ambitoRetorno.c3d 
+            } else {
+                c3d += ambitoRetorno.c3d
                 c3d += this.printArreglo(ambitoRetorno.t, tipo, ambitoRetorno.tamano);
             }
         }
@@ -2089,85 +2152,85 @@ class AST {
 
     printArregloString = function printArregloString(t, tipo) {
         let retorno = '';
-        
-            let l = (contadorL++);
-            retorno += 'if(' + t + '==0) goto L' + l +';\n'
 
-            retorno += 't' + (contadorT) + '=Heap[' + t + '];\n';
-            retorno += 't' + (contadorT) +'=t' + (contadorT) +'+'+t+ ';\n';
-            let t1 = (contadorT++)
-            retorno += 't' + (contadorT) + '=' + t + '+1;\n';
-            let t2 = (contadorT++)
-            retorno += 't' + (contadorT) + '=Heap[t' + (contadorT-1) + '];\n';
-            let t3 = (contadorT++)
-            retorno += 't' + (contadorT) + '=t' + (contadorT-2) + ';\n';
-            let t4 = (contadorT++)
-            retorno += this.printString('t' + (contadorT - 2));
-            
-            retorno += 't' + t4 + '=t' + t4 + '+1;\n';
-            
-            let l2 = (contadorL)
-            retorno += 'L' + (contadorL++) + ':\n';
+        let l = (contadorL++);
+        retorno += 'if(' + t + '==0) goto L' + l + ';\n'
 
-            let l3 = (contadorL)
-            retorno += 'if(t'+ t4 +'>t' + t1 + ') goto L' + (contadorL++) + ';\n';
+        retorno += 't' + (contadorT) + '=Heap[' + t + '];\n';
+        retorno += 't' + (contadorT) + '=t' + (contadorT) + '+' + t + ';\n';
+        let t1 = (contadorT++)
+        retorno += 't' + (contadorT) + '=' + t + '+1;\n';
+        let t2 = (contadorT++)
+        retorno += 't' + (contadorT) + '=Heap[t' + (contadorT - 1) + '];\n';
+        let t3 = (contadorT++)
+        retorno += 't' + (contadorT) + '=t' + (contadorT - 2) + ';\n';
+        let t4 = (contadorT++)
+        retorno += this.printString('t' + (contadorT - 2));
 
-            retorno += 't' + (contadorT) + '=Heap[t' + t4 + '];\n';
-            retorno += 'print("%c",44);\n';
-            retorno += this.printString('t' + (contadorT++));
-           
-            retorno += 't' + t4 + '=t' + t4 + '+1;\n';
-            retorno += 'goto L' + l2 + ';\n';
+        retorno += 't' + t4 + '=t' + t4 + '+1;\n';
 
-            retorno += 'L' + l + ':\n';
-            retorno += 'print("%c",110);\n'
-            retorno += 'print("%c",117);\n'
-            retorno += 'print("%c",108);\n'
-            retorno += 'print("%c",108);\n'
-        
+        let l2 = (contadorL)
+        retorno += 'L' + (contadorL++) + ':\n';
 
-            retorno += 'L' + l3 + ':\n';
+        let l3 = (contadorL)
+        retorno += 'if(t' + t4 + '>t' + t1 + ') goto L' + (contadorL++) + ';\n';
+
+        retorno += 't' + (contadorT) + '=Heap[t' + t4 + '];\n';
+        retorno += 'print("%c",44);\n';
+        retorno += this.printString('t' + (contadorT++));
+
+        retorno += 't' + t4 + '=t' + t4 + '+1;\n';
+        retorno += 'goto L' + l2 + ';\n';
+
+        retorno += 'L' + l + ':\n';
+        retorno += 'print("%c",110);\n'
+        retorno += 'print("%c",117);\n'
+        retorno += 'print("%c",108);\n'
+        retorno += 'print("%c",108);\n'
+
+
+        retorno += 'L' + l3 + ':\n';
         return retorno;
     }
 
     printArreglo = function printArreglo(t, tipo) {
         let retorno = '';
-        
-            retorno += 'if(' + t + '==0) goto L' + (contadorL++)+';\n'
 
-            retorno += 't' + (contadorT) + '=Heap[' + t + '];\n';
-            retorno += 't' + (contadorT) +'=t' + (contadorT++) +'+'+t+ ';\n';
+        retorno += 'if(' + t + '==0) goto L' + (contadorL++) + ';\n'
 
-            retorno += 't' + (contadorT++) + '=' + t + '+1;\n';
+        retorno += 't' + (contadorT) + '=Heap[' + t + '];\n';
+        retorno += 't' + (contadorT) + '=t' + (contadorT++) + '+' + t + ';\n';
 
-            retorno += 't' + (contadorT++) + '=Heap[t' + (contadorT-2) + '];\n';
+        retorno += 't' + (contadorT++) + '=' + t + '+1;\n';
 
-            retorno += 't' + (contadorT++) + '=t' + (contadorT-3) + ';\n';
+        retorno += 't' + (contadorT++) + '=Heap[t' + (contadorT - 2) + '];\n';
 
-            retorno += 'print(' + tipo + ',t' + (contadorT - 2) + ');\n'
-            
-            retorno += 't' + (contadorT - 1) + '=t' + (contadorT-1) + '+1;\n';
-            
-            retorno += 'L' + (contadorL++) + ':\n';
+        retorno += 't' + (contadorT++) + '=t' + (contadorT - 3) + ';\n';
 
-            retorno += 'if(t'+(contadorT - 1)+'>t' + (contadorT - 4) + ') goto L' + (contadorL++) + ';\n';
+        retorno += 'print(' + tipo + ',t' + (contadorT - 2) + ');\n'
 
-            retorno += 't' + (contadorT++) + '=Heap[t' + (contadorT - 2) + '];\n';
-            retorno += 'print("%c",44);\n';
-            retorno += 'print(' + tipo + ',t' + (contadorT - 1) + ');\n'
-            
+        retorno += 't' + (contadorT - 1) + '=t' + (contadorT - 1) + '+1;\n';
 
-            retorno += 't' + (contadorT - 2) + '=t' + (contadorT - 2) + '+1;\n';
-            retorno += 'goto L' + (contadorL - 2) + ';\n';
+        retorno += 'L' + (contadorL++) + ':\n';
 
-            retorno += 'L' + (contadorL - 3) + ':\n';
-            retorno += 'print("%c",110);\n'
-            retorno += 'print("%c",117);\n'
-            retorno += 'print("%c",108);\n'
-            retorno += 'print("%c",108);\n'
-        
+        retorno += 'if(t' + (contadorT - 1) + '>t' + (contadorT - 4) + ') goto L' + (contadorL++) + ';\n';
 
-            retorno += 'L' + (contadorL - 1) + ':\n';
+        retorno += 't' + (contadorT++) + '=Heap[t' + (contadorT - 2) + '];\n';
+        retorno += 'print("%c",44);\n';
+        retorno += 'print(' + tipo + ',t' + (contadorT - 1) + ');\n'
+
+
+        retorno += 't' + (contadorT - 2) + '=t' + (contadorT - 2) + '+1;\n';
+        retorno += 'goto L' + (contadorL - 2) + ';\n';
+
+        retorno += 'L' + (contadorL - 3) + ':\n';
+        retorno += 'print("%c",110);\n'
+        retorno += 'print("%c",117);\n'
+        retorno += 'print("%c",108);\n'
+        retorno += 'print("%c",108);\n'
+
+
+        retorno += 'L' + (contadorL - 1) + ':\n';
         return retorno;
     }
 
