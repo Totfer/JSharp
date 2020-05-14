@@ -536,6 +536,7 @@ function optimizarCodigo(actual) {
 exports.optimizarCodigo = optimizarCodigo;
 
 
+
 function obtenerValorOptimisacion(valor) {
     if (valor.nombre == undefined) {
         return valor;
@@ -555,7 +556,7 @@ function listaOptimisacion(actual) {
     for (var i = 0; i < actual.hijos.length; i++) {
         let omite = false;
         for (let j = 0; j < omitir.length; j++) {
-            if(i==omitir[j]){
+            if (i == omitir[j]) {
                 omite = true;
             }
         }
@@ -593,9 +594,9 @@ function listaOptimisacion(actual) {
                                                         operador = '<';
                                                         break;
                                                     case '==':
-                                                        operador = '!=';
+                                                        operador = '<>';
                                                         break;
-                                                    case '!=':
+                                                    case '<>':
                                                         operador = '==';
                                                         break;
                                                 }
@@ -721,6 +722,11 @@ function listaOptimisacion(actual) {
                             }
                         }
                     }
+                    else if (actual.hijos[j].nombre == 'declaracion metodo') {
+                        op = false;
+                        op2 = true;
+                        break;
+                    }
                 }
                 if (op) {
                     for (j = i; j < actual.hijos.length; j++) {
@@ -735,7 +741,7 @@ function listaOptimisacion(actual) {
                                 cadena += ':\n';
                                 i = j;
                                 let opt = { exp: '', result: '', regla: 0 };
-                                opt.regla = 'Eliminacion de codigo inalcanzable';
+                                opt.regla = 2;
                                 opt.result = actual.hijos[j].hijos[0].nombre + ':\n';
 
                                 opt.exp += 'goto ' + actual.hijos[i].hijos[0].nombre + ';\n';
@@ -759,8 +765,8 @@ function listaOptimisacion(actual) {
                 break;
             case 'asignacion1':
                 cadena += actual.hijos[i].hijos[0].nombre + '=' + actual.hijos[i].hijos[1].hijos[0].nombre + ';\n';
-                let posOm = optimizacion1(i+1, actual, actual.hijos[i].hijos[0].nombre, actual.hijos[i].hijos[1].hijos[0].nombre)
-                if(posOm != ''){
+                let posOm = optimizacion1(i + 1, actual, actual.hijos[i].hijos[0].nombre, actual.hijos[i].hijos[1].hijos[0].nombre)
+                if (posOm != '') {
                     omitir.push(posOm)
                 }
                 break;
@@ -1005,19 +1011,20 @@ function optimizacion1(contador, actual, t1, t2) {
                 }
                 break;
             case 'asignacion1':
-                if (t2 == actual.hijos[i].hijos[0].nombre &&
-                    t1 == actual.hijos[i].hijos[1].hijos[0].nombre) {
-                        
-                        let opt = { exp: '', result: '', regla: 0 };
-                        opt.regla = 'Eliminacion de instrucciones redundantes de carga y almacenamiento';
-                        opt.result = t1+'='+t2+';\n'
-                        opt.result += '...\n';
+                let tm1  = actual.hijos[i].hijos[0].nombre;
+                let tm2  = actual.hijos[i].hijos[1].hijos[0].nombre;
+                if (t2 == tm1 && t1 == tm2) {
 
-                        opt.exp += t1+'='+t2+';\n'
-                        opt.exp += '...\n';
-                        opt.exp += t2+'='+t1+';\n'
+                    let opt = { exp: '', result: '', regla: 0 };
+                    opt.regla = 1;
+                    opt.result = t1 + '=' + t2 + ';\n'
+                    opt.result += '...\n';
 
-                        tablaOptimisacion.push(opt);
+                    opt.exp += t1 + '=' + t2 + ';\n'
+                    opt.exp += '...\n';
+                    opt.exp += t2 + '=' + t1 + ';\n'
+
+                    tablaOptimisacion.push(opt);
 
                     return i
                 }
@@ -1032,3 +1039,370 @@ function optimizacion1(contador, actual, t1, t2) {
     }
     return ''
 }
+
+
+function crearGrafo(actual) {
+    var grafo = "digraph G {\n"; 
+    grafo += recorrerArbol(actual.hijos[0]);
+    grafo += '}'
+
+    console.log(grafo);
+
+    return grafo;
+}
+exports.crearGrafo = crearGrafo;
+
+var contC = 0;
+function recorrerArbol(actual) {
+    var cadena = '';
+    let dot = ''
+    let omitir = []
+    let l = '';
+    let l2 = 0;
+    let actualL = ''
+    let ln = 1;
+    for (var i = 0; i < actual.hijos.length; i++) {
+        switch (actual.hijos[i].nombre) {
+            case 'asignacion2':
+                cadena += optimisacionesAlgebraicas(actual.hijos[i]) + '\\n';
+                break;
+            case 'if':
+                if(l2 == 1){
+                    dot += "\"" + actualL + "\" [color=blue shape=Msquare label =\"" + cadena + "\"];\n";
+                    l2 = 0;
+                    cadena = '';
+                    dot += "\""+actualL+"\"->\"g" + actual.hijos[i].hijos[3].nombre + "\";\n"
+                    actualL = ''
+                }    
+                
+                cadena += 'if(' + obtenerValorOptimisacion(actual.hijos[i].hijos[0]) + actual.hijos[i].hijos[1].nombre + obtenerValorOptimisacion(actual.hijos[i].hijos[2]) + ') goto ' + actual.hijos[i].hijos[3].nombre + ';\\n';
+
+                dot += "\"g" + actual.hijos[i].hijos[3].nombre + "\" [color=blue shape=Msquare label =\"" + cadena + "\"];\n";
+                dot += "\"g" + actual.hijos[i].hijos[3].nombre + "\"->\"" + actual.hijos[i].hijos[3].nombre + "\";\n"
+
+                l = actual.hijos[i].hijos[3].nombre;                
+                cadena = ''
+                
+                break;
+            case 'saltar':
+                if(l2 == 1){
+                    dot += "\"" + actualL + "\" [color=blue shape=Msquare label =\"" + cadena + "\"];\n";
+                    l2 = 0;
+                    cadena = '';
+                    ln = 0;
+                    dot += "\""+actualL+"\"->\"g" + actual.hijos[i].hijos[0].nombre + "\";\n"
+                    actualL = ''
+                }  
+                  
+                if(l != ''){
+                    dot += "\"g"+l+"\"->\"g" + actual.hijos[i].hijos[0].nombre + "\";\n"
+                }    
+
+                cadena += 'goto ' + actual.hijos[i].hijos[0].nombre + ';\\n';
+
+                dot += "\"g" + actual.hijos[i].hijos[0].nombre + "\" [color=blue shape=Msquare label =\"" + cadena + "\"];\n";
+                dot += "\"g" + actual.hijos[i].hijos[0].nombre + "\"->\"" + actual.hijos[i].hijos[0].nombre + "\";\n"
+                
+                cadena = '';
+
+                break;
+            case 'asignacion1':
+                cadena += actual.hijos[i].hijos[0].nombre + '=' + actual.hijos[i].hijos[1].hijos[0].nombre + ';\\n';
+                let posOm = optimizacion1(i + 1, actual, actual.hijos[i].hijos[0].nombre, actual.hijos[i].hijos[1].hijos[0].nombre)
+                if (posOm != '') {
+                    omitir.push(posOm)
+                }
+                break;
+            case 'stack1':
+                cadena += 'stack[' + actual.hijos[i].hijos[0].hijos[0].nombre + ']=' + actual.hijos[i].hijos[1].hijos[0].nombre + ';\\n';
+                break;
+            case 'stack2':
+                cadena += actual.hijos[i].hijos[0].hijos[0].nombre + '=stack[' + actual.hijos[i].hijos[1].hijos[0].nombre + '];\\n';
+                break;
+            case 'salto':
+                                
+                if(actualL!=''){     
+                    dot += "\""+actualL+"\"->\"" + actual.hijos[i].hijos[0].nombre + "\";\n"
+               
+                    dot += "\"" + actualL + "\" [color=blue shape=Msquare label =\"" + cadena + "\"];\n";
+                }    
+                actualL = actual.hijos[i].hijos[0].nombre;
+                l2 = 1
+                
+                cadena = ''
+                break;
+            case 'print':
+                cadena += 'print(\\"%' + actual.hijos[i].hijos[0].nombre + '\\",' + actual.hijos[i].hijos[1].nombre + ');\\n';
+                break;
+            case 'println':
+                cadena += 'println(\\"%' + actual.hijos[i].hijos[0].nombre + '\\",' + actual.hijos[i].hijos[1].nombre + ');\\n';
+                break;
+            case 'invocacion metodo':
+                cadena += 'call ' + actual.hijos[i].hijos[0].nombre + ';\\n';
+                break;
+            case 'declaracion metodo':
+                
+                cadena += 'proc ' + actual.hijos[i].hijos[0].nombre + ' begin\\n';
+                dot += "subgraph cluster_"+contC+" {\n"
+                dot += 'label = \"'+actual.hijos[i].hijos[0].nombre + '\";\n'
+                dot += 'color=green;\n'
+                contC++;
+                dot += recorrerArbol(actual.hijos[i].hijos[1]);
+                dot += '}\n'
+               
+                cadena += 'end\n';
+                break;
+            case 'declaracion variable asignacion':
+                cadena += 'var ' + actual.hijos[i].hijos[0].nombre + '=' + actual.hijos[i].hijos[1].hijos[0].nombre + ';\\n';
+                break;
+            case 'heap1':
+                cadena += 'heap[' + actual.hijos[i].hijos[0].hijos[0].nombre + ']=' + actual.hijos[i].hijos[1].hijos[0].nombre + ';\\n';
+                break;
+            case 'heap2':
+                cadena += actual.hijos[i].hijos[0].hijos[0].nombre + '=heap[' + actual.hijos[i].hijos[1].hijos[0].nombre + '];\\n';
+                break;
+            case 'param':
+                cadena += 'param;\\n';
+                break;
+        }
+    }
+    dot += "\"" + actualL + "\" [color=blue shape=Msquare label =\"" + cadena + "\"];\n";
+              
+    return dot;
+}
+
+
+function optimizarCodigo2(actual) {
+    return listaOptimisacion2(actual.hijos[0]);
+}
+
+function listaOptimisacion2(actual) {
+    var cadena = '';
+    let omitir = []
+    for (var i = 0; i < actual.hijos.length; i++) {
+        let omite = false;
+        for (let j = 0; j < omitir.length; j++) {
+            if (i == omitir[j]) {
+                omite = true;
+            }
+        }
+        if (omite) {
+            omite = false;
+            continue
+        }
+        switch (actual.hijos[i].nombre) {
+            case 'asignacion2':
+                cadena += optimisacionesAlgebraicas(actual.hijos[i]) + '\n';
+                break;
+            case 'if':
+                var op = true;
+                var del = true;
+                if (actual.hijos[i + 1] != undefined) {
+                    if (actual.hijos[i + 1].nombre == 'saltar') {
+                        if (actual.hijos[i].hijos[1].nombre == '==') {
+                            if (actual.hijos[i].hijos[0].hijos[0].nombre != undefined && actual.hijos[i].hijos[2].hijos[0].nombre != undefined) {
+                                if ((actual.hijos[i].hijos[2].nombre == 'decimal' || actual.hijos[i].hijos[2].nombre.toLowerCase() == 'entero' || actual.hijos[i].hijos[2].nombre == 'char') && (actual.hijos[i].hijos[0].nombre == 'decimal' || actual.hijos[i].hijos[0].nombre.toLowerCase() == 'entero' || actual.hijos[i].hijos[0].nombre == 'char')) {
+                                    var valor = EXP(actual.hijos[i].hijos[1].nombre, obtenerValor(actual.hijos[i].hijos[0]), obtenerValor(actual.hijos[i].hijos[2]));
+
+                                    if (valor == '1') {
+                                        cadena += 'goto ' + actual.hijos[i].hijos[3].nombre + ';\n';
+                                        let opt = { exp: '', result: '', regla: 0 };
+                                        opt.regla = 4;
+                                        opt.result += 'goto ' + actual.hijos[i].hijos[3].nombre + ';\n';
+
+                                        opt.exp += 'if(' + actual.hijos[i].hijos[0].hijos[0].nombre + actual.hijos[i].hijos[1].nombre + actual.hijos[i].hijos[2].hijos[0].nombre + ') goto ' + actual.hijos[i].hijos[3].nombre + ';\n';
+                                        opt.exp += 'goto ' + actual.hijos[i + 1].hijos[0].nombre + ';\n';
+                                        tablaOptimisacion.push(opt);
+                                        op = false;
+                                        i++;
+                                        break;
+                                    }
+                                    if (valor == '0') {
+                                        let ret = optimizacion19(i,actual,actual.hijos[i].hijos[3].nombre)
+                                        let opt = { exp: '', result: '', regla: 0 };
+                                        opt.regla = 19;
+                                        opt.result += '';
+
+                                        opt.exp += 'if(' + actual.hijos[i].hijos[0].hijos[0].nombre + actual.hijos[i].hijos[1].nombre + actual.hijos[i].hijos[2].hijos[0].nombre + ') goto ' + actual.hijos[i].hijos[3].nombre + ';\n';
+                                        opt.exp += '...\n';
+                                        opt.exp += actual.hijos[i].hijos[3].nombre+':\n'
+                                        tablaOptimisacion.push(opt);
+                                        op = false;
+                                        i = ret.i;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                var op2 = true;
+                if (op) {
+                    for (j = i; j < actual.hijos.length; j++) {
+                        if (actual.hijos[j].nombre == 'salto') {
+                            if (actual.hijos[j].hijos[0].nombre == actual.hijos[i].hijos[3].nombre) {
+                                if (actual.hijos[j + 1] != undefined) {
+                                    if (actual.hijos[j + 1].nombre == 'saltar') {
+                                        cadena += 'if(' + actual.hijos[i].hijos[0].hijos[0].nombre + actual.hijos[i].hijos[1].nombre + actual.hijos[i].hijos[2].hijos[0].nombre + ') goto ' + actual.hijos[j + 1].hijos[0].nombre + ';\n';
+                                        let opt = { exp: '', result: '', regla: 0 };
+                                        opt.regla = 7;
+                                        opt.result += 'if(' + actual.hijos[i].hijos[0].hijos[0].nombre + actual.hijos[i].hijos[1].nombre + actual.hijos[i].hijos[2].hijos[0].nombre + ') goto ' + actual.hijos[j + 1].hijos[0].nombre + ';\n';
+                                        opt.result += '...\n';
+                                        opt.result += actual.hijos[j].hijos[0].nombre + ':\n';
+                                        opt.result += 'goto ' + actual.hijos[j + 1].hijos[0].nombre + ';\n';
+
+                                        opt.exp += 'if(' + actual.hijos[i].hijos[0].hijos[0].nombre + actual.hijos[i].hijos[1].nombre + actual.hijos[i].hijos[2].hijos[0].nombre + ') goto ' + actual.hijos[i].hijos[3].nombre + ';\n';
+                                        opt.exp += '...\n';
+                                        opt.exp += actual.hijos[j].hijos[0].nombre + ':\n';
+                                        opt.exp += 'goto ' + actual.hijos[j + 1].hijos[0].nombre + ';\n';
+                                        op2 = false;
+                                        tablaOptimisacion.push(opt);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                if (op2) {
+                    cadena += 'if(' + obtenerValorOptimisacion(actual.hijos[i].hijos[0]) + actual.hijos[i].hijos[1].nombre + obtenerValorOptimisacion(actual.hijos[i].hijos[2]) + ') goto ' + actual.hijos[i].hijos[3].nombre + ';\n';
+                }
+                break;
+
+            case 'ifFalse':
+                cadena += 'ifFalse(' + obtenerValorOptimisacion(actual.hijos[i].hijos[0]) + actual.hijos[i].hijos[1].nombre + obtenerValorOptimisacion(actual.hijos[i].hijos[2]) + ') goto ' + actual.hijos[i].hijos[3].nombre + ';\n'
+                break;
+            case 'saltar':
+                var op = true;
+                var op2 = true;
+                for (j = i; j < actual.hijos.length; j++) {
+                    if (actual.hijos[j].nombre == 'salto') {
+                        if (actual.hijos[j].hijos[0].nombre == actual.hijos[i].hijos[0].nombre) {
+                            if (actual.hijos[j + 1] != undefined) {
+                                if (actual.hijos[j + 1].nombre == 'saltar') {
+                                    cadena += 'goto ' + actual.hijos[j + 1].hijos[0].nombre + ';\n';
+                                    let opt = { exp: '', result: '', regla: 0 };
+                                    opt.regla = 6;
+                                    opt.result += 'goto ' + actual.hijos[j + 1].hijos[0].nombre + ';\n';
+                                    opt.result += '...\n';
+                                    opt.result += actual.hijos[j].hijos[0].nombre + ':\n';
+                                    opt.result += 'goto ' + actual.hijos[j + 1].hijos[0].nombre + ';\n';
+
+                                    opt.exp += 'goto ' + actual.hijos[i].hijos[0].nombre + ';\n';
+                                    opt.exp += '...\n';
+                                    opt.exp += actual.hijos[j].hijos[0].nombre + ':\n';
+                                    opt.exp += 'goto ' + actual.hijos[j + 1].hijos[0].nombre + ';\n';
+                                    op = false;
+                                    op2 = false;
+                                    tablaOptimisacion.push(opt);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    else if (actual.hijos[j].nombre == 'declaracion metodo') {
+                        op = false;
+                        op2 = true;
+                        break;
+                    }
+                }
+                if (op) {
+                    for (j = i; j < actual.hijos.length; j++) {
+                        if (actual.hijos[j].nombre == 'salto') {
+                            op2 = false
+                            if (actual.hijos[j].hijos[0].nombre == actual.hijos[i].hijos[0].nombre) {
+                                cadena += actual.hijos[j].hijos[0].nombre;
+
+                                for (var x = 1; x < actual.hijos[j].hijos.length; x++) {
+                                    cadena += ',' + actual.hijos[j].hijos[x].nombre;
+                                }
+                                cadena += ':\n';
+                                i = j;
+                                let opt = { exp: '', result: '', regla: 0 };
+                                opt.regla = 2;
+                                opt.result = actual.hijos[j].hijos[0].nombre + ':\n';
+
+                                opt.exp += 'goto ' + actual.hijos[i].hijos[0].nombre + ';\n';
+                                opt.exp += '...\n';
+                                opt.exp += actual.hijos[j].hijos[0].nombre + ':\n';
+
+                                tablaOptimisacion.push(opt);
+                                break;
+                            }
+                            else {
+                                cadena += 'goto ' + actual.hijos[i].hijos[0].nombre + ';\n';
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (op2) {
+                    cadena += 'goto ' + actual.hijos[i].hijos[0].nombre + ';\n';
+                }
+                break;
+            case 'asignacion1':
+                cadena += actual.hijos[i].hijos[0].nombre + '=' + actual.hijos[i].hijos[1].hijos[0].nombre + ';\n';
+                let posOm = optimizacion1(i + 1, actual, actual.hijos[i].hijos[0].nombre, actual.hijos[i].hijos[1].hijos[0].nombre)
+                if (posOm != '') {
+                    omitir.push(posOm)
+                }
+                break;
+            case 'stack1':
+                cadena += 'stack[' + actual.hijos[i].hijos[0].hijos[0].nombre + ']=' + actual.hijos[i].hijos[1].hijos[0].nombre + ';\n';
+                break;
+            case 'stack2':
+                cadena += actual.hijos[i].hijos[0].hijos[0].nombre + '=stack[' + actual.hijos[i].hijos[1].hijos[0].nombre + '];\n';
+                break;
+            case 'salto':
+                cadena += actual.hijos[i].hijos[0].nombre;
+
+                for (var x = 1; x < actual.hijos[i].hijos.length; x++) {
+                    cadena += ',' + actual.hijos[i].hijos[x].nombre;
+                }
+                cadena += ':\n';
+                break;
+            case 'print':
+                cadena += 'print(\"%' + actual.hijos[i].hijos[0].nombre + '\",' + actual.hijos[i].hijos[1].nombre + ');\n';
+                break;
+            case 'println':
+                cadena += 'println(\"%' + actual.hijos[i].hijos[0].nombre + '\",' + actual.hijos[i].hijos[1].nombre + ');\n';
+                break;
+            case 'invocacion metodo':
+                cadena += 'call ' + actual.hijos[i].hijos[0].nombre + ';\n';
+                break;
+            case 'declaracion metodo':
+                cadena += 'proc ' + actual.hijos[i].hijos[0].nombre + ' begin\n';
+                cadena += listaOptimisacion(actual.hijos[i].hijos[1]);
+                cadena += 'end\n';
+                break;
+            case 'declaracion variable asignacion':
+                cadena += 'var ' + actual.hijos[i].hijos[0].nombre + '=' + actual.hijos[i].hijos[1].hijos[0].nombre + ';\n';
+                break;
+            case 'heap1':
+                cadena += 'heap[' + actual.hijos[i].hijos[0].hijos[0].nombre + ']=' + actual.hijos[i].hijos[1].hijos[0].nombre + ';\n';
+                break;
+            case 'heap2':
+                cadena += actual.hijos[i].hijos[0].hijos[0].nombre + '=heap[' + actual.hijos[i].hijos[1].hijos[0].nombre + '];\n';
+                break;
+            case 'param':
+                cadena += 'param;\n';
+                break;
+        }
+    }
+    return cadena;
+}
+
+
+function optimizacion19(contador, actual, l) {
+    for (let i = contador; i < actual.hijos.length; i++) {
+        if(actual.hijos[i].nombre == 'salto'){
+            if(l == actual.hijos[i].hijos[0].nombre){
+                return {i:i}
+            }
+        }
+    }
+    return {i:actual.hijos.length}
+}
+
+exports.optimizarCodigo2 = optimizarCodigo2;

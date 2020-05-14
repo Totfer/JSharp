@@ -441,13 +441,61 @@ class AST {
             let posicion = tablaS.obtenerPosicionStack(this.hijos[0].hijos[0].hijos[0].identificador, idAmbito);
 
             if (posicion != 'error') {
-                if (this.hijos[0].identificador == 'listaExpresiones') {
-                    resultado = this.hijos[1].insertandoArreglo(idAmbito);
-                } else {
-                    resultado = this.hijos[1].obtenerExp(idAmbito);
+                if (posicion.tipoSH == 'heap') {
+                    if (this.hijos[1].identificador == 'listaExpresiones') {
+                        let resultado = this.hijos[1].insertandoArreglo2(idAmbito);
+                        retorno.c3d += resultado.c3d;
+                        retorno.c3d += 'Heap[' + (posicion.posicionH) + '] = ' + resultado.t + ';\n';
+                    }
+                    else {
+                        if (this.hijos[0].hijos[0].identificador == 'arreglo') {
+                            let resultado2 = this.hijos[0].hijos[0].hijos[1].obtenerExp(idAmbito);
+                            let resultado = this.hijos[1].obtenerExp(idAmbito);
+                            retorno.c3d += resultado.c3d;
+                            retorno.c3d += resultado2.c3d;
+                            retorno.c3d += 't' + (contadorT++) + '=Heap[t' + (posicion.posicionH) + '];\n';
+
+                            retorno.c3d += 't' + (contadorT - 1) + '=1+t' + (contadorT - 1) + ';\n'
+                            retorno.c3d += 't' + (contadorT - 1) + '=t' + (contadorT - 1) + '+' + resultado2.t + ';\n'
+
+                            retorno.c3d += 'Heap[t' + (contadorT - 1) + '] = ' + resultado.t + ';\n';
+
+                        } else {
+                            let resultado = this.hijos[1].obtenerExp(idAmbito);
+                            retorno.c3d += resultado.c3d;
+                            retorno.c3d += 'Heap[' + posicion.posicionH + '] = ' + resultado.t + ';\n';
+                        }
+                    }
                 }
-                retorno.c3d += 't' + contadorT + '=P-' + posicion + ';\n';
-                retorno.c3d += 'Stack[t' + (contadorT++) + '] = ' + resultado.t + ';\n';
+                else {
+                    if (this.hijos[1].identificador == 'listaExpresiones') {
+                        let resultado = this.hijos[1].insertandoArreglo2(idAmbito);
+                        retorno.c3d += resultado.c3d;
+                        retorno.c3d += 't' + contadorT + '=P-' + posicion + ';\n';
+                        retorno.c3d += 'Stack[t' + (contadorT++) + '] = ' + resultado.t + ';\n';
+                    }
+                    else {
+                        if (this.hijos[0].hijos[0].identificador == 'arreglo') {
+                            let resultado2 = this.hijos[0].hijos[0].hijos[1].obtenerExp(idAmbito);
+                            let resultado = this.hijos[1].obtenerExp(idAmbito);
+                            retorno.c3d += resultado.c3d;
+                            retorno.c3d += resultado2.c3d;
+                            retorno.c3d += 't' + (contadorT++) + '=P-' + (posicion) + ';\n';
+                            retorno.c3d += 't' + (contadorT++) + '=Stack[t' + (contadorT - 2) + '];\n';
+
+                            retorno.c3d += 't' + (contadorT - 1) + '=1+t' + (contadorT - 1) + ';\n'
+                            retorno.c3d += 't' + (contadorT - 1) + '=t' + (contadorT - 1) + '+' + resultado2.t + ';\n'
+
+                            retorno.c3d += 'Heap[t' + (contadorT - 1) + '] = ' + resultado.t + ';\n';
+
+                        } else {
+                            let resultado = this.hijos[1].obtenerExp(idAmbito);
+                            retorno.c3d += resultado.c3d;
+                            retorno.c3d += 't' + contadorT + '=P-' + posicion + ';\n';
+                            retorno.c3d += 'Stack[t' + (contadorT++) + '] = ' + resultado.t + ';\n';
+                        }
+                    }
+                }
             }
         }
         else {//
@@ -455,6 +503,10 @@ class AST {
         }
 
         return retorno;
+    }
+
+    asignarPosicionArrelo = function asignarPosicionArrelo() {
+
     }
 
     sentenciaFor = function sentenciaFor(idAmbito, bcr) {
@@ -641,15 +693,47 @@ class AST {
         let retorno = new retornoAST('', 0, '', '', '');
         let resultado
         let ts = []
-        for (let i = 0; i < this.hijos[0].hijos.length; i++) {
-            resultado = this.hijos[0].hijos[i].obtenerExp(idAmbito);
+        if (this.hijos[0].identificador == 'listaExpresiones') {
+
+            for (let i = 0; i < this.hijos[0].hijos.length; i++) {
+                resultado = this.hijos[0].hijos[i].obtenerExp(idAmbito);
+
+                retorno.c3d += resultado.c3d;
+                ts.push(resultado.t)
+            }
+
+            retorno.t = 't' + (contadorT)
+            retorno.c3d += 't' + (contadorT++) + ' = H;\n'
+            retorno.c3d += 'Heap[H] = ' + this.hijos[0].hijos.length + ';\n';
+            retorno.c3d += 'H = H + 1;\n';
+    
+            for (let i = 0; i < ts.length; i++) {
+                retorno.c3d += 'Heap[H] = ' + ts[i] + ';\n';
+                retorno.c3d += 'H = H + 1;\n';
+            }
+            return retorno;
+
+        } else {
+            resultado = this.hijos[0].obtenerExp(idAmbito);
+            retorno.c3d += resultado.c3d
+            retorno.t = resultado.t
+            return retorno;
+        }
+    }
+
+    insertandoArreglo2 = function insertandoArreglo2(idAmbito) {
+        let retorno = new retornoAST('', 0, '', '', '');
+        let resultado
+        let ts = []
+        for (let i = 0; i < this.hijos.length; i++) {
+            resultado = this.hijos[i].obtenerExp(idAmbito);
             retorno.c3d += resultado.c3d;
             ts.push(resultado.t)
         }
 
         retorno.t = 't' + (contadorT)
         retorno.c3d += 't' + (contadorT++) + ' = H;\n'
-        retorno.c3d += 'Heap[H] = ' + this.hijos[0].hijos.length + ';\n';
+        retorno.c3d += 'Heap[H] = ' + this.hijos.length + ';\n';
         retorno.c3d += 'H = H + 1;\n';
 
         for (let i = 0; i < ts.length; i++) {
@@ -1660,6 +1744,8 @@ class AST {
                 return this.hijos[0].compilarLlamadaAFuncion(idAmbito);
             case 'acceso a arreglo':
                 return this.hijos[0].compilarAccesoArreglo(idAmbito);
+            case 'funcion propia':
+                return this.hijos[0].compilarFuncionPropia(idAmbito);
             default:
         }
     }
@@ -1685,10 +1771,10 @@ class AST {
 
             retorno1.tipo = valor.tipo
             retorno1.tamano = valor.tamanoR;
-        
+
             let resultado = this.hijos[1].obtenerExp(idAmbito);
-            let resultado2 = this.obtenerPoscionArreglo(retorno.t,resultado.t)
-            
+            let resultado2 = this.obtenerPoscionArreglo(retorno.t, resultado.t)
+
             retorno1.c3d += retorno.c3d
             retorno1.c3d += resultado.c3d
             retorno1.c3d += resultado2.c3d
@@ -1704,25 +1790,214 @@ class AST {
         }
     }
 
-    obtenerPoscionArreglo = function obtenerPoscionArreglo(arreglo, posicion){        
+    compilarFuncionPropia = function compilarFuncionPropia(idAmbito) {
+        let valor = tablaS.obtenerSimbolo(this.hijos[0].identificador, idAmbito);
+
+        if (valor != 'error') {
+            let retorno = new retornoAST('', 0, '', '', '');
+            let retorno1 = new retornoAST('', 0, '', '', '');
+
+
+            if (valor.tipoSH == 'heap') {
+                retorno.t = 't' + (contadorT);
+                retorno.c3d += 't' + (contadorT++) + '=Heap[' + valor.posicionH + '];\n';
+            }
+            else {
+                let tamano = tablaS.obtenerTamanoFuncion(this.hijos[0].identificador, idAmbito);
+                retorno.c3d += 't' + (contadorT++) + '=P-' + valor.posicionS + ';\n';
+                retorno.c3d += 't' + (contadorT++) + '=Stack[t' + (contadorT - 2) + '];\n';
+                retorno.t = 't' + (contadorT - 1);
+            }
+
+
+            let resultado
+            if (this.hijos[1].identificador.toLowerCase() == 'length') {
+                resultado = this.funcionLength(retorno.t)
+                retorno1.tipo = 'integer'
+            }
+            if (this.hijos[1].identificador.toLowerCase() == 'tochararray') {
+                resultado = this.funciontoCharArray(retorno.t)
+                retorno1.tipo = 'char'
+                retorno1.arreglo = 1;
+            }
+            if (this.hijos[1].identificador.toLowerCase() == 'charat') {
+                let exp = this.hijos[2].obtenerExp(idAmbito)
+                retorno1.c3d = exp.c3d;
+                resultado = this.funciontoCharAt(retorno.t,exp.t)
+                retorno1.tipo = 'char'
+            }
+            if (this.hijos[1].identificador.toLowerCase() == 'tolowercase') {
+                resultado = this.funcionTolower(retorno.t)
+                retorno1.tipo = 'string'
+            }
+            if (this.hijos[1].identificador.toLowerCase() == 'touppercase') {
+                resultado = this.funcionToUpper(retorno.t)
+                retorno1.tipo = 'string'
+            }
+
+            retorno1.c3d += retorno.c3d
+            retorno1.c3d += resultado.c3d
+            retorno1.t = resultado.t
+
+            return retorno1
+        }
+        else {
+            let err = new Error('La variable ' + this.hijos[0].identificador +
+                ' no existe', this.hijos[0].linea, this.hijos[0].columna);
+
+            error.push(err)
+        }
+    }
+
+    funcionToUpper = function funcionToUpper(t) {
+        let retorno = new retornoAST('', 0, '', '', '');
+        retorno.c3d += 't' + (contadorT++) + '=' + (t) + ';\n';
+
+        retorno.c3d += 'L' + (contadorL++) + ':\n';
+        retorno.c3d += 't' + (contadorT++) + '=Heap[t' + (contadorT - 2) + '];\n';
+
+        retorno.c3d += 'if(0==t' + (contadorT - 1) + ') goto L' + (contadorL++) + ';\n';
+
+        retorno.c3d += 'if(t'+(contadorT - 1)+'<97) goto L' +(contadorL)+';\n';
+        retorno.c3d += 'if(t'+(contadorT - 1)+'>122) goto L' +(contadorL++)+';\n';
+
+        retorno.c3d += 't'+(contadorT - 1) + '=t'+(contadorT - 1)+'+-32;\n'
+
+        retorno.c3d += 'Heap[t' + (contadorT - 2) + ']=t'+(contadorT - 1)+';\n';
+
+        retorno.c3d += 'L' + (contadorL - 1) + ':\n';
+        
+        retorno.c3d += 't' + (contadorT - 2) + '=t' + (contadorT - 2) + '+1;\n';
+        retorno.c3d += 'goto L' + (contadorL - 3) + ';\n';
+
+        retorno.c3d += 'L' + (contadorL - 2) + ':\n';
+
+        retorno.t=t;
+
+        return retorno;
+        
+    }
+
+    funcionTolower = function funcionTolower(t) {
+        let retorno = new retornoAST('', 0, '', '', '');
+        retorno.c3d += 't' + (contadorT++) + '=' + (t) + ';\n';
+
+        retorno.c3d += 'L' + (contadorL++) + ':\n';
+        retorno.c3d += 't' + (contadorT++) + '=Heap[t' + (contadorT - 2) + '];\n';
+
+        retorno.c3d += 'if(0==t' + (contadorT - 1) + ') goto L' + (contadorL++) + ';\n';
+
+        retorno.c3d += 'if(t'+(contadorT - 1)+'<65) goto L' +(contadorL)+';\n';
+        retorno.c3d += 'if(t'+(contadorT - 1)+'>90) goto L' +(contadorL++)+';\n';
+
+        retorno.c3d += 't'+(contadorT - 1) + '=t'+(contadorT - 1)+'+32;\n'
+
+        retorno.c3d += 'Heap[t' + (contadorT - 2) + ']=t'+(contadorT - 1)+';\n';
+
+        retorno.c3d += 'L' + (contadorL - 1) + ':\n';
+        
+        retorno.c3d += 't' + (contadorT - 2) + '=t' + (contadorT - 2) + '+1;\n';
+        retorno.c3d += 'goto L' + (contadorL - 3) + ';\n';
+
+        retorno.c3d += 'L' + (contadorL - 2) + ':\n';
+
+        retorno.t=t;
+
+        return retorno;
+        
+    }
+
+    funciontoCharAt = function funciontoCharAt(t, exp) {
         let retorno = new retornoAST('', 0, '', '', '');
 
-        retorno.t = 't'+(contadorT++)
+        let tamano = this.funcionLength(t)
 
-        retorno.c3d += 't'+(contadorT++) + '=' + 'Heap['+arreglo+'];\n'
+        retorno.c3d += tamano.c3d;
 
-        retorno.c3d += 't'+(contadorT++) + '=' + arreglo +'+1;\n' 
-        
-        retorno.c3d += 'if(' +posicion+'>t'+(contadorT-2) +') goto L'+(contadorL++)+';\n' 
+        retorno.t = 't' + (contadorT++)
 
-        retorno.c3d += 't'+(contadorT - 1) + '=t' +(contadorT - 1) +'+'+ posicion + ';\n' 
+        retorno.c3d += 'if(' + tamano.t + '<' + exp + ') goto L' + (contadorL++) + ';\n'
 
-        retorno.c3d += retorno.t + '=' + 'Heap[t'+(contadorT-1)+'];\n'
-        
-        retorno.c3d += 'goto L'+(contadorL++)+';\n'
-        retorno.c3d += 'L'+(contadorL-2)+':\n'
-        retorno.c3d += retorno.t +'=0;\n'
-        retorno.c3d += 'L'+(contadorL-1)+':\n'
+        retorno.c3d += 't' + (contadorT) + '=' + t + '+' + exp + ';\n'
+
+        retorno.c3d += retorno.t + '=' + 'Heap[t' + (contadorT++) + '];\n'
+
+        retorno.c3d += 'goto L' + (contadorL++) + ';\n'
+        retorno.c3d += 'L' + (contadorL - 2) + ':\n'
+        retorno.c3d += retorno.t + '=0;\n'
+        retorno.c3d += 'L' + (contadorL - 1) + ':\n'
+        return retorno
+    }
+
+    funcionLength = function funcionLength(t) {
+        let retorno = new retornoAST('', 0, '', '', '');
+        retorno.c3d = 't' + (contadorT++) + '=' + (t) + ';\n';
+
+        retorno.c3d += 'L' + (contadorL++) + ':\n';
+        retorno.c3d += 't' + (contadorT++) + '=Heap[t' + (contadorT - 2) + '];\n';
+
+        retorno.c3d += 'if(0==t' + (contadorT - 1) + ') goto L' + (contadorL++) + ';\n';
+
+        retorno.c3d += 't' + (contadorT - 2) + '=t' + (contadorT - 2) + '+1;\n';
+        retorno.c3d += 'goto L' + (contadorL - 2) + ';\n';
+
+        retorno.c3d += 'L' + (contadorL - 1) + ':\n';
+
+        retorno.c3d += 't' + (contadorT - 2) + '=t' + (contadorT - 2) + '-' + t + ';\n';
+        retorno.t = 't' + (contadorT - 2);
+        return retorno;
+    }
+
+    funciontoCharArray = function funciontoCharArray(t) {
+        let retorno = new retornoAST('', 0, '', '', '');
+
+        retorno.t = 't' + (contadorT++)
+        let tamano = this.funcionLength(t);
+        retorno.c3d += tamano.c3d
+
+        retorno.c3d += retorno.t + '=H;\n'
+
+        retorno.c3d += 'Heap[H]=' + tamano.t + ';\n'
+
+        retorno.c3d += 'H=H+1;\n'
+
+        retorno.c3d += 't' + (contadorT++) + '=' + (t) + ';\n';
+
+        retorno.c3d += 'L' + (contadorL++) + ':\n';
+        retorno.c3d += 't' + (contadorT++) + '=Heap[t' + (contadorT - 2) + '];\n';
+
+        retorno.c3d += 'if(0==t' + (contadorT - 1) + ') goto L' + (contadorL++) + ';\n';
+
+        retorno.c3d += 'Heap[H]=t' + (contadorT - 1) + ';\n'
+
+        retorno.c3d += 'H=H+1;\n'
+
+        retorno.c3d += 't' + (contadorT - 2) + '=t' + (contadorT - 2) + '+1;\n';
+        retorno.c3d += 'goto L' + (contadorL - 2) + ';\n';
+
+        retorno.c3d += 'L' + (contadorL - 1) + ':\n';
+        return retorno;
+    }
+
+    obtenerPoscionArreglo = function obtenerPoscionArreglo(arreglo, posicion) {
+        let retorno = new retornoAST('', 0, '', '', '');
+
+        retorno.t = 't' + (contadorT++)
+
+        retorno.c3d += 't' + (contadorT++) + '=' + 'Heap[' + arreglo + '];\n'
+
+        retorno.c3d += 't' + (contadorT++) + '=' + arreglo + '+1;\n'
+
+        retorno.c3d += 'if(' + posicion + '>t' + (contadorT - 2) + ') goto L' + (contadorL++) + ';\n'
+
+        retorno.c3d += 't' + (contadorT - 1) + '=t' + (contadorT - 1) + '+' + posicion + ';\n'
+
+        retorno.c3d += retorno.t + '=' + 'Heap[t' + (contadorT - 1) + '];\n'
+
+        retorno.c3d += 'goto L' + (contadorL++) + ';\n'
+        retorno.c3d += 'L' + (contadorL - 2) + ':\n'
+        retorno.c3d += retorno.t + '=0;\n'
+        retorno.c3d += 'L' + (contadorL - 1) + ':\n'
         return retorno
     }
 
@@ -2117,17 +2392,16 @@ class AST {
             case 'char':
             case 'string':
             case 'boolean':
-                c3d += ambitoRetorno.c3d;
                 tipo = '\"%c\"'
                 break;
         }
 
 
+        c3d += ambitoRetorno.c3d;
         if (ambitoRetorno.arreglo == 1) {
             if (ambitoRetorno.tipo == 'string') {
                 c3d += this.printArregloString(ambitoRetorno.t);
             } else {
-                c3d += ambitoRetorno.c3d
                 c3d += this.printArreglo(ambitoRetorno.t, tipo, ambitoRetorno.tamano);
             }
         }
@@ -2139,7 +2413,7 @@ class AST {
             c3d += this.printString(ambitoRetorno.t);
         }
         else {
-            c3d += ambitoRetorno.c3d + 'print(' + tipo +
+            c3d += 'print(' + tipo +
                 ',' + ambitoRetorno.t + ');\n';
         }
 

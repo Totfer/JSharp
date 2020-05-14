@@ -104,7 +104,7 @@ class tablaSimbolos {
             for (let i = 0; i < this.simbolos.length; i++) {
                 if (this.simbolos[i].nombre == nombre &&
                     this.simbolos[i].idAmbito == idAmbito) {
-                    return this.simbolos[i].posicionS
+                    return this.simbolos[i]
                 }
             }
         }

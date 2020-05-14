@@ -91,6 +91,9 @@
 						<li>	
 							<input class="button buttong" id="butopt" type="button" value="Reporte de optimizacion"/>
 						</li>
+						<li>	
+							<input class="button buttong" id="botongrafo" type="button" value="Grafo C3D"/>
+						</li>
 				</ul>
 			</li>
 
@@ -148,7 +151,8 @@
 	
 	<div class="wrapce">
 			<ul class="tabsce">
-		     	<button id ="compi" class="button">Ejecutar</button>
+				<button id ="compi" class="button">Optimisaciones 1</button>
+				<button id ="compi2" class="button">Optimisaciones 2</button>
 		
 				<li><a href="#error" class="activece"><span class="fa fa-briefcase"></span><span class="tab-text">Codigo 3D</span></a></li>
 				<li><a href="#consola"><span class="fa fa-briefcase"></span><span class="tab-text">Consola</span></a></li>
@@ -219,6 +223,28 @@
 			
 			$.ajax({ 
 				url: '/compilar/?txt='+texto,
+				type : 'GET',
+				data: {txt:texto}
+			}).done(function(data){
+			});
+
+			$.get( "http://localhost:3000/consola", function( data ) {
+					$("#Tconsola" ).val( data );
+				});
+
+		});
+		
+		$("#compi2").click(function(){
+			
+			let texto =document.getElementById('textareaE').value;
+			console.log(texto);
+			let cantidad = texto.split('\n');
+			for(let i=0;i<cantidad.length;i++){
+				texto = texto.replace('\n','$#@!');
+			}
+			
+			$.ajax({ 
+				url: '/compilar2/?txt='+texto,
 				type : 'GET',
 				data: {txt:texto}
 			}).done(function(data){
@@ -339,6 +365,11 @@
 
 			$("#butast").click(function (){
 				$.get( "http://localhost:3000/ast", function( data ) {
+					$("#VistaAST" ).html( data );
+				});
+			});
+			$("#botongrafo").click(function (){
+				$.get( "http://localhost:3000/grafoc3d", function( data ) {
 					$("#VistaAST" ).html( data );
 				});
 			});

@@ -108,6 +108,7 @@
 [a-zA-ZñÑ_][a-zA-ZñÑ0-9_]*    return 'id';
 
 <<EOF>>               return 'EOF';
+. return 'error';
 /lex
 
 // Precedencia
@@ -201,6 +202,8 @@ sentenciasBloque : declaracion_variables	{$$ = $1;}
     |sentenciaReturn                        {$$ = $1;}
     |llamadaFuncion                         {$$ = $1;}
     |aumentoDecremento                      {$$ = $1;}
+    | error ';'
+    | error '}'
 ;
 
 
@@ -845,6 +848,14 @@ literal : entero
     | id '[' EXP ']'
         {
             $$ = yy.crearNodo('acceso a arreglo',0,0,[yy.crearHoja($1,@1.first_line,@1.first_column),$3])   
+        }
+    | id '.' id '(' EXP ')'
+        {
+            $$ = yy.crearNodo('funcion propia',0,0,[yy.crearHoja($1,@1.first_line,@1.first_column),yy.crearHoja($3,@3.first_line,@3.first_column),$5])   
+        }
+    | id '.' id '(' ')'
+        {
+            $$ = yy.crearNodo('funcion propia',0,0,[yy.crearHoja($1,@1.first_line,@1.first_column),yy.crearHoja($3,@3.first_line,@3.first_column)])   
         }
     | llamadaFuncion2
         {

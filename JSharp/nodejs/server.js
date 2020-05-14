@@ -10,6 +10,7 @@ var app = express();
 var codigo3d = '';
 var tablas;
 var opt;
+var dotc3d
 const router = new express.Router();
 var retorno = '';
 
@@ -41,6 +42,13 @@ app.get('/ast', function(req, res) {
     Compilar.grafoHtml(function(result){
         res.send(string.replace('$$arbol',result));
     },codigo);
+});
+
+app.get('/grafoc3d', function(req, res) {
+    var string = '<html><body>$$arbol</body></html>';
+    Compilar.grafoHtmlC3D(function(result){
+        res.send(string.replace('$$arbol',result));
+    },dotc3d);
 });
 
 
@@ -93,6 +101,22 @@ app.get('/compilar', function(req, res) {
 	}
     
     let temp  = Compilar.compilar3D(texto[1]);
+    dotc3d = temp.dotc3d
+    opt = temp.optimizacion;
+    retorno = temp.retorno;
+    res.send(temp.retorno);
+});
+
+app.get('/compilar2', function(req, res) {
+    var texto = req.query.txt;
+	let cantidad = texto[1].split('$#@!');
+
+	for(let i=0;i<cantidad.length;i++){
+    	texto[1] = texto[1].replace('$#@!','\n');
+	}
+    
+    let temp  = Compilar.compilar3D2(texto[1]);
+    dotc3d = temp.dotc3d
     opt = temp.optimizacion;
     retorno = temp.retorno;
     res.send(temp.retorno);

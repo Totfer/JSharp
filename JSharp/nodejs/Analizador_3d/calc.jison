@@ -110,6 +110,7 @@ c3d : c3d lista_c3d {$$={}; $1.hijos.push($2); $$=$1;}
 ;
 
 lista_c3d : declaracion_varable
+    |declaracion_varable2
     |asignacion
     |salto
     |saltar
@@ -230,6 +231,69 @@ imprimir : 'print' '(' '\"' '%' 'c' '\"' ',' ID ')' ';'
         $$.hijos=[temp1,temp2];
     }
     |'print' '(' '\"' '%' 'd' '\"' ',' ID ')' ';'
+    {
+        $$={nombre:'print',linea:'',columna:'',hijos:{}};
+        
+        var temp1 = {nombre:$5,linea:@5.first_line,columna:@5.first_column,hijos:{}};
+        
+        var temp2 = {nombre:$8,linea:@8.first_line,columna:@8.first_column,hijos:{}};
+        
+        $$.hijos=[temp1,temp2];
+    }
+
+
+    |'print' '(' '\"' '%' 'c' '\"' ',' ENTERO ')' ';'
+    {
+        $$={nombre:'print',linea:'',columna:'',hijos:{}};
+        
+        var temp1 = {nombre:$5,linea:@5.first_line,columna:@5.first_column,hijos:{}};
+        
+        var temp2 = {nombre:$8,linea:@8.first_line,columna:@8.first_column,hijos:{}};
+        
+        $$.hijos=[temp1,temp2];
+    }
+    |'print' '(' '\"' '%' 'i' '\"' ',' ENTERO ')' ';'
+    {
+        $$={nombre:'print',linea:'',columna:'',hijos:{}};
+        
+        var temp1 = {nombre:$5,linea:@5.first_line,columna:@5.first_column,hijos:{}};
+        
+        var temp2 = {nombre:$8,linea:@8.first_line,columna:@8.first_column,hijos:{}};
+        
+        $$.hijos=[temp1,temp2];
+    }
+    |'print' '(' '\"' '%' 'd' '\"' ',' ENTERO ')' ';'
+    {
+        $$={nombre:'print',linea:'',columna:'',hijos:{}};
+        
+        var temp1 = {nombre:$5,linea:@5.first_line,columna:@5.first_column,hijos:{}};
+        
+        var temp2 = {nombre:$8,linea:@8.first_line,columna:@8.first_column,hijos:{}};
+        
+        $$.hijos=[temp1,temp2];
+    }
+
+    |'print' '(' '\"' '%' 'c' '\"' ',' NUMBER ')' ';'
+    {
+        $$={nombre:'print',linea:'',columna:'',hijos:{}};
+        
+        var temp1 = {nombre:$5,linea:@5.first_line,columna:@5.first_column,hijos:{}};
+        
+        var temp2 = {nombre:$8,linea:@8.first_line,columna:@8.first_column,hijos:{}};
+        
+        $$.hijos=[temp1,temp2];
+    }
+    |'print' '(' '\"' '%' 'i' '\"' ',' NUMBER ')' ';'
+    {
+        $$={nombre:'print',linea:'',columna:'',hijos:{}};
+        
+        var temp1 = {nombre:$5,linea:@5.first_line,columna:@5.first_column,hijos:{}};
+        
+        var temp2 = {nombre:$8,linea:@8.first_line,columna:@8.first_column,hijos:{}};
+        
+        $$.hijos=[temp1,temp2];
+    }
+    |'print' '(' '\"' '%' 'd' '\"' ',' NUMBER ')' ';'
     {
         $$={nombre:'print',linea:'',columna:'',hijos:{}};
         
@@ -418,8 +482,30 @@ declaracion_varable : 'var' ID ';'
 
         $$.hijos = [temp1,$4];
     }
+    |'var' 'stack' '[' ']' ';'
+    {
+        $$={nombre:'declaracion variable ',linea:'',columna:'',hijos:{}};
+        
+        var temp1={nombre:$2,linea:@2.first_line,columna:@2.first_column,hijos:{}};
+
+        $$.hijos = [temp1];
+    }
+    |'var' 'heap' '[' ']' ';'
+    {
+        $$={nombre:'declaracion variable ',linea:'',columna:'',hijos:{}};
+        
+        var temp1={nombre:$2,linea:@2.first_line,columna:@2.first_column,hijos:{}};
+
+        $$.hijos = [temp1];
+    }
 ;
 
+declaracion_varable2 : 'var' ID ',' listaIds ';'
+;
+
+listaIds: listaIds ',' ID
+    | ID
+;
 
 op : '+'  {$$=$1;}
     |'-'  {$$=$1;}

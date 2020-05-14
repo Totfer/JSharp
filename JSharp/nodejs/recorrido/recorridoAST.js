@@ -77,6 +77,7 @@ function llenarNuevoArbol3d(actual, padre) {
     }
 }
 
+var allError = [];
 function Compilar(codigo) {
     codigo = codigo.toLowerCase();;
     parser.parser.yy.crearHoja = function crearHoja(identificador, linea, columna) {
@@ -93,17 +94,33 @@ function Compilar(codigo) {
         console.log(token)
     }
 
+    parser.parser.yy.parseError = function parseError (str, hash) {
+        if (hash.recoverable) {
+            if(hash.token != 'error'){
+                allError.push({error:'Error cerca de '+hash.text,linea:hash.line,columna:0,tipo:'semantico'});
+            }else{
+                allError.push({error:'Error cerca de '+hash.text,linea:hash.line,columna:0,tipo:'lexico'});    
+            }
+            this.trace(str);
+        } else {
+            var error = new Error(str);
+            error.hash = hash;
+            throw error;
+        }
+    }
+
     parser.parser.yy.ast = new ast.AST();
 
     parser.parser.yy.listaIds = [];
 
     try{
-    var arbol = parser.parse(codigo);
+        var arbol = parser.parse(codigo);
     }
     catch(err){
         console.log(err);
         return {codigo:err.message};
     }
+
     ambito = {}
     arbol.contadorT = 0;
     arbol.contadorL = 0;
@@ -121,8 +138,12 @@ function Compilar(codigo) {
     //return Interprete(arbol);
     
     let err2 =  parser.parser.yy.ast.getError();
+    for(let i =0;i<err2.length;i++){
+        err2[i].tipo = 'semantico'
+        allError.push(err2[i]);
+    }
 
-    return {codigo:codigo, tablaSimbolos:tablaS(),errores:tablaE(err2)};
+    return {codigo:codigo, tablaSimbolos:tablaS(),errores:tablaE(allError)};
 }
 
 var auxe = '';
@@ -242,6 +263,9 @@ function tablaE(error){
     tablaHtml+=' \t\t\t<tbody>\n';
     tablaHtml+=' \t\t\t<tr class = \"success\">\n';
     tablaHtml+=' \t\t\t\t<th>\n';
+    tablaHtml+=' \t\t\t\t\tTipo\n';
+    tablaHtml+=' \t\t\t\t</th>\n';
+    tablaHtml+=' \t\t\t\t<th>\n';
     tablaHtml+=' \t\t\t\t\tError\n';
     tablaHtml+=' \t\t\t\t</th>\n';
     tablaHtml+=' \t\t\t\t<th>\n';
@@ -254,6 +278,10 @@ function tablaE(error){
     
     for(var i=0;i<error.length;i++){ 
         tablaHtml +=  '\t\t\t<tr class=\"warning\">\n';
+        
+        tablaHtml +=  '\t\t\t\t<td>\n';
+        tablaHtml +=  '\t\t\t\t\t'+error[i].tipo+'\n';
+        tablaHtml +=  '\t\t\t\t</td>\n';
         
         tablaHtml +=  '\t\t\t\t<td>\n';
         tablaHtml +=  '\t\t\t\t\t'+error[i].error+'\n';
@@ -276,8 +304,6 @@ function tablaE(error){
     tablaHtml += '</html>\n';
     return tablaHtml;
 }
-
-
 
 function Interprete() {
     Nodo.IniciarRecorrido(actual);
@@ -317,6 +343,9 @@ function compilar3D(codigo) {
 
         var aux = llenarNuevoArbol3d(arbol, Nodo3d.Nodo);
 
+        var grafo = ''
+       // grafo = Nodo3d.crearGrafo(aux);
+
         var codigoOptimisado = Nodo3d.optimizarCodigo(aux);
         var html = require('../Analizador/index');
 
@@ -328,7 +357,34 @@ function compilar3D(codigo) {
 
         //retorno = Nodo3d.compilar(aux);
     }
-    ret = { optimizacion: auxo, retorno: codigoOptimisado };
+    ret = { optimizacion: auxo, retorno: codigoOptimisado, dotc3d:grafo };
+    return ret;
+}
+
+function compilar3D2(codigo) {
+    var errores = require("../Errores/errores");
+    retorno = '';
+    if (errores.lista.length == 0) {
+        codigo = codigo.toLowerCase();
+        var arbol = parser3d.parse(codigo);
+
+        var aux = llenarNuevoArbol3d(arbol, Nodo3d.Nodo);
+
+        var grafo = ''
+       // grafo = Nodo3d.crearGrafo(aux);
+
+        var codigoOptimisado = Nodo3d.optimizarCodigo2(aux);
+        var html = require('../Analizador/index');
+
+        auxo = html.obtenerTablaOptimisacion();
+
+        var opt = require("../tablaOptimisacion").lista;
+        //  arbol = parser3d.parse(codigoOptimisado);
+        //aux = llenarNuevoArbol3d(arbol, Nodo3d.Nodo);
+
+        //retorno = Nodo3d.compilar(aux);
+    }
+    ret = { optimizacion: auxo, retorno: codigoOptimisado, dotc3d:grafo };
     return ret;
 }
 
@@ -425,7 +481,26 @@ exports.grafoHtml = function (cb, codigo) {
         });
 }
 
+exports.grafoHtmlC3D = function (cb, codigo) {
+
+    let viz = new Viz({ Module, render });
+
+    viz.renderString(codigo)
+        .then(result => {
+            cb(result);
+        })
+        .catch(error => {
+            // Create a new Viz instance (@see Caveats page for more info)
+            viz = new Viz({ Module, render });
+
+            // Possibly display the error
+            console.error(error);
+            cb(error);
+        });
+}
+
 exports.compilar3D = compilar3D;
+exports.compilar3D2 = compilar3D2;
 exports.errores = auxe;
 exports.auxo = auxo;
 exports.tablaSimbolos = auxt;
