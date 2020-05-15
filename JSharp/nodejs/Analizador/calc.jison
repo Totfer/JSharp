@@ -3,7 +3,7 @@
 /* lexical grammar */
 %lex
 %options case-insensitive
-%options ranges
+//%options ranges
 
 %s                comment
 
@@ -446,25 +446,25 @@ inicioFor : declaracionVariablesFor {$$ = $1;}
     | asignacionFor  {$$ = $1;}
 ;
 
-sentenciasif : 'if' '(' EXP ')' '{' bloque '}'
+sentenciasif : if '(' EXP ')' '{' bloque '}'
         {
             bloque = yy.crearNodo('if',@1.first_line,@1.first_column,[$3,$6])
             nodoIf = yy.crearNodo('ifs',@1.first_line,@1.first_column,[bloque])      
             $$ = yy.crearNodo('ifInstruccion',@1.first_line,@1.first_column,[nodoIf])
         }
-    | 'if' '(' EXP ')' '{' bloque '}' sentencaElse
+    | if '(' EXP ')' '{' bloque '}' sentencaElse
         {
             bloque = yy.crearNodo('if',@1.first_line,@1.first_column,[$3,$6])    
             nodoIf = yy.crearNodo('ifs',@1.first_line,@1.first_column,[bloque])      
             $$ = yy.crearNodo('ifInstruccion',@1.first_line,@1.first_column,[nodoIf,$8])
         }
-    | 'if' '(' EXP ')' '{' bloque '}' listaElseIf sentencaElse
+    | if '(' EXP ')' '{' bloque '}' listaElseIf sentencaElse
         {
             bloque = yy.crearNodo('if',@1.first_line,@1.first_column,[$3,$6])    
             nodoIf = yy.crearNodo('ifs',@1.first_line,@1.first_column,[bloque,$8])      
             $$ = yy.crearNodo('ifInstruccion',@1.first_line,@1.first_column,[nodoIf,$9])
         }
-    | 'if' '(' EXP ')' '{' bloque '}' listaElseIf 
+    | if '(' EXP ')' '{' bloque '}' listaElseIf 
         {
             bloque = yy.crearNodo('if',@1.first_line,@1.first_column,[$3,$6])    
             nodoIf = yy.crearNodo('ifs',@1.first_line,@1.first_column,[bloque,$8])      
@@ -473,7 +473,7 @@ sentenciasif : 'if' '(' EXP ')' '{' bloque '}'
         }
 ; 
 
-sentenciaWhile : 'while' '(' EXP ')' '{' bloque '}'
+sentenciaWhile : while '(' EXP ')' '{' bloque '}'
     {
         $$ = yy.crearNodo('while',@1.first_line,@1.first_column,[$3,$6])
     }
@@ -770,7 +770,7 @@ tipoId : id
 		}
 ;
 
-tipoDato: "integer"   {$$ = yy.crearHoja('integer',@1.first_line,@1.first_column)}
+tipoDato: integer   {$$ = yy.crearHoja('integer',@1.first_line,@1.first_column)}
     |'char'           {$$ = yy.crearHoja('char',@1.first_line,@1.first_column)}
     |'boolean'        {$$ = yy.crearHoja('boolean',@1.first_line,@1.first_column)}
     |'double'        {$$ = yy.crearHoja('double',@1.first_line,@1.first_column)}
