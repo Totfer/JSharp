@@ -37,10 +37,10 @@
 "%"                   return '%';
 
 "<>"                  return '<>';
-"<"                   return '<';
-">"                   return '>';
 "<="                  return '<=';
 ">="                  return '>=';
+"<"                   return '<';
+">"                   return '>';
 "=="                  return '==';
 "==="                 return '===';
 
@@ -125,7 +125,7 @@
 %left '*' '/' '%'
 
 %right '^^'
-%right '-''!' 
+%right '!' 
 
 %left '[' ']' 
 %left 'integer' 'char' 
@@ -155,6 +155,7 @@ sentenciasCuerpo : importar		{$$ = $1;}
     |declaracion_variables      {$$ = $1;}
     |asignacion					{$$ = $1;}
     |declaracionFuncion         {$$ = $1;}
+    | error '}'
 ;
 
 importar : 'import' imports {yy.imprimirToquen($2); $$ = yy.crearNodo('import',0,0,[$2])}
@@ -202,8 +203,6 @@ sentenciasBloque : declaracion_variables	{$$ = $1;}
     |sentenciaReturn                        {$$ = $1;}
     |llamadaFuncion                         {$$ = $1;}
     |aumentoDecremento                      {$$ = $1;}
-    | error ';'
-    | error '}'
 ;
 
 
@@ -296,6 +295,7 @@ asignacionLlamada : id '=' EXP
         {
             $$ = yy.crearNodo('asignacion',0,0,[yy.crearHoja($1,@1.first_line,@1.first_column),$3,yy.crearHoja($2,@2.first_line,@2.first_column)]);
         }
+    | error ';'
 ;
 
 sentenciaBreak :'break'
@@ -342,12 +342,14 @@ sentenciaReturnEXP: ';'
     {
         $$ = $1
     }
+    | error ';'
 ;
 
 sentenciaSwitch : 'switch' '(' EXP ')' '{' bloqueSwitch '}'
         {
             $$ = yy.crearNodo('switch',@1.first_line,@1.first_column,[$3,$6])
         }   
+    | error '}'
 ;
 
 bloqueSwitch : listaBloqueSwitch sentenciaDefault
@@ -437,6 +439,7 @@ instruccionesFor : inicioFor ';' EXP ';' EXP
             $$ = yy.crearNodo('instrucciones',@1.first_line,@1.first_column,[instruccion3])
         }
     | ';' ';'  {$$ = yy.crearNodo('instrucciones',@1.first_line,@1.first_column,[])}
+    | error ';'
 ;
 
 inicioFor : declaracionVariablesFor {$$ = $1;}
@@ -465,6 +468,7 @@ sentenciasif : 'if' '(' EXP ')' '{' bloque '}'
         {
             bloque = yy.crearNodo('if',@1.first_line,@1.first_column,[$3,$6])    
             nodoIf = yy.crearNodo('ifs',@1.first_line,@1.first_column,[bloque,$8])      
+           
             $$ = yy.crearNodo('ifInstruccion',@1.first_line,@1.first_column,[nodoIf])
         }
 ; 
@@ -484,6 +488,8 @@ sentenciaDoWhile : 'do' '{' bloque '}' 'while' '(' EXP ')'
         {
             $$ = yy.crearNodo('do while',@1.first_line,@1.first_column,[$3,$7])
         }
+        
+    | error ';'
 ;
 
 
@@ -512,6 +518,7 @@ elseIf : 'else' 'if' '(' EXP ')' '{' bloque '}'
 
 imprmir : 'print' '(' EXP ')' {$$ = yy.crearNodo('print',@1.first_line,@1.first_column,[yy.crearNodo('EXP',@1.first_line,@1.first_column,[$3])])}
     |'print' '(' EXP ')' ';' {$$ = yy.crearNodo('print',@1.first_line,@1.first_column,[yy.crearNodo('EXP',@1.first_line,@1.first_column,[$3])])}
+    | error ')'
 ;
 
 declaracionFuncion : tipoDato id '(' patametros ')' '{' bloque '}' 
@@ -541,6 +548,8 @@ patametros : patametros ',' patametro
         {
             $$ = yy.crearNodo('patametros',0,0,[$1])
         }
+        
+    | error ','
 ;
 
 patametro : tipoDato id {$$ = yy.crearNodo('parametro',@2.first_line,@2.first_column,[$1,yy.crearHoja($2,@2.first_line,@2.first_column)])}
@@ -726,6 +735,7 @@ asignacion : listaIdVecFun '=' EXP ';'
         {
             $$ = yy.crearNodo('asignacion',0,0,[$1,$4,yy.crearHoja($2,@2.first_line,@2.first_column)]);
         }
+        
 ;
 
 asignacionFor :  listaIdVecFun '=' EXP 
@@ -774,6 +784,8 @@ tipoVCG : 'var'   {$$ = yy.crearHoja('var',@1.first_line,@1.first_column)}
 
 EXP
     : EXP '+' EXP	{$$ = yy.crearNodo('+',@2.first_line,@2.first_column,[$1,$3])}
+    | EXP '<=' EXP	{$$ = yy.crearNodo('<=',@2.first_line,@2.first_column,[$1,$3])}
+    | EXP '>=' EXP	{$$ = yy.crearNodo('>=',@2.first_line,@2.first_column,[$1,$3])}
     | EXP '-' EXP	{$$ = yy.crearNodo('-',@2.first_line,@2.first_column,[$1,$3])}
     | EXP '*' EXP	{$$ = yy.crearNodo('*',@2.first_line,@2.first_column,[$1,$3])}
     | EXP '/' EXP	{$$ = yy.crearNodo('/',@2.first_line,@2.first_column,[$1,$3])}
@@ -781,14 +793,12 @@ EXP
     | EXP '^' EXP	{$$ = yy.crearNodo('^',@2.first_line,@2.first_column,[$1,$3])}
     | EXP '<' EXP	{$$ = yy.crearNodo('<',@2.first_line,@2.first_column,[$1,$3])}
     | EXP '>' EXP	{$$ = yy.crearNodo('>',@2.first_line,@2.first_column,[$1,$3])}
-    | EXP '<=' EXP	{$$ = yy.crearNodo('<=',@2.first_line,@2.first_column,[$1,$3])}
-    | EXP '>=' EXP	{$$ = yy.crearNodo('>=',@2.first_line,@2.first_column,[$1,$3])}
     | EXP '%' EXP	{$$ = yy.crearNodo('%',@2.first_line,@2.first_column,[$1,$3])}
     | EXP '<>' EXP	{$$ = yy.crearNodo('<>',@2.first_line,@2.first_column,[$1,$3])}
     | EXP '&&' EXP	{$$ = yy.crearNodo('&&',@2.first_line,@2.first_column,[$1,$3])}
     | EXP '||' EXP	{$$ = yy.crearNodo('||',@2.first_line,@2.first_column,[$1,$3])}
-    | EXP '==' EXP  {$$ = yy.crearNodo('==',@2.first_line,@2.first_column,[$1,$3])}
     | EXP '===' EXP {$$ = yy.crearNodo('===',@2.first_line,@2.first_column,[$1,$3])}
+    | EXP '==' EXP  {$$ = yy.crearNodo('==',@2.first_line,@2.first_column,[$1,$3])}
     | '!' EXP       {$$ = yy.crearNodo('!',@1.first_line,@1.first_column,[$2])}
 	| '-' EXP %prec UMINUS {$$ = yy.crearNodo('-',@1.first_line,@1.first_column,[$2])}
 	| '(' EXP ')'   {$$ = $2;}
@@ -856,6 +866,10 @@ literal : entero
     | id '.' id '(' ')'
         {
             $$ = yy.crearNodo('funcion propia',0,0,[yy.crearHoja($1,@1.first_line,@1.first_column),yy.crearHoja($3,@3.first_line,@3.first_column)])   
+        }
+    | id '.' id 
+        {
+            $$ = yy.crearNodo('funcion length',0,0,[yy.crearHoja($1,@1.first_line,@1.first_column),yy.crearHoja($3,@3.first_line,@3.first_column)])   
         }
     | llamadaFuncion2
         {

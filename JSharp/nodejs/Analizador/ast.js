@@ -12,8 +12,11 @@ var contadorS = 0;
 
 var funcionPrincipal;
 
+
+
 class Error {
     constructor(error, linea, columna) {
+        this.tipo = "Semantico"
         this.error = error
         this.linea = linea
         this.columna = columna
@@ -69,33 +72,43 @@ class AST {
         contadorA = 0;
         error = [];
 
+        let retorno
+        let cabecera
+        try {
+            retorno = this.compilarSentencia();
 
-        let retorno = this.compilarSentencia();
+            cabecera = 'var ';
+            for (let i = 0; i < (contadorT + 1); i++) {
+                cabecera += 't' + i + ',';
+            }
 
-        let cabecera = 'var ';
-        for (let i = 0; i < (contadorT + 1); i++) {
-            cabecera += 't' + i + ',';
+            cabecera = cabecera.substring(0, cabecera.length - 1) + ';\n';
+            cabecera += 'var Stack[];\n';
+            cabecera += 'var Heap[];\n';
+            cabecera += 'var P = 1;\n';
+            cabecera += 'var H = 1;\n';
+            cabecera += 'H = H+' + contadorH + ';\n';
+
+            retorno.c3d = cabecera + retorno.c3d;
+
+            retorno.c3d += 'L0:\n'
+
+            if (funcionPrincipal != undefined) {
+
+
+                let cadena = this.llenarStack(funcionPrincipal.tamano);
+                retorno.c3d += cadena
+                retorno.c3d += 'P = P+' + funcionPrincipal.tamano + ';\n'
+
+                retorno.c3d += 'call principal;'
+            }
+            return { error: error, codigo: retorno.c3d }
+
+        } catch (error) {
+
+            console.log(error)
+            return { error: '', codigo: error.message }
         }
-
-        cabecera = cabecera.substring(0, cabecera.length - 1) + ';\n';
-        cabecera += 'var Stack[];\n';
-        cabecera += 'var Heap[];\n';
-        cabecera += 'var P = 1;\n';
-        cabecera += 'var H = 1;\n';
-        cabecera += 'H = H+' + contadorH + ';\n';
-
-        retorno.c3d = cabecera + retorno.c3d;
-
-        retorno.c3d += 'L0:\n'
-
-
-        let cadena = this.llenarStack(funcionPrincipal.tamano);
-        retorno.c3d += cadena
-        retorno.c3d += 'P = P+' + funcionPrincipal.tamano + ';\n'
-
-        retorno.c3d += 'call principal;'
-
-        return retorno.c3d
     }
 
     compilarSentencia = function compilarSentencia() {
@@ -174,7 +187,7 @@ class AST {
                         retorno.c3d += 'goto ' + bcr.break + ';\n'
                     }
                     break;
-                case 'continur':
+                case 'continue':
                     if (bcr.continue == '') {
                         error.push(new Error('El continue no puede existir fuera de ciclos', this.hijos[i].linea, this.hijos[i].columna))
                     }
@@ -336,7 +349,8 @@ class AST {
         let retorno = new retornoAST('', 0, '', '', '');
         if (this.hijos.length == 1) {
             retorno.c3d += 'call ' + this.hijos[0].identificador + ';\n'
-            retorno.c3d += 't' + (contadorT++) + '=P-' + copia.posicionS + ';\n';
+            retorno.c3d += 't' + (contadorT++) + '=P-0;\n';
+            //retorno.c3d += 't' + (contadorT++) + '=P-' + copia.posicionS + ';\n';
             retorno.c3d += 't' + (contadorT++) + '=Stack[t' + (contadorT - 2) + '];\n';
             retorno.t = 't' + (contadorT - 1)
 
@@ -441,6 +455,10 @@ class AST {
             let posicion = tablaS.obtenerPosicionStack(this.hijos[0].hijos[0].hijos[0].identificador, idAmbito);
 
             if (posicion != 'error') {
+
+                if (posicion.constante == 1) {
+                    error.push(new Error("Se intent modificar un dato constante", this.hijos[0].hijos[0].hijos[0].linea, this.hijos[0].hijos[0].hijos[0].columna));
+                }
                 if (posicion.tipoSH == 'heap') {
                     if (this.hijos[1].identificador == 'listaExpresiones') {
                         let resultado = this.hijos[1].insertandoArreglo2(idAmbito);
@@ -471,7 +489,7 @@ class AST {
                     if (this.hijos[1].identificador == 'listaExpresiones') {
                         let resultado = this.hijos[1].insertandoArreglo2(idAmbito);
                         retorno.c3d += resultado.c3d;
-                        retorno.c3d += 't' + contadorT + '=P-' + posicion + ';\n';
+                        retorno.c3d += 't' + contadorT + '=P-' + posicion.posicionS + ';\n';
                         retorno.c3d += 'Stack[t' + (contadorT++) + '] = ' + resultado.t + ';\n';
                     }
                     else {
@@ -480,7 +498,7 @@ class AST {
                             let resultado = this.hijos[1].obtenerExp(idAmbito);
                             retorno.c3d += resultado.c3d;
                             retorno.c3d += resultado2.c3d;
-                            retorno.c3d += 't' + (contadorT++) + '=P-' + (posicion) + ';\n';
+                            retorno.c3d += 't' + (contadorT++) + '=P-' + (posicion.posicionS) + ';\n';
                             retorno.c3d += 't' + (contadorT++) + '=Stack[t' + (contadorT - 2) + '];\n';
 
                             retorno.c3d += 't' + (contadorT - 1) + '=1+t' + (contadorT - 1) + ';\n'
@@ -491,11 +509,15 @@ class AST {
                         } else {
                             let resultado = this.hijos[1].obtenerExp(idAmbito);
                             retorno.c3d += resultado.c3d;
-                            retorno.c3d += 't' + contadorT + '=P-' + posicion + ';\n';
+                            retorno.c3d += 't' + contadorT + '=P-' + posicion.posicionS + ';\n';
                             retorno.c3d += 'Stack[t' + (contadorT++) + '] = ' + resultado.t + ';\n';
                         }
                     }
                 }
+            } else {
+                error.push(Error("La variable no existe"), this.hijos[0].linea, this.hijos[0].columna);
+                retorno.t = 0;
+                retorno.tipo = 'integer'
             }
         }
         else {//
@@ -518,6 +540,8 @@ class AST {
         let nuevoBCR = new BCR();
         nuevoBCR.return = bcr.return;
         nuevoBCR.break = 'L' + (contadorL++)
+
+        let l2 = 'L' + (contadorL++)
         nuevoBCR.continue = 'L' + (contadorL++)
 
         idAmbito = contadorA++
@@ -533,24 +557,27 @@ class AST {
             }
         }
 
+        retorno.c3d += resultado1.c3d
+
         if (resultado2.t == '') {
             resultado2.t = 't' + (contadorT++);
             resultado2.c3d += resultado2.t + '=1;\n';
         }
-        retorno.c3d += resultado1.c3d
 
         let l1 = nuevoBCR.break
-        let l2 = nuevoBCR.continue
 
         let resultado4 = this.hijos[1].compilarSentenciaControl(idAmbito, nuevoBCR);
         let tipo = 'error'
 
         retorno.c3d += l2 + ':\n';
+
         retorno.c3d += resultado2.c3d;
 
         retorno.c3d += 'if(' + resultado2.t + '==0) goto ' + l1 + ';\n';
 
         retorno.c3d += resultado4.c3d;
+
+        retorno.c3d += nuevoBCR.continue + ':\n';
         retorno.c3d += resultado3.c3d;
 
         retorno.c3d += 'goto ' + l2 + ';\n';
@@ -706,7 +733,7 @@ class AST {
             retorno.c3d += 't' + (contadorT++) + ' = H;\n'
             retorno.c3d += 'Heap[H] = ' + this.hijos[0].hijos.length + ';\n';
             retorno.c3d += 'H = H + 1;\n';
-    
+
             for (let i = 0; i < ts.length; i++) {
                 retorno.c3d += 'Heap[H] = ' + ts[i] + ';\n';
                 retorno.c3d += 'H = H + 1;\n';
@@ -758,7 +785,7 @@ class AST {
             if (this.hijos[1].hijos.length == 0) {
                 let posicion = tablaS.obtenerPosicionStack(this.hijos[1].identificador, idAmbito);
                 if (posicion != 'error') {
-                    retorno.c3d += 't' + contadorT + '=P-' + posicion + ';\n';
+                    retorno.c3d += 't' + contadorT + '=P-' + posicion.posicionS + ';\n';
                     retorno.c3d += 'Stack[t' + (contadorT++) + '] = 0;\n';
                 }
             }
@@ -769,7 +796,7 @@ class AST {
             if (this.hijos[1].hijos.length == 0) {
                 let posicion = tablaS.obtenerPosicionStack(this.hijos[1].identificador, idAmbito);
                 if (posicion != 'error') {
-                    retorno.c3d += 't' + contadorT + '=P-' + posicion + ';\n';
+                    retorno.c3d += 't' + contadorT + '=P-' + posicion.posicionS + ';\n';
                     retorno.c3d += 'Stack[t' + (contadorT++) + '] = ' + resultado.t + ';\n';
                 }
             }
@@ -815,7 +842,7 @@ class AST {
                 let posicion = tablaS.obtenerPosicionStack(this.hijos[1].identificador, idAmbito);
                 if (posicion != 'error') {
                     let tamano = tablaS.obtenerTamanoFuncion(this.hijos[1].identificador, idAmbito);
-                    retorno.c3d += 't' + contadorT + '=P-' + posicion + ';\n';
+                    retorno.c3d += 't' + contadorT + '=P-' + posicion.posicionS + ';\n';
                     retorno.c3d += 'Stack[t' + (contadorT++) + '] = ' + resultado.t + ';\n';
                 }
             }
@@ -824,7 +851,7 @@ class AST {
                     let posicion = tablaS.obtenerPosicionStack(this.hijos[1].hijos[i].identificador, idAmbito);
                     if (posicion != 'error') {
                         let tamano = tablaS.obtenerTamanoFuncion(this.hijos[1].hijos[i].identificador, idAmbito);
-                        retorno.c3d += 't' + contadorT + '=P-' + posicion + ';\n';
+                        retorno.c3d += 't' + contadorT + '=P-' + posicion.posicionS + ';\n';
                         retorno.c3d += 'Stack[t' + (contadorT++) + '] = ' + resultado.t + ';\n';
                     }
                 }
@@ -1746,7 +1773,56 @@ class AST {
                 return this.hijos[0].compilarAccesoArreglo(idAmbito);
             case 'funcion propia':
                 return this.hijos[0].compilarFuncionPropia(idAmbito);
+            case 'funcion length':
+                return this.hijos[0].compilarFuncionArreglo(idAmbito);
             default:
+        }
+    }
+
+    compilarFuncionArreglo = function compilarFuncionArreglo(idAmbito) {
+        let valor = tablaS.obtenerSimbolo(this.hijos[0].identificador, idAmbito);
+
+        if (valor != 'error') {
+            let retorno = new retornoAST('', 0, '', '', '');
+            let retorno1 = new retornoAST('', 0, '', '', '');
+
+
+            if (valor.tipoSH == 'heap') {
+                retorno.t = 't' + (contadorT);
+                retorno.c3d += 't' + (contadorT++) + '=Heap[' + valor.posicionH + '];\n';
+            }
+            else {
+                let tamano = tablaS.obtenerTamanoFuncion(this.hijos[0].identificador, idAmbito);
+                retorno.c3d += 't' + (contadorT++) + '=P-' + valor.posicionS + ';\n';
+                retorno.c3d += 't' + (contadorT++) + '=Stack[t' + (contadorT - 2) + '];\n';
+                retorno.t = 't' + (contadorT - 1);
+            }
+
+            let resultado = new retornoAST('', 0, '', '', '');
+            if (this.hijos[1].identificador.toLowerCase() == 'length') {
+                resultado.t  = 't'+(contadorT++);
+
+                resultado.c3d +=resultado.t+'=Heap['+retorno.t+'];\n'; 
+                
+                retorno1.tipo = 'integer'
+            }else{
+                let err = new Error('El atrubuto ' + this.hijos[1].identificador+
+                ' no existe', this.hijos[0].linea, this.hijos[0].columna);
+
+                error.push(err)
+            }
+
+            retorno1.c3d += retorno.c3d
+            retorno1.c3d += resultado.c3d
+            retorno1.t = resultado.t
+
+            return retorno1
+        }
+        else {
+            let err = new Error('La variable ' + this.hijos[0].identificador +
+                ' no existe', this.hijos[0].linea, this.hijos[0].columna);
+
+            error.push(err)
         }
     }
 
@@ -1823,7 +1899,7 @@ class AST {
             if (this.hijos[1].identificador.toLowerCase() == 'charat') {
                 let exp = this.hijos[2].obtenerExp(idAmbito)
                 retorno1.c3d = exp.c3d;
-                resultado = this.funciontoCharAt(retorno.t,exp.t)
+                resultado = this.funciontoCharAt(retorno.t, exp.t)
                 retorno1.tipo = 'char'
             }
             if (this.hijos[1].identificador.toLowerCase() == 'tolowercase') {
@@ -1858,24 +1934,24 @@ class AST {
 
         retorno.c3d += 'if(0==t' + (contadorT - 1) + ') goto L' + (contadorL++) + ';\n';
 
-        retorno.c3d += 'if(t'+(contadorT - 1)+'<97) goto L' +(contadorL)+';\n';
-        retorno.c3d += 'if(t'+(contadorT - 1)+'>122) goto L' +(contadorL++)+';\n';
+        retorno.c3d += 'if(t' + (contadorT - 1) + '<97) goto L' + (contadorL) + ';\n';
+        retorno.c3d += 'if(t' + (contadorT - 1) + '>122) goto L' + (contadorL++) + ';\n';
 
-        retorno.c3d += 't'+(contadorT - 1) + '=t'+(contadorT - 1)+'+-32;\n'
+        retorno.c3d += 't' + (contadorT - 1) + '=t' + (contadorT - 1) + '+-32;\n'
 
-        retorno.c3d += 'Heap[t' + (contadorT - 2) + ']=t'+(contadorT - 1)+';\n';
+        retorno.c3d += 'Heap[t' + (contadorT - 2) + ']=t' + (contadorT - 1) + ';\n';
 
         retorno.c3d += 'L' + (contadorL - 1) + ':\n';
-        
+
         retorno.c3d += 't' + (contadorT - 2) + '=t' + (contadorT - 2) + '+1;\n';
         retorno.c3d += 'goto L' + (contadorL - 3) + ';\n';
 
         retorno.c3d += 'L' + (contadorL - 2) + ':\n';
 
-        retorno.t=t;
+        retorno.t = t;
 
         return retorno;
-        
+
     }
 
     funcionTolower = function funcionTolower(t) {
@@ -1887,24 +1963,24 @@ class AST {
 
         retorno.c3d += 'if(0==t' + (contadorT - 1) + ') goto L' + (contadorL++) + ';\n';
 
-        retorno.c3d += 'if(t'+(contadorT - 1)+'<65) goto L' +(contadorL)+';\n';
-        retorno.c3d += 'if(t'+(contadorT - 1)+'>90) goto L' +(contadorL++)+';\n';
+        retorno.c3d += 'if(t' + (contadorT - 1) + '<65) goto L' + (contadorL) + ';\n';
+        retorno.c3d += 'if(t' + (contadorT - 1) + '>90) goto L' + (contadorL++) + ';\n';
 
-        retorno.c3d += 't'+(contadorT - 1) + '=t'+(contadorT - 1)+'+32;\n'
+        retorno.c3d += 't' + (contadorT - 1) + '=t' + (contadorT - 1) + '+32;\n'
 
-        retorno.c3d += 'Heap[t' + (contadorT - 2) + ']=t'+(contadorT - 1)+';\n';
+        retorno.c3d += 'Heap[t' + (contadorT - 2) + ']=t' + (contadorT - 1) + ';\n';
 
         retorno.c3d += 'L' + (contadorL - 1) + ':\n';
-        
+
         retorno.c3d += 't' + (contadorT - 2) + '=t' + (contadorT - 2) + '+1;\n';
         retorno.c3d += 'goto L' + (contadorL - 3) + ';\n';
 
         retorno.c3d += 'L' + (contadorL - 2) + ':\n';
 
-        retorno.t=t;
+        retorno.t = t;
 
         return retorno;
-        
+
     }
 
     funciontoCharAt = function funciontoCharAt(t, exp) {
@@ -2936,8 +3012,14 @@ class AST {
         contadorH = 0;
         contadorS = 0;
         contadorA = 0;
-        this.globalTS();
-
+        error = [];
+        try {
+            this.globalTS();
+        }
+        catch (err) {
+            return err.message
+        }
+        return '';
     }
 
     globalTS = function globalTS() {
@@ -3348,7 +3430,6 @@ class AST {
             }
         }
         else {
-            let resultado = this.hijos[2].hijos[0].obtenerExp(padre, idAmbito);
             if (this.hijos[1].hijos.length == 0) {
 
                 if (this.hijos[0].identificador == 'string') {

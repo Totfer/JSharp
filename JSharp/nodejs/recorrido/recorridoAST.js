@@ -14,6 +14,7 @@ const { Module, render } = require('../Analizador/node_modules/viz.js/full.rende
 
 var ast = require("../Analizador/ast");
 
+
 function llenarNuevoArbol(actual, padre) {
 
     let tmp
@@ -94,12 +95,12 @@ function Compilar(codigo) {
         console.log(token)
     }
 
-    parser.parser.yy.parseError = function parseError (str, hash) {
+    parser.parser.yy.parseError = function parseError(str, hash) {
         if (hash.recoverable) {
-            if(hash.token != 'error'){
-                allError.push({error:'Error cerca de '+hash.text,linea:hash.line,columna:0,tipo:'semantico'});
-            }else{
-                allError.push({error:'Error cerca de '+hash.text,linea:hash.line,columna:0,tipo:'lexico'});    
+            if (hash.token != 'error') {
+                allError.push({ error: 'Error cerca de ' + hash.text, linea: hash.loc.first_line, columna: hash.loc.first_column, tipo: 'semantico' });
+            } else {
+                allError.push({ error: 'Error cerca de ' + hash.text, linea: hash.loc.first_line, columna: hash.loc.first_column, tipo: 'lexico' });
             }
             this.trace(str);
         } else {
@@ -113,37 +114,32 @@ function Compilar(codigo) {
 
     parser.parser.yy.listaIds = [];
 
-    try{
+    try {
         var arbol = parser.parse(codigo);
     }
-    catch(err){
+    catch (err) {
         console.log(err);
-        return {codigo:err.message};
+        return { codigo: err.message };
     }
 
     ambito = {}
     arbol.contadorT = 0;
     arbol.contadorL = 0;
-    arbol.llenarTablaSimbolos();
 
-    try{
-        codigo = arbol.compilar();
-    }
-    catch(exp){
-        console.log(exp);
-    }
+    error = arbol.llenarTablaSimbolos();
+    error2 = arbol.compilar();
+
+    codigo = error
+    codigo += error2.codigo;
 
     console.log("--------------------Todo bien-------------------");
-    // Nodo.Nodo = llenarNuevoArbol(arbol, Nodo.Nodo);
-    //return Interprete(arbol);
     
-    let err2 =  parser.parser.yy.ast.getError();
-    for(let i =0;i<err2.length;i++){
-        err2[i].tipo = 'semantico'
-        allError.push(err2[i]);
+    
+    for (let i = 0; i < error2.error.length; i++) {
+        allError.push(error2.error[i]);
     }
 
-    return {codigo:codigo, tablaSimbolos:tablaS(),errores:tablaE(allError)};
+    return { codigo: codigo, tablaSimbolos: tablaS(), errores: tablaE(allError) };
 }
 
 var auxe = '';
@@ -165,31 +161,31 @@ function tablaS() {
     tablaHtml += ' \t\t\t\t<th>\n';
     tablaHtml += ' \t\t\t\t\tTipo\n';
     tablaHtml += ' \t\t\t\t</th>\n';
-    
+
     tablaHtml += ' \t\t\t\t<th>\n';
     tablaHtml += ' \t\t\t\t\tRol\n';
     tablaHtml += ' \t\t\t\t</th>\n';
-    
+
     tablaHtml += ' \t\t\t\t<th>\n';
     tablaHtml += ' \t\t\t\t\tAmbito\n';
     tablaHtml += ' \t\t\t\t</th>\n';
-    
+
     tablaHtml += ' \t\t\t\t<th>\n';
     tablaHtml += ' \t\t\t\t\tAmbito Padre\n';
     tablaHtml += ' \t\t\t\t</th>\n';
-    
+
     tablaHtml += ' \t\t\t\t<th>\n';
     tablaHtml += ' \t\t\t\t\tStack O Heap\n';
     tablaHtml += ' \t\t\t\t</th>\n';
-    
+
     tablaHtml += ' \t\t\t\t<th>\n';
     tablaHtml += ' \t\t\t\t\tPosicion Stack\n';
     tablaHtml += ' \t\t\t\t</th>\n';
-    
+
     tablaHtml += ' \t\t\t\t<th>\n';
     tablaHtml += ' \t\t\t\t\tPosicion Heap\n';
     tablaHtml += ' \t\t\t\t</th>\n';
-    
+
     tablaHtml += ' \t\t\t\t<th>\n';
     tablaHtml += ' \t\t\t\t\tTamaño\n';
     tablaHtml += ' \t\t\t\t</th>\n';
@@ -217,8 +213,8 @@ function tablaS() {
 
         let padres = '';
 
-        for(let j=0;j<tab[i].padre.length;j++){
-            padres += tab[i].padre[j]+' ';
+        for (let j = 0; j < tab[i].padre.length; j++) {
+            padres += tab[i].padre[j] + ' ';
         }
 
         tablaHtml += '\t\t\t\t<td>\n';
@@ -254,52 +250,52 @@ function tablaS() {
     return tablaHtml;
 }
 
-function tablaE(error){
+function tablaE(error) {
     console.log(error)
-    var tablaHtml ='<html>\n';
+    var tablaHtml = '<html>\n';
     tablaHtml += '\t<body>\n';
     tablaHtml += '\t\t<table class=\"table\">\n';
-   
-    tablaHtml+=' \t\t\t<tbody>\n';
-    tablaHtml+=' \t\t\t<tr class = \"success\">\n';
-    tablaHtml+=' \t\t\t\t<th>\n';
-    tablaHtml+=' \t\t\t\t\tTipo\n';
-    tablaHtml+=' \t\t\t\t</th>\n';
-    tablaHtml+=' \t\t\t\t<th>\n';
-    tablaHtml+=' \t\t\t\t\tError\n';
-    tablaHtml+=' \t\t\t\t</th>\n';
-    tablaHtml+=' \t\t\t\t<th>\n';
-    tablaHtml+=' \t\t\t\t\Linea\n';
-    tablaHtml+=' \t\t\t\t</th>\n';
-    tablaHtml+=' \t\t\t\t<th>\n';
-    tablaHtml+=' \t\t\t\t\tColumna\n';
-    tablaHtml+=' \t\t\t\t</th>\n';
-    tablaHtml+=' \t\t\t</tr>\n';
-    
-    for(var i=0;i<error.length;i++){ 
-        tablaHtml +=  '\t\t\t<tr class=\"warning\">\n';
-        
-        tablaHtml +=  '\t\t\t\t<td>\n';
-        tablaHtml +=  '\t\t\t\t\t'+error[i].tipo+'\n';
-        tablaHtml +=  '\t\t\t\t</td>\n';
-        
-        tablaHtml +=  '\t\t\t\t<td>\n';
-        tablaHtml +=  '\t\t\t\t\t'+error[i].error+'\n';
-        tablaHtml +=  '\t\t\t\t</td>\n';
-        
-        tablaHtml +=  '\t\t\t\t<td>\n';
-        tablaHtml +=  '\t\t\t\t\t'+error[i].linea+'\n';
-        tablaHtml +=  '\t\t\t\t</td>\n';
-        
-        tablaHtml +=  '\t\t\t\t<td>\n';
-        tablaHtml +=  '\t\t\t\t\t'+error[i].columan+'\n';
-        tablaHtml +=  '\t\t\t\t</td>\n';
-    
-        tablaHtml +=  '\t\t\t</tr>\n';   
+
+    tablaHtml += ' \t\t\t<tbody>\n';
+    tablaHtml += ' \t\t\t<tr class = \"success\">\n';
+    tablaHtml += ' \t\t\t\t<th>\n';
+    tablaHtml += ' \t\t\t\t\tTipo\n';
+    tablaHtml += ' \t\t\t\t</th>\n';
+    tablaHtml += ' \t\t\t\t<th>\n';
+    tablaHtml += ' \t\t\t\t\tError\n';
+    tablaHtml += ' \t\t\t\t</th>\n';
+    tablaHtml += ' \t\t\t\t<th>\n';
+    tablaHtml += ' \t\t\t\t\Linea\n';
+    tablaHtml += ' \t\t\t\t</th>\n';
+    tablaHtml += ' \t\t\t\t<th>\n';
+    tablaHtml += ' \t\t\t\t\tColumna\n';
+    tablaHtml += ' \t\t\t\t</th>\n';
+    tablaHtml += ' \t\t\t</tr>\n';
+
+    for (var i = 0; i < error.length; i++) {
+        tablaHtml += '\t\t\t<tr class=\"warning\">\n';
+
+        tablaHtml += '\t\t\t\t<td>\n';
+        tablaHtml += '\t\t\t\t\t' + error[i].tipo + '\n';
+        tablaHtml += '\t\t\t\t</td>\n';
+
+        tablaHtml += '\t\t\t\t<td>\n';
+        tablaHtml += '\t\t\t\t\t' + error[i].error + '\n';
+        tablaHtml += '\t\t\t\t</td>\n';
+
+        tablaHtml += '\t\t\t\t<td>\n';
+        tablaHtml += '\t\t\t\t\t' + error[i].linea + '\n';
+        tablaHtml += '\t\t\t\t</td>\n';
+
+        tablaHtml += '\t\t\t\t<td>\n';
+        tablaHtml += '\t\t\t\t\t' + error[i].columna + '\n';
+        tablaHtml += '\t\t\t\t</td>\n';
+
+        tablaHtml += '\t\t\t</tr>\n';
     }
-    tablaHtml+=' \t\t\t</tbody>\n';
+    tablaHtml += ' \t\t\t</tbody>\n';
     tablaHtml += '\t\t</table>\n';
- 
+
     tablaHtml += '\t</body>\n';
     tablaHtml += '</html>\n';
     return tablaHtml;
@@ -339,12 +335,16 @@ function compilar3D(codigo) {
     retorno = '';
     if (errores.lista.length == 0) {
         codigo = codigo.toLowerCase();
-        var arbol = parser3d.parse(codigo);
-
+        try {
+            var arbol = parser3d.parse(codigo);
+        } catch (err) {
+            ret = { optimizacion: auxo, retorno: err.message, dotc3d: '' };
+            return ret;
+        }
         var aux = llenarNuevoArbol3d(arbol, Nodo3d.Nodo);
 
         var grafo = ''
-       // grafo = Nodo3d.crearGrafo(aux);
+        grafo = Nodo3d.crearGrafo(aux);
 
         var codigoOptimisado = Nodo3d.optimizarCodigo(aux);
         var html = require('../Analizador/index');
@@ -357,7 +357,8 @@ function compilar3D(codigo) {
 
         //retorno = Nodo3d.compilar(aux);
     }
-    ret = { optimizacion: auxo, retorno: codigoOptimisado, dotc3d:grafo };
+    console.log('optimizacion completada')
+    ret = { optimizacion: auxo, retorno: codigoOptimisado, dotc3d: grafo };
     return ret;
 }
 
@@ -366,12 +367,16 @@ function compilar3D2(codigo) {
     retorno = '';
     if (errores.lista.length == 0) {
         codigo = codigo.toLowerCase();
-        var arbol = parser3d.parse(codigo);
-
+        try {
+            var arbol = parser3d.parse(codigo);
+        } catch (err) {
+            ret = { optimizacion: auxo, retorno: err.message, dotc3d: '' };
+            return ret;
+        }
         var aux = llenarNuevoArbol3d(arbol, Nodo3d.Nodo);
 
         var grafo = ''
-       // grafo = Nodo3d.crearGrafo(aux);
+        // grafo = Nodo3d.crearGrafo(aux);
 
         var codigoOptimisado = Nodo3d.optimizarCodigo2(aux);
         var html = require('../Analizador/index');
@@ -384,7 +389,38 @@ function compilar3D2(codigo) {
 
         //retorno = Nodo3d.compilar(aux);
     }
-    ret = { optimizacion: auxo, retorno: codigoOptimisado, dotc3d:grafo };
+    ret = { optimizacion: auxo, retorno: codigoOptimisado, dotc3d: grafo };
+    return ret;
+}
+
+function compilar3D3(codigo) {
+    var errores = require("../Errores/errores");
+    retorno = '';
+    if (errores.lista.length == 0) {
+        codigo = codigo.toLowerCase();
+        try {
+            var arbol = parser3d.parse(codigo);
+        } catch (err) {
+            ret = { optimizacion: auxo, retorno: err.message, dotc3d: '' };
+            return ret;
+        }
+        var aux = llenarNuevoArbol3d(arbol, Nodo3d.Nodo);
+
+        var grafo = ''
+        // grafo = Nodo3d.crearGrafo(aux);
+
+        var codigoOptimisado = Nodo3d.optimizarCodigo3(aux);
+        var html = require('../Analizador/index');
+
+        auxo = html.obtenerTablaOptimisacion();
+
+        var opt = require("../tablaOptimisacion").lista;
+        //  arbol = parser3d.parse(codigoOptimisado);
+        //aux = llenarNuevoArbol3d(arbol, Nodo3d.Nodo);
+
+        //retorno = Nodo3d.compilar(aux);
+    }
+    ret = { optimizacion: auxo, retorno: codigoOptimisado, dotc3d: grafo };
     return ret;
 }
 
@@ -501,6 +537,7 @@ exports.grafoHtmlC3D = function (cb, codigo) {
 
 exports.compilar3D = compilar3D;
 exports.compilar3D2 = compilar3D2;
+exports.compilar3D3 = compilar3D3;
 exports.errores = auxe;
 exports.auxo = auxo;
 exports.tablaSimbolos = auxt;

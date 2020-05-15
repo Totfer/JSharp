@@ -1,20 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+	<meta name="viewport"
+		content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
 	<title>Coline</title>
 	<style type="text/css">
-        /* none of this truly matters, except maybe the wrapper size */
-        body{text-align:center}
-        h1,button{margin:25px;}
-        label,input{margin:0;vertical-align:middle;}
-        #wrapper{border:1px solid red;position:relative;
-        height:500px;width:500px;margin:15px auto}
-        #wrapper::before {
-        content:"wrapper";text-transform: uppercase;left:0px;
-        position:absolute;top:-18px;font-size:16px;color:red; }
-    </style>
+		/* none of this truly matters, except maybe the wrapper size */
+		body {
+			text-align: center
+		}
+
+		h1,
+		button {
+			margin: 25px;
+		}
+
+		label,
+		input {
+			margin: 0;
+			vertical-align: middle;
+		}
+
+		#wrapper {
+			border: 1px solid red;
+			position: relative;
+			height: 500px;
+			width: 500px;
+			margin: 15px auto
+		}
+
+		#wrapper::before {
+			content: "wrapper";
+			text-transform: uppercase;
+			left: 0px;
+			position: absolute;
+			top: -18px;
+			font-size: 16px;
+			color: red;
+		}
+	</style>
 	<link rel="stylesheet" href="estilos.css">
 	<link rel="stylesheet" href="estilosce.css">
 	<link rel="stylesheet" href="font-awesome.css">
@@ -22,14 +48,14 @@
 	<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
 	<script src="main.js"></script>
 	<script src="maince.js"></script>
- 	<script>
-	 var tabActual;
+	<script>
+		var tabActual;
 		function tabActual(tab) {
 			console.log(tab);
 		}
 	</script>
 	<script src="../Analizador/index.js"></script>
-	<script src="./imagen.js"></script>	
+	<script src="./imagen.js"></script>
 	<script src="./asignarTexto.js"></script>
 
 
@@ -38,15 +64,16 @@
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
 
-	
+
 	<script src="../codemirror/lib/codemirror.js"></script>
 
-	<link rel="stylesheet" type ="text/css" href="http://localhost:3000/codemirror/lib/codemirror.css">
-	<link rel="stylesheet" type ="text/css" href="http://localhost:3000/codemirror/theme/neo.css">
+	<link rel="stylesheet" type="text/css" href="http://localhost:3000/codemirror/lib/codemirror.css">
+	<link rel="stylesheet" type="text/css" href="http://localhost:3000/codemirror/theme/neo.css">
 
 	<script src="../codemirror/mode/javascript/javascript.js"></script>
 	<script src="../codemirror/mode/css/css.js"></script>
 </head>
+
 <body>
 	<nav class="navegacion">
 		<ul class="menu">
@@ -57,8 +84,8 @@
 							<p id="texto">Abrir</p>
 							<input id="fileInput" type="file" size="50" onchange="processFiles(this.files)">
 							<script>
-									
-									</script>
+
+							</script>
 						</div>
 					</li>
 					<li><a href="#">Crear</a></li>
@@ -73,27 +100,28 @@
 				</ul>
 			</li>
 			<li><a href="#">Ejecucion de codigo 3d</a></li>
-			<li><a id ="" href="#">Reportes</a>
+			<li><a id="" href="#">Reportes</a>
 				<ul class="submenu">
-						<li>
-							<input class="button buttong" id="butast" type="button" value="Mostrar ast"/>
-						
-						</li>
-					
-						<li>	
-								<input class="button buttong" id="buterr" type="button" value="Reporte errorers de compilcion"/>
-						</li>
-						
-						<li>	
-							<input class="button buttong" id="buttab" type="button" value="Reporte de tabla de simbolos"/>
-						</li>
+					<li>
+						<input class="button buttong" id="butast" type="button" value="Mostrar ast" />
 
-						<li>	
-							<input class="button buttong" id="butopt" type="button" value="Reporte de optimizacion"/>
-						</li>
-						<li>	
-							<input class="button buttong" id="botongrafo" type="button" value="Grafo C3D"/>
-						</li>
+					</li>
+
+					<li>
+						<input class="button buttong" id="buterr" type="button"
+							value="Reporte errorers de compilcion" />
+					</li>
+
+					<li>
+						<input class="button buttong" id="buttab" type="button" value="Reporte de tabla de simbolos" />
+					</li>
+
+					<li>
+						<input class="button buttong" id="butopt" type="button" value="Reporte de optimizacion" />
+					</li>
+					<li>
+						<input class="button buttong" id="botongrafo" type="button" value="Grafo C3D" />
+					</li>
 				</ul>
 			</li>
 
@@ -104,34 +132,35 @@
 	<br>
 	<br>
 	<div class="wrap">
-		<ul  class="tabs">
-			<li><a href="#tab1"   class="active"><span class="fa fa-briefcase"></span><span class="tab-text">Archivo 1</span></a></li>
+		<ul class="tabs">
+			<li><a href="#tab1" class="active"><span class="fa fa-briefcase"></span><span class="tab-text">Archivo
+						1</span></a></li>
 			<li><a href="#tab2"><span class="fa fa-briefcase"></span><span class="tab-text">Archivo 2</span></a></li>
 			<li><a href="#tab3"><span class="fa fa-briefcase"></span><span class="tab-text">Archivo 3</span></a></li>
 			<li><a href="#tab4"><span class="fa fa-briefcase"></span><span class="tab-text">Archivo 4</span></a></li>
 		</ul>
 
-		<div  class="secciones">
+		<div class="secciones">
 			<article id="tab1" style="">
-				<button id ="tab1compilar" class="button">Generar Codigo 3D</button>
+				<button id="tab1compilar" class="button">Generar Codigo 3D</button>
 				<button class="button button3">Detener</button>
 				<button class="button button5">Pausar</button>
 				<div>
-					<textarea class="codemirror-textarea" id="textarea1" rows="30" cols="170"></textarea>
+					<textarea class="codemirror-textarea" id="textarea1" rows="80" cols="200"></textarea>
 
 				</div>
-				
+
 			</article>
 			<article id="tab2" style="display: none;">
-				<button id ="tab2compilar" class="button">Generar Codigo 3D</button>
+				<button id="tab2compilar" class="button">Generar Codigo 3D</button>
 				<button class="button button3">Detener</button>
 				<button class="button button5">Pausar</button>
 				<div>
 					<textarea class="codemirror-textarea" id="textarea2" rows="30" cols="170"></textarea>
-				</div>	
+				</div>
 			</article>
 			<article id="tab3" style="display: none;">
-				<button id ="tab3compilar" class="button">Generar Codigo 3D</button>
+				<button id="tab3compilar" class="button">Generar Codigo 3D</button>
 				<button class="button button3">Detener</button>
 				<button class="button button5">Pausar</button>
 				<div>
@@ -139,7 +168,7 @@
 				</div>
 			</article>
 			<article id="tab4" style="display: none;">
-				<button id ="tab4compilar" class="button">Generar Codigo 3D</button>
+				<button id="tab4compilar" class="button">Generar Codigo 3D</button>
 				<button class="button button3">Detener</button>
 				<button class="button button5">Pausar</button>
 				<div>
@@ -148,293 +177,293 @@
 			</article>
 		</div>
 	</div>
-	
+
 	<div class="wrapce">
-			<ul class="tabsce">
-				<button id ="compi" class="button">Optimisaciones 1</button>
-				<button id ="compi2" class="button">Optimisaciones 2</button>
-		
-				<li><a href="#error" class="activece"><span class="fa fa-briefcase"></span><span class="tab-text">Codigo 3D</span></a></li>
-				<li><a href="#consola"><span class="fa fa-briefcase"></span><span class="tab-text">Consola</span></a></li>
-			</ul>
-	
-			<div class="seccionesce">
-				<article id="error" style="">
-					<div>
-						<textarea id="textareaE" rows="20" cols="170"></textarea>
-					</div>
-					
-				</article>
-				<article id="consola" style="display: none;">
-					<div>
-						<textarea id="Tconsola" rows="20" cols="170"></textarea>
-					</div>	
-				</article>
-			</div>
-		</div>
+		<ul class="tabsce">
+			<button id="compi" class="button">Optimizaciones 1</button>
+			<button id="compi2" class="button">Optimizaciones 2</button>
+			<button id="compi3" class="button">Optimizaciones 3</button>
 
-		<div id="VistaAST" class="jumbotron ast">
-		</div>
+			<li><a href="#error" class="activece"><span class="fa fa-briefcase"></span><span class="tab-text">Codigo
+						3D</span></a></li>
+			<li><a href="#consola"><span class="fa fa-briefcase"></span><span class="tab-text">Consola</span></a></li>
+		</ul>
 
-		<div id="tablaErrores" class="jumbotron ast">
+		<div class="seccionesce">
+			<article id="error" style="">
+				<div>
+					<textarea id="textareaE" rows="20" cols="170"></textarea>
+				</div>
+
+			</article>
+			<article id="consola" style="display: none;">
+				<div>
+					<textarea id="Tconsola" rows="20" cols="170"></textarea>
+				</div>
+			</article>
 		</div>
-	
-		<div id="Optimisaciones" class="jumbotron ast">
-  		</div>
-	 
-		<div id="tablaSimbolos" class="jumbotron ast">
-		</div>
+	</div>
+
+	<div id="VistaAST" class="jumbotron ast">
+	</div>
+
+	<div id="tablaErrores" class="jumbotron ast">
+	</div>
+
+	<div id="Optimisaciones" class="jumbotron ast">
+	</div>
+
+	<div id="tablaSimbolos" class="jumbotron ast">
+	</div>
 	<script>
 
 		var editor1 = CodeMirror.fromTextArea(document.getElementById('textarea1'), {
 			mode: "javascript",
 			theme: 'neo',
-			tabSize : 15,
+			tabSize: 15,
 			lineNumbers: true
-				
+
 		});
-		$("#tab1compilar").click(function(){
-			let texto =editor1.getValue();
+		$("#tab1compilar").click(function () {
+			let texto = editor1.getValue();
 			let cantidad = texto.split('\n');
 
-			for(let i=0;i<cantidad.length;i++){
-				texto = texto.replace('\n','$#@!');
+			for (let i = 0; i < cantidad.length; i++) {
+				texto = texto.replace('\n', '$#@!');
 			}
-			$.ajax({ 
-				url: '/text1/?txt='+texto,
-				type : 'GET',
-				data: {txt:texto}
-			}).done(function(data){
+			$.ajax({
+				url: '/text1/?txt=' + texto,
+				type: 'GET',
+				data: { txt: texto }
+			}).done(function (data) {
 			});
 
-			$.get( "http://localhost:3000/consola", function( data ) {
-					console.log(data);
+			$.get("http://localhost:3000/consola", function (data) {
+				console.log(data);
 			});
 		});
-		
-		$("#compi").click(function(){
-			
-			let texto =document.getElementById('textareaE').value;
-			console.log(texto);
-			let cantidad = texto.split('\n');
-			for(let i=0;i<cantidad.length;i++){
-				texto = texto.replace('\n','$#@!');
-			}
-			
-			$.ajax({ 
-				url: '/compilar/?txt='+texto,
-				type : 'GET',
-				data: {txt:texto}
-			}).done(function(data){
+
+		$("#compi").click(function () {
+
+			let texto = document.getElementById('textareaE').value;
+
+			$.post("http://localhost:3000/compilar", { "texto": texto }, function (data) {
+				console.log(texto)
 			});
 
-			$.get( "http://localhost:3000/consola", function( data ) {
-					$("#Tconsola" ).val( data );
-				});
-
-		});
-		
-		$("#compi2").click(function(){
-			
-			let texto =document.getElementById('textareaE').value;
-			console.log(texto);
-			let cantidad = texto.split('\n');
-			for(let i=0;i<cantidad.length;i++){
-				texto = texto.replace('\n','$#@!');
-			}
-			
-			$.ajax({ 
-				url: '/compilar2/?txt='+texto,
-				type : 'GET',
-				data: {txt:texto}
-			}).done(function(data){
+			$.post("http://localhost:3000/consola", function (data) {
+				$("#Tconsola").val(data);
 			});
 
-			$.get( "http://localhost:3000/consola", function( data ) {
-					$("#Tconsola" ).val( data );
-				});
+		});
+
+		$("#compi2").click(function () {
+
+			let texto = document.getElementById('textareaE').value;
+
+			$.post("http://localhost:3000/compilar2", { "texto": texto }, function (data) {
+				console.log(texto)
+			});
+
+			$.post("http://localhost:3000/consola", function (data) {
+				$("#Tconsola").val(data);
+			});
 
 		});
-		
+
+		$("#compi3").click(function () {
+
+			let texto = document.getElementById('textareaE').value;
+
+			$.post("http://localhost:3000/compilar3", { "texto": texto }, function (data) {
+				console.log(texto)
+			});
+
+			$.post("http://localhost:3000/consola", function (data) {
+				$("#Tconsola").val(data);
+			});
+
+		});
+
 
 		var editor2 = CodeMirror.fromTextArea(document.getElementById('textarea2'), {
 			mode: "javascript",
 			theme: 'neo',
-			tabSize : 15,
+			tabSize: 15,
 			lineNumbers: true
-				
+
 		});
-		$("#tab2compilar").click(function(){
-			let texto =editor2.getValue();
+		$("#tab2compilar").click(function () {
+			let texto = editor2.getValue();
 			let cantidad = texto.split('\n');
 
-			for(let i=0;i<cantidad.length;i++){
-				texto = texto.replace('\n','$#@!');
+			for (let i = 0; i < cantidad.length; i++) {
+				texto = texto.replace('\n', '$#@!');
 			}
-			$.ajax({ 
-				url: '/text2/?txt='+texto,
-				type : 'GET',
-				data: {txt:texto}
-			}).done(function(data){
+			$.ajax({
+				url: '/text2/?txt=' + texto,
+				type: 'GET',
+				data: { txt: texto }
+			}).done(function (data) {
 			});
 
-			$.get( "http://localhost:3000/consola", function( data ) {
-				$("#textareaE" ).val( data );
+			$.get("http://localhost:3000/consola", function (data) {
+				$("#textareaE").val(data);
 			});
 		});
-		
-		
+
+
 		var editor3 = CodeMirror.fromTextArea(document.getElementById('textarea3'), {
 			mode: "javascript",
 			theme: 'neo',
-			tabSize : 15,
+			tabSize: 15,
 			lineNumbers: true
-				
+
 		});
-		$("#tab3compilar").click(function(){
-			let texto =editor3.getValue();
+		$("#tab3compilar").click(function () {
+			let texto = editor3.getValue();
 			let cantidad = texto.split('\n');
 
-			for(let i=0;i<cantidad.length;i++){
-				texto = texto.replace('\n','$#@!');
+			for (let i = 0; i < cantidad.length; i++) {
+				texto = texto.replace('\n', '$#@!');
 			}
-			$.ajax({ 
-				url: '/text3/?txt='+texto,
-				type : 'GET',
-				data: {txt:texto}
-			}).done(function(data){
+			$.ajax({
+				url: '/text3/?txt=' + texto,
+				type: 'GET',
+				data: { txt: texto }
+			}).done(function (data) {
 			});
 
-			$.get( "http://localhost:3000/consola", function( data ) {
-				$("#textareaE" ).val( data );
+			$.get("http://localhost:3000/consola", function (data) {
+				$("#textareaE").val(data);
 			});
 		});
 
 		var editor4 = CodeMirror.fromTextArea(document.getElementById('textarea4'), {
 			mode: "javascript",
 			theme: 'neo',
-			tabSize : 15,
+			tabSize: 15,
 			lineNumbers: true
-				
+
 		});
-		$("#tab4compilar").click(function(){
-			let texto =editor4.getValue();
+		$("#tab4compilar").click(function () {
+			let texto = editor4.getValue();
 			let cantidad = texto.split('\n');
 
-			for(let i=0;i<cantidad.length;i++){
-				texto = texto.replace('\n','$#@!');
+			for (let i = 0; i < cantidad.length; i++) {
+				texto = texto.replace('\n', '$#@!');
 			}
-			$.ajax({ 
-				url: '/text4/?txt='+texto,
-				type : 'GET',
-				data: {txt:texto}
-			}).done(function(data){
+			$.ajax({
+				url: '/text4/?txt=' + texto,
+				type: 'GET',
+				data: { txt: texto }
+			}).done(function (data) {
 			});
 
-			$.get( "http://localhost:3000/consola", function( data ) {
-				$("#textareaE" ).val( data );
+			$.get("http://localhost:3000/consola", function (data) {
+				$("#textareaE").val(data);
 			});
 		});
 
-		var activo='#tab1';
-		var tabActual="#tab1";
+		var activo = '#tab1';
+		var tabActual = "#tab1";
 		function processFiles(files) {
 			var file = files[0];
 			var reader = new FileReader();
-			reader.onload = function (e) {						 
-				if(activo=="#tab1"){
+			reader.onload = function (e) {
+				if (activo == "#tab1") {
 					editor1.getDoc().setValue(e.target.result);
 				}
-				else if(activo=="#tab2"){
+				else if (activo == "#tab2") {
 					editor2.getDoc().setValue(e.target.result);
 				}
-				else if(activo=="#tab3"){
+				else if (activo == "#tab3") {
 					editor3.getDoc().setValue(e.target.result);
 				}
-				else if(activo=="#tab4"){
+				else if (activo == "#tab4") {
 					editor4.getDoc().setValue(e.target.result);
 				}
 			};
 			reader.readAsText(file);
 		}
-		$(document).ready(function(){
-			$('ul.tabs li a').click(function(){
+		$(document).ready(function () {
+			$('ul.tabs li a').click(function () {
 				var activeTab = $(this).attr('href');
 				activo = activeTab;
 			});
 
-			$("#butast").click(function (){
-				$.get( "http://localhost:3000/ast", function( data ) {
-					$("#VistaAST" ).html( data );
+			$("#butast").click(function () {
+				$.get("http://localhost:3000/ast", function (data) {
+					$("#VistaAST").html(data);
 				});
 			});
-			$("#botongrafo").click(function (){
-				$.get( "http://localhost:3000/grafoc3d", function( data ) {
-					$("#VistaAST" ).html( data );
+			$("#botongrafo").click(function () {
+				$.get("http://localhost:3000/grafoc3d", function (data) {
+					$("#VistaAST").html(data);
 				});
 			});
-			$("#butopt").click(function (){
-				$.get( "http://localhost:3000/optimisaciones", function( data ) {
-					$("#Optimisaciones" ).html( data );
+			$("#butopt").click(function () {
+				$.get("http://localhost:3000/optimisaciones", function (data) {
+					$("#Optimisaciones").html(data);
 				});
 			});
-			$("#buterr").click(function (){
-				$.get( "http://localhost:3000/errores", function( data ) {
-					$("#tablaErrores" ).html( data );
+			$("#buterr").click(function () {
+				$.get("http://localhost:3000/errores", function (data) {
+					$("#tablaErrores").html(data);
 				});
 			});
-			$("#buttab").click(function (){
-				$.get( "http://localhost:3000/simbolos", function( data ) {
-					$("#tablaSimbolos" ).html( data );
+			$("#buttab").click(function () {
+				$.get("http://localhost:3000/simbolos", function (data) {
+					$("#tablaSimbolos").html(data);
 				});
 			});
-			
-			$("#tab1compilar").click(function(){
 
-				$.get( "http://localhost:3000/consola", function( data ) {
-					$("#Tconsola" ).val( data );
+			$("#tab1compilar").click(function () {
+
+				$.get("http://localhost:3000/consola", function (data) {
+					$("#Tconsola").val(data);
 				});
 
-				$.get( "http://localhost:3000/codigo3d", function( data ) {
-					$("#textareaE" ).val( data );
-				});
-			});
-			
-			$("#tab2compilar").click(function(){
-
-				$.get( "http://localhost:3000/consola", function( data ) {
-					$("#Tconsola" ).val( data );
-				});
-
-				$.get( "http://localhost:3000/codigo3d", function( data ) {
-					$("#textareaE" ).val( data );
+				$.get("http://localhost:3000/codigo3d", function (data) {
+					$("#textareaE").val(data);
 				});
 			});
-			
-			$("#tab3compilar").click(function(){
 
-				$.get( "http://localhost:3000/consola", function( data ) {
-					$("#Tconsola" ).val( data );
+			$("#tab2compilar").click(function () {
+
+				$.get("http://localhost:3000/consola", function (data) {
+					$("#Tconsola").val(data);
 				});
 
-				$.get( "http://localhost:3000/codigo3d", function( data ) {
-					$("#textareaE" ).val( data );
+				$.get("http://localhost:3000/codigo3d", function (data) {
+					$("#textareaE").val(data);
 				});
 			});
-			
-			$("#tab4compilar").click(function(){
 
-				$.get( "http://localhost:3000/consola", function( data ) {
-					$("#Tconsola" ).val( data );
+			$("#tab3compilar").click(function () {
+
+				$.get("http://localhost:3000/consola", function (data) {
+					$("#Tconsola").val(data);
 				});
 
-				$.get( "http://localhost:3000/codigo3d", function( data ) {
-					$("#textareaE" ).val( data );
+				$.get("http://localhost:3000/codigo3d", function (data) {
+					$("#textareaE").val(data);
+				});
+			});
+
+			$("#tab4compilar").click(function () {
+
+				$.get("http://localhost:3000/consola", function (data) {
+					$("#Tconsola").val(data);
+				});
+
+				$.get("http://localhost:3000/codigo3d", function (data) {
+					$("#textareaE").val(data);
 				});
 			});
 		});
 	</script>
 
 </body>
-		
+
 </html>

@@ -5,8 +5,16 @@ var express = require('express');
 var Compilar = require('./recorrido/recorridoAST.js');
 var Nodo3d   =  require('./Arbol/nodo');
 
+var bodyParser = require("body-parser");
 
 var app = express();
+
+app.use(bodyParser.json())
+
+app.use(bodyParser.urlencoded({
+    extended: true
+}));
+
 var codigo3d = '';
 var tablas;
 var opt;
@@ -92,30 +100,30 @@ app.get('/text1', function(req, res) {
     res.send('todo bien');
 });
 
-app.get('/compilar', function(req, res) {
-    var texto = req.query.txt;
-	let cantidad = texto[1].split('$#@!');
+app.post('/compilar', function(req, res) {
+    var texto = req.body;
 
-	for(let i=0;i<cantidad.length;i++){
-    	texto[1] = texto[1].replace('$#@!','\n');
-	}
-    
-    let temp  = Compilar.compilar3D(texto[1]);
+    let temp  = Compilar.compilar3D(texto.texto);
     dotc3d = temp.dotc3d
     opt = temp.optimizacion;
     retorno = temp.retorno;
     res.send(temp.retorno);
 });
 
-app.get('/compilar2', function(req, res) {
-    var texto = req.query.txt;
-	let cantidad = texto[1].split('$#@!');
-
-	for(let i=0;i<cantidad.length;i++){
-    	texto[1] = texto[1].replace('$#@!','\n');
-	}
+app.post('/compilar2', function(req, res) {
+    var texto = req.body;
     
-    let temp  = Compilar.compilar3D2(texto[1]);
+    let temp  = Compilar.compilar3D2(texto.texto);
+    dotc3d = temp.dotc3d
+    opt = temp.optimizacion;
+    retorno = temp.retorno;
+    res.send(temp.retorno);
+});
+
+app.post('/compilar3', function(req, res) {
+    var texto = req.body;
+    
+    let temp  = Compilar.compilar3D3(texto.texto);
     dotc3d = temp.dotc3d
     opt = temp.optimizacion;
     retorno = temp.retorno;
@@ -128,7 +136,7 @@ app.get('/codigo3d', function(req, res) {
 });
 
 
-app.get('/consola', function(req, res) {
+app.post('/consola', function(req, res) {
     res.send(retorno);
 });
 
