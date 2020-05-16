@@ -211,16 +211,9 @@
 		});
 		$("#tab1compilar").click(function () {
 			let texto = editor1.getValue();
-			let cantidad = texto.split('\n');
-
-			for (let i = 0; i < cantidad.length; i++) {
-				texto = texto.replace('\n', '$#@!');
-			}
-			$.ajax({
-				url: '/text1/?txt=' + texto,
-				type: 'GET',
-				data: { txt: texto }
-			}).done(function (data) {
+			
+			$.post("http://localhost:3000/text1", { "texto": texto }, function (data) {
+				console.log(texto)
 			});
 
 			$.get("http://localhost:3000/consola", function (data) {
@@ -279,16 +272,9 @@
 		});
 		$("#tab2compilar").click(function () {
 			let texto = editor2.getValue();
-			let cantidad = texto.split('\n');
-
-			for (let i = 0; i < cantidad.length; i++) {
-				texto = texto.replace('\n', '$#@!');
-			}
-			$.ajax({
-				url: '/text2/?txt=' + texto,
-				type: 'GET',
-				data: { txt: texto }
-			}).done(function (data) {
+			
+			$.post("http://localhost:3000/text2", { "texto": texto }, function (data) {
+				console.log(texto)
 			});
 
 			$.get("http://localhost:3000/consola", function (data) {
@@ -306,16 +292,9 @@
 		});
 		$("#tab3compilar").click(function () {
 			let texto = editor3.getValue();
-			let cantidad = texto.split('\n');
-
-			for (let i = 0; i < cantidad.length; i++) {
-				texto = texto.replace('\n', '$#@!');
-			}
-			$.ajax({
-				url: '/text3/?txt=' + texto,
-				type: 'GET',
-				data: { txt: texto }
-			}).done(function (data) {
+						
+			$.post("http://localhost:3000/text3", { "texto": texto }, function (data) {
+				console.log(texto)
 			});
 
 			$.get("http://localhost:3000/consola", function (data) {
@@ -332,16 +311,9 @@
 		});
 		$("#tab4compilar").click(function () {
 			let texto = editor4.getValue();
-			let cantidad = texto.split('\n');
-
-			for (let i = 0; i < cantidad.length; i++) {
-				texto = texto.replace('\n', '$#@!');
-			}
-			$.ajax({
-				url: '/text4/?txt=' + texto,
-				type: 'GET',
-				data: { txt: texto }
-			}).done(function (data) {
+			
+			$.post("http://localhost:3000/text4", { "texto": texto }, function (data) {
+				console.log(texto)
 			});
 
 			$.get("http://localhost:3000/consola", function (data) {

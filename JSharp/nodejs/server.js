@@ -84,17 +84,11 @@ app.get('/abrir', function(req, res) {
 });
 
 
-app.get('/text1', function(req, res) {
-    var texto = req.query.txt;
-    
-	let cantidad = texto[1].split('$#@!');
-
-	for(let i=0;i<cantidad.length;i++){
-    	texto[1] = texto[1].replace('$#@!','\n');
-	}
-    
-    tablas = Compilar.Compilar(texto[1],Nodo3d);
-    codigo = texto[1];
+app.post('/text1', function(req, res) {
+    var texto = req.body;
+        
+    tablas = Compilar.Compilar(texto.texto,Nodo3d);
+    codigo = texto.texto;
     retorno = tablas.retorno;
     codigo3d = tablas.codigo; 
     res.send('todo bien');
@@ -159,49 +153,31 @@ app.post('/consola', function(req, res) {
 
 
 
-app.get('/text2', function(req, res) {
-    var texto = req.query.txt;
-    
-	let cantidad = texto[1].split('$#@!');
-
-	for(let i=0;i<cantidad.length;i++){
-    	texto[1] = texto[1].replace('$#@!','\n');
-	}
-    
-    tablas = Compilar.Compilar(texto[1]);
-    codigo = texto[1];
+app.post('/text2', function(req, res) {
+    var texto = req.body;
+        
+    tablas = Compilar.Compilar(texto.texto,Nodo3d);
+    codigo = texto.texto;
     retorno = tablas.retorno;
     codigo3d = tablas.codigo; 
     res.send(tablas.retorno);
 });
 
-app.get('/text3', function(req, res) {
-    var texto = req.query.txt;
+app.post('/text3', function(req, res) {
+    var texto = req.body;
     
-	let cantidad = texto[1].split('$#@!');
-
-	for(let i=0;i<cantidad.length;i++){
-    	texto[1] = texto[1].replace('$#@!','\n');
-	}
-    
-    tablas = Compilar.Compilar(texto[1]);
-    codigo = texto[1];
+    tablas = Compilar.Compilar(texto.texto,Nodo3d);
+    codigo = texto.texto;
     retorno = tablas.retorno;
     codigo3d = tablas.codigo; 
     res.send(tablas.retorno);
 });
 
-app.get('/text4', function(req, res) {
-    var texto = req.query.txt;
+app.post('/text4', function(req, res) {
+    var texto = req.body;
     
-	let cantidad = texto[1].split('$#@!');
-
-	for(let i=0;i<cantidad.length;i++){
-    	texto[1] = texto[1].replace('$#@!','\n');
-	}
-    
-    tablas = Compilar.Compilar(texto[1]);
-    codigo = texto[1];
+    tablas = Compilar.Compilar(texto.texto,Nodo3d);
+    codigo = texto.texto;
     retorno = tablas.retorno;
     codigo3d = tablas.codigo; 
     res.send(tablas.retorno);
