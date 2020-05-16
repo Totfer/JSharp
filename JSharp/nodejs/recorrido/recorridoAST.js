@@ -80,6 +80,7 @@ function llenarNuevoArbol3d(actual, padre) {
 
 var allError = [];
 function Compilar(codigo) {
+    allError = [];
     //codigo = codigo.toLowerCase();;
     parser.parser.yy.crearHoja = function crearHoja(identificador, linea, columna) {
         let astRet = new ast.AST(identificador, linea, columna, []);

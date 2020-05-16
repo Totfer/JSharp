@@ -1767,7 +1767,7 @@ function optimizacion21(contador, actual, t, v1, v2, op) {
                 cadena += 'stack[' + actual.hijos[i].hijos[0].hijos[0].nombre + ']=' + actual.hijos[i].hijos[1].hijos[0].nombre + ';\n';
                 break;
             default:
-                return { i: i - 1, cadena: cadena }
+                return { i: contador, cadena: '' }
         }
     }
     return { i: contador, cadena: '' }
@@ -1785,10 +1785,10 @@ function optimizacion20(contador, actual) {
             return { i: i - 1, cadena: cadena }
         }
         if (devolver) {
-            return { i: contador, cadena: '' }
+            return { i: contador-1, cadena: '' }
         }
     }
-    return { i: contador, cadena: '' }
+    return { i: contador-1, cadena: '' }
 }
 
 function optimizacion19(contador, actual, l) {

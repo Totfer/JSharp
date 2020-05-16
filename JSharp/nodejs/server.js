@@ -100,6 +100,23 @@ app.get('/text1', function(req, res) {
     res.send('todo bien');
 });
 
+app.post('/descaragar/:id', function(req, res) {
+    var fn = req.params.id;
+
+    res.sendFile((path.join(__dirname + '/' +fn)));
+});
+
+app.post('/saveFile', function(req, res) {
+    var texto = req.body;
+    
+    fs.writeFile('html/savef.js', texto.texto, function (err) {
+        if (err) return console.log(err);
+        console.log('El archivo se guardo');
+      });
+
+    res.send("ok");
+});
+
 app.post('/compilar', function(req, res) {
     var texto = req.body;
 

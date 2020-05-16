@@ -515,7 +515,7 @@ class AST {
                     }
                 }
             } else {
-                error.push(Error("La variable no existe"), this.hijos[0].linea, this.hijos[0].columna);
+                error.push(new Error("La variable \"" + this.hijos[0].hijos[0].hijos[0].identificador + "\" no existe"), this.hijos[0].linea, this.hijos[0].columna);
                 retorno.t = 0;
                 retorno.tipo = 'integer'
             }
@@ -819,9 +819,14 @@ class AST {
             if (this.hijos[1].hijos.length == 0) {
                 let posicion = tablaS.obtenerPosicionStack(this.hijos[1].identificador, idAmbito);
                 if (posicion != 'error') {
-                    let tamano = tablaS.obtenerTamanoFuncion(this.hijos[1].identificador, idAmbito);
-                    retorno.c3d += 't' + contadorT + '=P-' + posicion + ';\n';
-                    retorno.c3d += 'Stack[t' + (contadorT++) + '] = 0;\n';
+                    if (posicion.tipoSH == 'heap') {
+                        retorno.c3d += 'Heap[' + (posicion.posicionH) + '] = 0;\n';
+                    }
+                    else {
+                        let tamano = tablaS.obtenerTamanoFuncion(this.hijos[1].identificador, idAmbito);
+                        retorno.c3d += 't' + contadorT + '=P-' + posicion + ';\n';
+                        retorno.c3d += 'Stack[t' + (contadorT++) + '] = 0;\n';
+                    }
                 }
             }
             else {
@@ -841,18 +846,28 @@ class AST {
             if (this.hijos[1].hijos.length == 0) {
                 let posicion = tablaS.obtenerPosicionStack(this.hijos[1].identificador, idAmbito);
                 if (posicion != 'error') {
-                    let tamano = tablaS.obtenerTamanoFuncion(this.hijos[1].identificador, idAmbito);
-                    retorno.c3d += 't' + contadorT + '=P-' + posicion.posicionS + ';\n';
-                    retorno.c3d += 'Stack[t' + (contadorT++) + '] = ' + resultado.t + ';\n';
+                    if (posicion.tipoSH == 'heap') {
+                        retorno.c3d += 'Heap[' + (posicion.posicionH) + '] = ' + resultado.t + ';\n';
+                    }
+                    else {
+                        let tamano = tablaS.obtenerTamanoFuncion(this.hijos[1].identificador, idAmbito);
+                        retorno.c3d += 't' + contadorT + '=P-' + posicion.posicionS + ';\n';
+                        retorno.c3d += 'Stack[t' + (contadorT++) + '] = ' + resultado.t + ';\n';
+                    }
                 }
             }
             else {
                 for (let i = 0; i < this.hijos[1].hijos.length; i++) {
                     let posicion = tablaS.obtenerPosicionStack(this.hijos[1].hijos[i].identificador, idAmbito);
                     if (posicion != 'error') {
-                        let tamano = tablaS.obtenerTamanoFuncion(this.hijos[1].hijos[i].identificador, idAmbito);
-                        retorno.c3d += 't' + contadorT + '=P-' + posicion.posicionS + ';\n';
-                        retorno.c3d += 'Stack[t' + (contadorT++) + '] = ' + resultado.t + ';\n';
+                        if (posicion.tipoSH == 'heap') {
+
+                        }
+                        else {
+                            let tamano = tablaS.obtenerTamanoFuncion(this.hijos[1].hijos[i].identificador, idAmbito);
+                            retorno.c3d += 't' + contadorT + '=P-' + posicion.posicionS + ';\n';
+                            retorno.c3d += 'Stack[t' + (contadorT++) + '] = ' + resultado.t + ';\n';
+                        }
                     }
                 }
             }
@@ -1726,7 +1741,8 @@ class AST {
             error.push({
                 linea: this.linea,
                 columna: this.columna,
-                error: 'El valor debe de ser de tipo integer.'
+                error: 'El valor debe de ser de tipo integer.',
+                tipo: 'semantico'
             });
             return 'error'
         }
@@ -1734,7 +1750,8 @@ class AST {
             error.push({
                 linea: this.linea,
                 columna: this.columna,
-                error: 'El valor debe de ser de tipo integer.'
+                error: 'El valor debe de ser de tipo integer.',
+                tipo: 'semantico'
             });
             return 'error'
         }
@@ -1800,14 +1817,14 @@ class AST {
 
             let resultado = new retornoAST('', 0, '', '', '');
             if (this.hijos[1].identificador.toLowerCase() == 'length') {
-                resultado.t  = 't'+(contadorT++);
+                resultado.t = 't' + (contadorT++);
 
-                resultado.c3d +=resultado.t+'=Heap['+retorno.t+'];\n'; 
-                
+                resultado.c3d += resultado.t + '=Heap[' + retorno.t + '];\n';
+
                 retorno1.tipo = 'integer'
-            }else{
-                let err = new Error('El atrubuto ' + this.hijos[1].identificador+
-                ' no existe', this.hijos[0].linea, this.hijos[0].columna);
+            } else {
+                let err = new Error('El atrubuto ' + this.hijos[1].identificador +
+                    ' no existe', this.hijos[0].linea, this.hijos[0].columna);
 
                 error.push(err)
             }
@@ -2101,10 +2118,15 @@ class AST {
             return retorno
         }
         else {
-            let err = new Error('La variable ' + this.hijos[0].identificador +
-                ' no existe', this.hijos[0].linea, this.hijos[0].columna);
+            let err = new Error('La variable \"' + this.hijos[0].identificador +
+                '\" no existe', this.hijos[0].linea, this.hijos[0].columna);
 
             error.push(err)
+            let retorno = new retornoAST('', 0, '', '', '');
+
+            retorno.tipo = 'integer'
+            retorno.t = 0;
+            return retorno
         }
     }
 
@@ -2322,7 +2344,8 @@ class AST {
             error.push({
                 linea: this.linea,
                 columna: this.columna,
-                error: 'El valor debe de ser de tipo numerico.'
+                error: 'El valor debe de ser de tipo numerico.',
+                tipo: 'semantico'
             });
             return 'error'
         }
@@ -2331,7 +2354,8 @@ class AST {
                 error.push({
                     linea: this.linea,
                     columna: this.columna,
-                    error: 'El valor debe de ser de tipo numerico.'
+                    error: 'El valor debe de ser de tipo numerico.',
+                    tipo: 'semantico'
                 });
                 return 'error'
             }
@@ -2377,7 +2401,8 @@ class AST {
             error.push({
                 linea: this.linea,
                 columna: this.columna,
-                error: 'El valor debe de ser de tipo numerico.'
+                error: 'El valor debe de ser de tipo numerico.',
+                tipo: 'semantico'
             });
             return 'error'
         }
@@ -2386,7 +2411,8 @@ class AST {
                 error.push({
                     linea: this.linea,
                     columna: this.columna,
-                    error: 'El valor debe de ser de tipo numerico.'
+                    error: 'El valor debe de ser de tipo numerico.',
+                    tipo: 'semantico'
                 });
                 return 'error'
             }
@@ -3514,8 +3540,21 @@ class AST {
         if (this.hijos.length == 2) {
 
             if (this.hijos[1].hijos.length == 0) {
-                if (this.hijos[0].identificador == 'string') {
-                    simbolo = new tabla.simbolo(this.hijos[1].identificador.toLowerCase(),
+                if (this.hijos[0].identificador == 'string') {                    
+                    if (this.hijos[0].identificador == 'global') {
+                        simbolo = new tabla.simbolo(this.hijos[1].identificador.toLowerCase(),
+                        this.hijos[0].identificador,
+                        padre,
+                        idAmbito,
+                        (contadorH++),
+                        0,
+                        1,
+                        'heap',
+                        'variable',
+                        cons);
+                    }
+                    else{
+                        simbolo = new tabla.simbolo(this.hijos[1].identificador.toLowerCase(),
                         this.hijos[0].identificador,
                         padre,
                         idAmbito,
@@ -3525,19 +3564,34 @@ class AST {
                         'stack',
                         'variable',
                         cons);
-
+                    }
                 }
-                else {
-                    simbolo = new tabla.simbolo(this.hijos[1].identificador.toLowerCase(),
-                        this.hijos[0].identificador,
-                        padre,
-                        idAmbito,
-                        0,
-                        (contadorS++),
-                        1,
-                        'stack',
-                        'variable',
-                        cons);
+                else {                    
+                    if (this.hijos[0].identificador == 'global') {
+                        simbolo = new tabla.simbolo(this.hijos[1].identificador.toLowerCase(),
+                            this.hijos[0].identificador,
+                            padre,
+                            idAmbito,
+                            (contadorH++),
+                            0,
+                            1,
+                            'heap',
+                            'variable',
+                            cons);
+
+                    }else{
+                        simbolo = new tabla.simbolo(this.hijos[1].identificador.toLowerCase(),
+                            this.hijos[0].identificador,
+                            padre,
+                            idAmbito,
+                            0,
+                            (contadorS++),
+                            1,
+                            'stack',
+                            'variable',
+                            cons);
+
+                    }
 
                 }
 
@@ -3591,31 +3645,59 @@ class AST {
             }
 
             if (this.hijos[1].hijos.length == 0) {
-
                 if (this.hijos[0].identificador == 'string') {
-                    simbolo = new tabla.simbolo(this.hijos[1].identificador,
-                        resultado.tipo,
-                        padre,
-                        idAmbito,
-                        0,
-                        (contadorS++),
-                        1,
-                        'stack',
-                        'variable',
-                        cons);
+                    if (this.hijos[0].identificador == 'global') {
+                        simbolo = new tabla.simbolo(this.hijos[1].identificador,
+                            resultado.tipo,
+                            padre,
+                            idAmbito,
+                            (contadorH++),
+                            0,
+                            1,
+                            'heap',
+                            'variable',
+                            cons);
 
+                    } 
+                    else {
+                        simbolo = new tabla.simbolo(this.hijos[1].identificador,
+                            resultado.tipo,
+                            padre,
+                            idAmbito,
+                            0,
+                            (contadorS++),
+                            1,
+                            'stack',
+                            'variable',
+                            cons);
+                    }
                 }
                 else {
-                    simbolo = new tabla.simbolo(this.hijos[1].identificador,
-                        resultado.tipo,
-                        padre,
-                        idAmbito,
-                        0,
-                        (contadorS++),
-                        1,
-                        'stack',
-                        'variable',
-                        cons);
+                    if (this.hijos[0].identificador == 'global') {
+                        simbolo = new tabla.simbolo(this.hijos[1].identificador,
+                            resultado.tipo,
+                            padre,
+                            idAmbito,
+                            (contadorH++),
+                            0,
+                            1,
+                            'heap',
+                            'variable',
+                            cons);
+
+                    } else {
+                        simbolo = new tabla.simbolo(this.hijos[1].identificador,
+                            resultado.tipo,
+                            padre,
+                            idAmbito,
+                            0,
+                            (contadorS++),
+                            1,
+                            'stack',
+                            'variable',
+                            cons);
+
+                    }
 
                 }
 
