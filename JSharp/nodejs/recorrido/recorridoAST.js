@@ -342,24 +342,20 @@ function compilar3D(codigo) {
             ret = { optimizacion: auxo, retorno: err.message, dotc3d: '' };
             return ret;
         }
+        
         var aux = llenarNuevoArbol3d(arbol, Nodo3d.Nodo);
-
+        
         var grafo = ''
         grafo = Nodo3d.crearGrafo(aux);
-
+        
         var codigoOptimisado = Nodo3d.optimizarCodigo(aux);
+        
         var html = require('../Analizador/index');
-
-        auxo = html.obtenerTablaOptimisacion();
-
-        var opt = require("../tablaOptimisacion").lista;
-        //  arbol = parser3d.parse(codigoOptimisado);
-        //aux = llenarNuevoArbol3d(arbol, Nodo3d.Nodo);
-
-        //retorno = Nodo3d.compilar(aux);
+      
+        auxo = html.obtenerTablaOptimisacion(codigoOptimisado.tabla);
     }
     console.log('optimizacion completada')
-    ret = { optimizacion: auxo, retorno: codigoOptimisado, dotc3d: grafo };
+    ret = { optimizacion: auxo, retorno: codigoOptimisado.ret, dotc3d: grafo };
     return ret;
 }
 
@@ -377,20 +373,15 @@ function compilar3D2(codigo) {
         var aux = llenarNuevoArbol3d(arbol, Nodo3d.Nodo);
 
         var grafo = ''
-        // grafo = Nodo3d.crearGrafo(aux);
+        grafo = Nodo3d.crearGrafo(aux);
 
         var codigoOptimisado = Nodo3d.optimizarCodigo2(aux);
         var html = require('../Analizador/index');
 
-        auxo = html.obtenerTablaOptimisacion();
+        auxo = html.obtenerTablaOptimisacion(codigoOptimisado.tabla);
 
-        var opt = require("../tablaOptimisacion").lista;
-        //  arbol = parser3d.parse(codigoOptimisado);
-        //aux = llenarNuevoArbol3d(arbol, Nodo3d.Nodo);
-
-        //retorno = Nodo3d.compilar(aux);
     }
-    ret = { optimizacion: auxo, retorno: codigoOptimisado, dotc3d: grafo };
+    ret = { optimizacion: auxo, retorno: codigoOptimisado.ret, dotc3d: grafo };
     return ret;
 }
 
@@ -408,20 +399,14 @@ function compilar3D3(codigo) {
         var aux = llenarNuevoArbol3d(arbol, Nodo3d.Nodo);
 
         var grafo = ''
-        // grafo = Nodo3d.crearGrafo(aux);
+        grafo = Nodo3d.crearGrafo(aux);
 
         var codigoOptimisado = Nodo3d.optimizarCodigo3(aux);
         var html = require('../Analizador/index');
 
-        auxo = html.obtenerTablaOptimisacion();
-
-        var opt = require("../tablaOptimisacion").lista;
-        //  arbol = parser3d.parse(codigoOptimisado);
-        //aux = llenarNuevoArbol3d(arbol, Nodo3d.Nodo);
-
-        //retorno = Nodo3d.compilar(aux);
+        auxo = html.obtenerTablaOptimisacion(codigoOptimisado.tabla);
     }
-    ret = { optimizacion: auxo, retorno: codigoOptimisado, dotc3d: grafo };
+    ret = { optimizacion: auxo, retorno: codigoOptimisado.ret, dotc3d: grafo };
     return ret;
 }
 

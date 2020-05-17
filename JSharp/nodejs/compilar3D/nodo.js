@@ -530,7 +530,8 @@ exports.Nodo = Nodo;
 
 
 function optimizarCodigo(actual) {
-    return listaOptimisacion(actual.hijos[0]);
+    tablaOptimisacion = [];
+    return {ret:listaOptimisacion(actual.hijos[0]),tabla:tablaOptimisacion};
 }
 
 exports.optimizarCodigo = optimizarCodigo;
@@ -1042,12 +1043,12 @@ function optimizacion1(contador, actual, t1, t2) {
 
 
 function crearGrafo(actual) {
+    tablaOptimisacion = []
     var grafo = "digraph G {\n";
     grafo += recorrerArbol(actual.hijos[0]);
     grafo += '}'
 
     console.log(grafo);
-
     return grafo;
 }
 exports.crearGrafo = crearGrafo;
@@ -1173,7 +1174,8 @@ function recorrerArbol(actual) {
 
 
 function optimizarCodigo2(actual) {
-    return listaOptimisacion2(actual.hijos[0]);
+    tablaOptimisacion = [];
+    return {ret:listaOptimisacion2(actual.hijos[0]),tabla:tablaOptimisacion};
 }
 
 function listaOptimisacion2(actual) {
@@ -1416,7 +1418,8 @@ function listaOptimisacion2(actual) {
 
 
 function optimizarCodigo3(actual) {
-    return listaOptimisacion3(actual.hijos[0]);
+    tablaOptimisacion = [];
+    return {ret:listaOptimisacion3(actual.hijos[0]),tabla:tablaOptimisacion};
 }
 
 function listaOptimisacion3(actual) {

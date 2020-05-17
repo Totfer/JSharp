@@ -110,8 +110,6 @@ function graficar(child, tabs){
     return grafo;
 }
 
-//var grafo = graficar(arbol, contador);
-
 exports.grafoHtml = function (cb){
     
     let viz = new Viz({ Module, render });
@@ -198,19 +196,19 @@ function generarTablaOptimisacion(tabla){
     tablaHtml+=' \t\t\t</tr>\n';
 
 
-    for(var i=0;i<tabla.lista.length;i++){
+    for(var i=0;i<tabla.length;i++){
         tablaHtml +=  '\t\t\t<tr class=\"info\">\n';
         
         tablaHtml +=  '\t\t\t\t<td>\n';
-        tablaHtml +=  '\t\t\t\t\t'+tabla.lista[i].exp+'\n';
+        tablaHtml +=  '\t\t\t\t\t'+tabla[i].exp+'\n';
         tablaHtml +=  '\t\t\t\t</td>\n';
         
         tablaHtml +=  '\t\t\t\t<td>\n';
-        tablaHtml +=  '\t\t\t\t\t'+tabla.lista[i].result+'\n';
+        tablaHtml +=  '\t\t\t\t\t'+tabla[i].result+'\n';
         tablaHtml +=  '\t\t\t\t</td>\n';
         
         tablaHtml +=  '\t\t\t\t<td>\n';
-        tablaHtml +=  '\t\t\t\t\t'+tabla.lista[i].regla+'\n';
+        tablaHtml +=  '\t\t\t\t\t'+tabla[i].regla+'\n';
         tablaHtml +=  '\t\t\t\t</td>\n';
     
         tablaHtml +=  '\t\t\t</tr>\n';   
@@ -278,9 +276,8 @@ function obtenerTablaSimbolos(){
     return generarTabla(tablaSmbolos);
 }
  
-function obtenerTablaOptimisacion(){
-    var tablaSmbolos = require('../tablaOptimisacion');
-    return generarTablaOptimisacion(tablaSmbolos);
+function obtenerTablaOptimisacion(tabla){
+    return generarTablaOptimisacion(tabla);
 }
  
 exports.obtenerTablaErrores = obtenerTablaErrores;
